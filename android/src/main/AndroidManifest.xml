@@ -1,3 +1,36 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
           package="com.posthermalprinter">
+  <uses-feature
+    android:name="android.hardware.usb.host"
+    android:required="true" />
+
+  <!-- Essential Permissions -->
+  <uses-permission android:name="android.permission.BLUETOOTH" />
+  <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+  <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+  <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
+  <uses-permission android:name="android.permission.INTERNET" />
+  <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+  <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
+  <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+  <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+  <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+  <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+  <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+  <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+
+  <application
+    android:allowBackup="true"
+    android:supportsRtl="true"
+    android:theme="@style/Theme.AppCompat.Light.NoActionBar"/>
+
+  <!-- Required Service -->
+  <service android:name="net.posprinter.service.PosprinterService"
+    android:exported="false" />
+
+  <!-- Optional: USB Device Attached Intent Filter -->
+  <!--    <meta-data-->
+  <!--      android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"-->
+  <!--      android:resource="@xml/device_filter" />-->
+
 </manifest>
