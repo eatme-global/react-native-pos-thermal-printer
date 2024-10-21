@@ -331,6 +331,8 @@ public class PrintJobHandler {
       FontSize fontSize = TextProcessor.parseFontSize(item.hasKey("fontSize") ? Objects.requireNonNull(item.getString("fontSize")) : "NORMAL");
       int widthPercentage = item.hasKey("width") ? Math.min(item.getInt("width"), 100) : 60;
       boolean wrapWords = item.hasKey("wrapWords") ? item.getBoolean("wrapWords") : false;
+      boolean fullWidth = item.hasKey("fullWidth") ? item.getBoolean("fullWidth") : false;
+
 
 
       String type = item.getString("type");
@@ -344,7 +346,13 @@ public class PrintJobHandler {
           Bitmap bitmap = ImagePrinter.downloadImageAsBitmap(imageUrl);
           PrintItem imageItem = new PrintItem(PrintItem.Type.IMAGE, imageUrl, fontWeight, alignment, feedLines, new ArrayList<>(), fontSize);
           imageItem.setBitmap(bitmap);
-          imageItem.setWidthPercentage(widthPercentage);
+
+          if(fullWidth){
+            imageItem.setWidthPercentage(100);
+          } else {
+            imageItem.setWidthPercentage(widthPercentage);
+          }
+
           printItems.add(imageItem);
           break;
         case "QRCODE":

@@ -91,6 +91,7 @@ export interface ImagePrintJobRow {
   type: PrintJobRowType.IMAGE;
   url: string;
   width?: number;
+  fullWidth?: boolean;
   alignment?: PrintAlignment;
 }
 
