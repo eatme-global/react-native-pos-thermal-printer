@@ -17,6 +17,27 @@
 
 + (PrintItem *)createImagePrintItem:(NSDictionary *)item {
     NSString *imageUrl = item[@"url"] ?: @"";
+    
+    NSInteger maxWidth = 190;
+    NSInteger defaultWidth = 100;
+    NSInteger minWidth = 0;
+    NSInteger imageWidth = 100;
+       
+    NSInteger width = [item[@"width"] integerValue] ?: defaultWidth;
+    BOOL fullWidth = [item[@"fullWidth"] boolValue];
+
+    if (fullWidth) {
+       imageWidth = maxWidth;
+    }
+
+
+
+    // Ensure width is within 0-100 range
+    width = MAX(minWidth, MIN(width, defaultWidth));
+
+    imageWidth = MAX(minWidth, MIN(width, defaultWidth));
+           
+    
     NSURL *url = [NSURL URLWithString:imageUrl];
     NSData *imageData = [NSData dataWithContentsOfURL:url];
     
@@ -25,8 +46,9 @@
         return nil;
     }
     
+    
     UIImage *image = [UIImage imageWithData:imageData];
-    UIImage *resizedImage = [PrinterUtils resizeImage:image toWidth:100];
+    UIImage *resizedImage = [PrinterUtils resizeImage:image toWidth:imageWidth];
     
     if (resizedImage == nil) {
         NSLog(@"Failed to resize image from URL: %@", imageUrl);

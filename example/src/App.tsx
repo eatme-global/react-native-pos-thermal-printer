@@ -131,6 +131,7 @@ const PrinterContent: React.FC = () => {
       },
       {
         type: PrintJobRowType.IMAGE,
+        fullWidth: true,
         url: 'https://png.pngtree.com/png-clipart/20190921/original/pngtree-beautiful-black-and-white-butterfly-png-image_4699516.jpg',
         alignment: PrintAlignment.CENTER,
       },
