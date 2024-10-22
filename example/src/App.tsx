@@ -131,9 +131,19 @@ const PrinterContent: React.FC = () => {
       },
       {
         type: PrintJobRowType.IMAGE,
-        fullWidth: true,
+        url: 'https://i.pinimg.com/736x/fa/66/73/fa66736df84509ac13e05c9372131550.jpg',
+        width: 100,
+        alignment: PrintAlignment.LEFT,
+      },
+      {
+        type: PrintJobRowType.CASHBOX,
+      },
+      {
+        type: PrintJobRowType.IMAGE,
+        width: 50,
         url: 'https://png.pngtree.com/png-clipart/20190921/original/pngtree-beautiful-black-and-white-butterfly-png-image_4699516.jpg',
         alignment: PrintAlignment.CENTER,
+        printerWidth: 190.0,
       },
       {
         type: PrintJobRowType.QRCODE,
@@ -141,7 +151,8 @@ const PrinterContent: React.FC = () => {
         alignment: PrintAlignment.RIGHT,
       },
       {
-        type: PrintJobRowType.CASHBOX,
+        type: PrintJobRowType.FEED,
+        lines: 5,
       },
       { type: PrintJobRowType.CUT },
     ];

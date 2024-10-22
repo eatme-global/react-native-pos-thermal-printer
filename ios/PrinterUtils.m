@@ -28,8 +28,7 @@
     return resizedImage;
 }
 
-+ (UIImage *)alignImage:(UIImage *)originalImage alignment:(TextAlignment)alignment {
-    CGFloat printerWidth = 190.0; // Maximum printer width
++ (UIImage *)alignImage:(UIImage *)originalImage alignment:(TextAlignment)alignment printerWidth:(CGFloat)printerWidth {
     CGSize printerSize = CGSizeMake(printerWidth, originalImage.size.height);
     
     UIGraphicsBeginImageContextWithOptions(printerSize, YES, 0.0);

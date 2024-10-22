@@ -93,6 +93,7 @@ export interface ImagePrintJobRow {
   width?: number;
   fullWidth?: boolean;
   alignment?: PrintAlignment;
+  printerWidth?: number;
 }
 
 export interface QrCodePrintJobRow {

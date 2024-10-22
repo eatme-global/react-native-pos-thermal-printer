@@ -22,7 +22,7 @@
  * @param alignment The desired TextAlignment for the image.
  * @return A new UIImage aligned according to the specified alignment.
  */
-+ (UIImage *)alignImage:(UIImage *)originalImage alignment:(TextAlignment)alignment;
++ (UIImage *)alignImage:(UIImage *)originalImage alignment:(TextAlignment)alignment printerWidth:(CGFloat)printerWidth;
 
 /**
  * @brief Splits text into lines based on a specified width.

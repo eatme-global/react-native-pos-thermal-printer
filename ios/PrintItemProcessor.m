@@ -18,26 +18,24 @@
 + (PrintItem *)createImagePrintItem:(NSDictionary *)item {
     NSString *imageUrl = item[@"url"] ?: @"";
     
-    NSInteger maxWidth = 190;
-    NSInteger defaultWidth = 100;
+    NSInteger maxWidth = 280;
+    NSInteger defaultWidth = 280;
     NSInteger minWidth = 0;
     NSInteger imageWidth = 100;
        
     NSInteger width = [item[@"width"] integerValue] ?: defaultWidth;
     BOOL fullWidth = [item[@"fullWidth"] boolValue];
+    CGFloat printerWidth = [item[@"printerWidth"] floatValue] ?: 290.0;
+
 
     if (fullWidth) {
        imageWidth = maxWidth;
+    }else {
+        // Ensure width is within 0-100 range
+        width = MAX(minWidth, MIN(width, defaultWidth));
+        imageWidth = MAX(minWidth, MIN(width, defaultWidth));
     }
 
-
-
-    // Ensure width is within 0-100 range
-    width = MAX(minWidth, MIN(width, defaultWidth));
-
-    imageWidth = MAX(minWidth, MIN(width, defaultWidth));
-           
-    
     NSURL *url = [NSURL URLWithString:imageUrl];
     NSData *imageData = [NSData dataWithContentsOfURL:url];
     
@@ -61,7 +59,7 @@
     FontSize fontSize = [HelperFunctions parseFontSize:item[@"fontSize"] ?: @"NORMAL"];
     NSInteger units = [item[@"unit"] integerValue] ?: 0;
     
-    UIImage *alignedImage = [PrinterUtils alignImage:resizedImage alignment:alignment];
+    UIImage *alignedImage = [PrinterUtils alignImage:resizedImage alignment:alignment printerWidth:printerWidth];
     
     PrintItem *printItem = [[PrintItem alloc] initWithType:PrintItemTypeImage
                                                       text:imageUrl
