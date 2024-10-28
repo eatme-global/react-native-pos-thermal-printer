@@ -303,6 +303,7 @@
     for (NSString *line in lines) {
        NSData *textData = [line dataUsingEncoding:encodeCharset];
        [dataM appendData:textData];
+   
        [dataM appendData:[PosCommand printAndFeedLine]];
     }
 
@@ -311,7 +312,6 @@
         [dataM appendData:[PosCommand selectOrCancleBoldModel:0]];
     }
     
-    [dataM appendData:[PosCommand printAndFeedLine]];
 }
 
 - (void)addColumnToPrintData:(NSMutableData *)dataM item:(PrintItem *)item {
