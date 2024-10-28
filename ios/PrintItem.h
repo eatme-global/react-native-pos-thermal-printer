@@ -61,6 +61,7 @@ typedef NS_ENUM(NSInteger, FontSize) {
 @property (nonatomic, strong) UIImage *bitmapImage;
 @property (nonatomic, strong) NSArray<ColumnItem *> *columns;
 @property (nonatomic, assign) FontSize fontSize;
+@property (nonatomic, assign) BOOL wrapWords;
 
 /**
  * @brief Initializes a new PrintItem instance.
@@ -83,7 +84,8 @@ typedef NS_ENUM(NSInteger, FontSize) {
                    feedLines:(NSInteger)lines
                      columns:(NSArray<ColumnItem *> *)columns
                     fontSize:(FontSize)fontSize
-                       units:(NSInteger)units;
+                       units:(NSInteger)units
+                   wrapWords:(BOOL)wrapWords;
 
 /**
  * @brief Converts the alignment property to an integer value.
@@ -98,6 +100,8 @@ typedef NS_ENUM(NSInteger, FontSize) {
  * @param bitmapImage The UIImage to be set as the bitmap.
  */
 - (void)setBitmap:(UIImage *)bitmapImage;
+
+- (void)setWrapWords:(BOOL)wrapWords;
 
 /**
  * @brief Retrieves the number of units for the print item.

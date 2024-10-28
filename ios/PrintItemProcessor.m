@@ -68,7 +68,8 @@
                                                  feedLines:feedLines
                                                    columns:[NSArray array]
                                                   fontSize:fontSize
-                                                     units:units];
+                                                     units:units
+                                                 wrapWords:false];
     
     [printItem setBitmap:alignedImage];
     return printItem;
@@ -82,6 +83,9 @@
     NSInteger feedLines = [item[@"lines"] integerValue] ?: 0;
     FontSize fontSize = [HelperFunctions parseFontSize:item[@"fontSize"] ?: @"NORMAL"];
     NSInteger units = [item[@"unit"] integerValue] ?: 0;
+    BOOL wrapWords = [item[@"wrapWords"] boolValue];
+
+    NSLog(@"type: %@", type);
     
     PrintItemType printItemType;
     
@@ -109,7 +113,9 @@
                                  feedLines:feedLines
                                    columns:[NSArray array]
                                   fontSize:fontSize
-                                     units:units];
+                                     units:units
+                                 wrapWords:wrapWords];
+
 }
 
 + (PrintItem *)createColumnPrintItem:(NSDictionary *)item fontWeight:(BOOL)fontWeight fontSize:(FontSize)fontSize {
@@ -138,118 +144,7 @@
                                  feedLines:0
                                    columns:columns
                                   fontSize:fontSize
-                                     units:0];
+                                     units:0
+                                 wrapWords:false];
 }
-
-+ (void)processItems:(NSArray<PrintItem *> *)items completion:(void (^)(NSData *printData))completion {
-    NSMutableData *dataM = [NSMutableData dataWithData:[PosCommand initializePrinter]];
-    
-    for (PrintItem *item in items) {
-        [self processItem:item intoData:dataM];
-    }
-    
-    completion(dataM);
-}
-
-+ (void)processItem:(PrintItem *)item intoData:(NSMutableData *)data {
-    switch (item.fontSize) {
-        case FontSizeNormal:
-            [data appendData:[HelperFunctions selectFont:1 width:1]];
-            break;
-        case FontSizeWide:
-            [data appendData:[HelperFunctions selectFont:1 width:2]];
-            break;
-        case FontSizeTall:
-            [data appendData:[HelperFunctions selectFont:2 width:1]];
-            break;
-        case FontSizeBig:
-            [data appendData:[HelperFunctions selectFont:2 width:2]];
-            break;
-    }
-    
-    switch (item.type) {
-        case PrintItemTypeText:
-            [self addTextToPrintData:data item:item];
-            break;
-        case PrintItemTypeFeed:
-            [data appendData:[PosCommand printAndFeedForwardWhitN:item.lines]];
-            break;
-        case PrintItemTypeImage:
-            [data appendData:[PosCommand printRasteBmpWithM:RasterNolmorWH andImage:item.bitmapImage andType:Dithering]];
-            break;
-        case PrintItemTypeColumn:
-            [self addColumnToPrintData:data item:item];
-            break;
-        case PrintItemTypeQRCode:
-            [self addQRCodeToPrintData:data item:item];
-            break;
-        case PrintItemTypeCashBox:
-            [data appendData:[PosCommand openCashBoxRealTimeWithM:0 andT:2]];
-            break;
-        case PrintItemTypeCut:
-            [data appendData:[PosCommand selectCutPageModelAndCutpage:0]];
-            break;
-    }
-}
-
-+ (void)addTextToPrintData:(NSMutableData *)data item:(PrintItem *)item {
-    NSStringEncoding encodeCharset = [PrinterUtils containsChineseCharacter:item.text] ?
-        CFStringConvertEncodingToNSStringEncoding(kCFStringEncodingGB_18030_2000) :
-        CFStringConvertEncodingToNSStringEncoding(kCFStringEncodingDOSLatinUS);
-    
-    [data appendData:[PosCommand selectAlignment:item.getAlignmentAsInt]];
-    
-    if (item.bold) {
-        [data appendData:[PosCommand selectOrCancleBoldModel:1]];
-    }
-    
-    NSData *textData = [item.text dataUsingEncoding:encodeCharset];
-    [data appendData:textData];
-    
-    if (item.bold) {
-        [data appendData:[PosCommand selectOrCancleBoldModel:0]];
-    }
-    
-    [data appendData:[PosCommand printAndFeedLine]];
-}
-
-+ (void)addColumnToPrintData:(NSMutableData *)data item:(PrintItem *)item {
-    if (item.columns) {
-        NSStringEncoding encodeCharset = [PrinterUtils columnsContainChineseCharacters:item.columns] ?
-            CFStringConvertEncodingToNSStringEncoding(kCFStringEncodingGB_18030_2000) :
-            CFStringConvertEncodingToNSStringEncoding(kCFStringEncodingDOSLatinUS);
-        
-        NSInteger maxLines = [[item.columns valueForKeyPath:@"@max.lines.@count"] integerValue];
-        
-        if (item.bold) {
-            [data appendData:[PosCommand selectOrCancleBoldModel:1]];
-        }
-        
-        for (NSInteger lineIndex = 0; lineIndex < maxLines; lineIndex++) {
-            NSMutableString *lineBuilder = [NSMutableString string];
-            
-            for (ColumnItem *column in item.columns) {
-                NSString *line = (lineIndex < column.lines.count) ? column.lines[lineIndex] : @"";
-                NSString *formattedText = [PrinterUtils padText:line width:column.width alignment:column.alignment];
-                [lineBuilder appendString:formattedText];
-            }
-            
-            NSData *lineData = [lineBuilder dataUsingEncoding:encodeCharset];
-            [data appendData:lineData];
-        }
-        
-        if (item.bold) {
-            [data appendData:[PosCommand selectOrCancleBoldModel:0]];
-        }
-    }
-}
-
-+ (void)addQRCodeToPrintData:(NSMutableData *)data item:(PrintItem *)item {
-    [data appendData:[PosCommand selectAlignment:item.getAlignmentAsInt]];
-    [data appendData:[PosCommand setQRcodeUnitsize:item.getUnits]];
-    [data appendData:[PosCommand setErrorCorrectionLevelForQrcode:48]];
-    [data appendData:[PosCommand sendDataToStoreAreaWitQrcodeConent:item.text usEnCoding:CFStringConvertEncodingToNSStringEncoding(kCFStringEncodingGB_18030_2000)]];
-    [data appendData:[PosCommand printTheQRcodeInStore]];
-}
-
 @end

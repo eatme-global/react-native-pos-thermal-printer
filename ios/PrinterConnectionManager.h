@@ -12,7 +12,7 @@
 
 /**
  * @brief Initializes the PrinterConnectionManager with a SecondLibrary instance.
- * @param PosThermalPrinter The SecondLibrary instance to use for communication.
+ * @param thermalPrinterLibrary The SecondLibrary instance to use for communication.
  * @return An initialized PrinterConnectionManager instance.
  */
 - (instancetype)initWithThermalPrinterLibrary:(PosThermalPrinter *)thermalPrinterLibrary;

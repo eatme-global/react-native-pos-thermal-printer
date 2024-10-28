@@ -291,9 +291,22 @@
         [dataM appendData:[PosCommand selectOrCancleBoldModel:1]];
     }
 
-    NSData *textData = [item.text dataUsingEncoding:encodeCharset];
-    [dataM appendData:textData];
+    NSInteger width = 48;
+    
+    if(item.fontSize == FontSizeBig || item.fontSize == FontSizeWide){
+        width = 24;
+    }
+    
+    NSArray<NSString *> *lines = [PrinterUtils splitTextIntoLines:item.text width:width wrapWords:item.wrapWords];
+    
 
+    for (NSString *line in lines) {
+       NSData *textData = [line dataUsingEncoding:encodeCharset];
+       [dataM appendData:textData];
+       [dataM appendData:[PosCommand printAndFeedLine]];
+    }
+
+    
     if (item.bold) {
         [dataM appendData:[PosCommand selectOrCancleBoldModel:0]];
     }

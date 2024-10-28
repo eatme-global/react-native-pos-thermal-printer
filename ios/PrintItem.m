@@ -29,7 +29,8 @@
                    feedLines:(NSInteger)lines
                      columns:(NSArray<ColumnItem *> *)columns
                     fontSize:(FontSize)fontSize
-                       units:(NSInteger)units{
+                       units:(NSInteger)units
+                   wrapWords:(BOOL)wrapWords{
     self = [super init];
     if (self) {
         _type = type;
@@ -40,6 +41,7 @@
         _columns = columns;
         _fontSize = fontSize;
         _units = units;
+        _wrapWords = wrapWords;
     }
     return self;
 }
@@ -60,6 +62,8 @@
 - (void)setBitmap:(UIImage *)bitmapImage {
     self.bitmapImage = bitmapImage;
 }
+
+
 
 - (NSInteger)getUnits {
     return _units;
