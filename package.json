@@ -1,6 +1,6 @@
 {
   "name": "react-native-pos-thermal-printer",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "description": "pos printer package for react native",
   "source": "./src/index.tsx",
   "main": "./lib/commonjs/index.js",
