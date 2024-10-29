@@ -70,7 +70,7 @@ export async function openCashBox(ip: string): Promise<void> {
     };
     await EscPosPrinter.setPrintJobs(
       ip,
-      { type: PrintJobRowType.CASHBOX },
+      [{ type: PrintJobRowType.CASHBOX }],
       JSON.stringify(metadata)
     );
   } catch (error) {

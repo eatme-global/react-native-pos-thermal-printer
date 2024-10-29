@@ -252,7 +252,7 @@
                         [self addQRCodeToPrintData:dataM item:item];
                         break;
                     case PrintItemTypeCashBox:
-                        [dataM appendData:[PosCommand openCashBoxRealTimeWithM:0 andT:2]];
+                        [wifiManager POSWriteCommandWithData:[PosCommand openCashBoxRealTimeWithM:0 andT:2]];
                         break;
                     case PrintItemTypeCut:
                         [dataM appendData:[PosCommand selectCutPageModelAndCutpage:0]];
