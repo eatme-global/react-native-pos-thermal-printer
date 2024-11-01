@@ -41,7 +41,7 @@ export default function App() {
     []
   );
   return (
-    <EventServiceProvider reconnectFunction={customRetryFunction}>
+    <EventServiceProvider onReconnect={customRetryFunction}>
       <PrinterContent />
     </EventServiceProvider>
   );
@@ -145,11 +145,11 @@ const PrinterContent: React.FC = () => {
         alignment: PrintAlignment.CENTER,
         printerWidth: 190.0,
       },
-      {
-        type: PrintJobRowType.QRCODE,
-        text: 'https://upload.wikimedia.org/wikipedia/commons/2/24/Adidas_logo.png',
-        alignment: PrintAlignment.RIGHT,
-      },
+      // {
+      //   type: PrintJobRowType.QRCODE,
+      //   text: 'https://upload.wikimedia.org/wikipedia/commons/2/24/Adidas_logo.png',
+      //   alignment: PrintAlignment.RIGHT,
+      // },
       {
         type: PrintJobRowType.FEED,
         lines: 5,

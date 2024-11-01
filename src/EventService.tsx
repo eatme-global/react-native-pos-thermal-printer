@@ -4,7 +4,6 @@ import { NativeEventEmitter, NativeModules, Platform } from 'react-native';
 const { PrinterReachability } = NativeModules;
 
 const { PosThermalPrinter } = NativeModules;
-
 const eventEmitter = new NativeEventEmitter(
   Platform.OS === 'android' ? PrinterReachability : PosThermalPrinter
 );
@@ -13,25 +12,22 @@ type ReconnectFunction = (printerIp: string) => Promise<void>;
 
 interface EventServiceProviderProps {
   children: React.ReactNode;
-  reconnectFunction: ReconnectFunction;
+  onReconnect?: ReconnectFunction;
 }
 
 export const EventServiceProvider: React.FC<EventServiceProviderProps> = ({
   children,
-  reconnectFunction,
+  onReconnect,
 }) => {
   useEffect(() => {
     const subscription = eventEmitter.addListener(
       'PrinterUnreachable',
       async (event: { printerIp: string }) => {
-        console.log(
-          `Printer unreachable event received for IP: ${event.printerIp}`
-        );
-        await reconnectFunction(event.printerIp);
+        await onReconnect?.(event.printerIp);
       }
     );
     return () => subscription.remove();
-  }, [reconnectFunction]);
+  }, [onReconnect]);
 
   return <>{children}</>;
 };

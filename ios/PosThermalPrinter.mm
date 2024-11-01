@@ -150,10 +150,18 @@ RCT_EXPORT_METHOD(checkIsReachable:(NSString *)printerIp
 RCT_EXPORT_METHOD(retryPrinterConnection:(NSString *)printerIp
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
-{
+{   
     [self.printerConnectionManager retryPrinterConnection:printerIp completion:^(BOOL success) {
-        resolve(@(success));
-    }];
+            if (success) {
+                NSLog(@"Printer Connection is successful");
+                [self.printerJobManager updateJobsForPrinter:printerIp toNewIP:printerIp completion:^(BOOL jobsUpdated) {
+                    resolve(@(jobsUpdated));
+                }];
+            } else {
+                NSLog(@"Printer Connection failed");
+                resolve(@NO);
+            }
+        }];
 }
 
 /**

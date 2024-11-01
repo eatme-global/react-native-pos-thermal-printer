@@ -105,4 +105,11 @@ public class PrinterJob {
     this.isPending = true;
   }
 
+  /**
+   * Marks this print job as pending.
+   */
+  public void removePending() {
+    this.isPending = false;
+  }
+
 }

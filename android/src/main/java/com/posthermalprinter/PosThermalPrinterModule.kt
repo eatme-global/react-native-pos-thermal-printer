@@ -139,6 +139,9 @@ class PosThermalPrinterModule(private val reactContext: ReactApplicationContext)
   fun retryPrinterConnection(ip: String, promise: Promise) {
     if (printerManager != null) {
       val result = printerManager?.addPrinterAsync(ip)?.get();
+      if(result == true){
+        printerManager?.changePendingPrintJobsPrinter(ip, ip);
+      }
       promise.resolve(result)
     } else {
       promise.resolve(false)

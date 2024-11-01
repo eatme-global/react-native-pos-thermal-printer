@@ -11,6 +11,7 @@
 
 @property (nonatomic, weak) PosThermalPrinter *thermalPrinterLibrary;
 @property (nonatomic, strong) NSMutableArray *printQueue;
+@property (nonatomic, strong) NSMutableArray *pendingQueue;
 @property (nonatomic, strong) dispatch_queue_t printExecutor;
 @property (atomic, assign) BOOL isPaused;
 @property (atomic, strong) PrinterJob *currentJob;
@@ -25,6 +26,7 @@
     if (self) {
         _thermalPrinterLibrary = thermalPrinterLibrary;
         _printQueue = [NSMutableArray new];
+        _pendingQueue = [NSMutableArray new];
         _printExecutor = dispatch_queue_create("com.printer.printExecutor", DISPATCH_QUEUE_SERIAL);
         _isPaused = NO;
         _queueLock = [[NSLock alloc] init];
@@ -46,10 +48,10 @@
         }
         
         if (!jobFound) {
-            for (PrinterJob *job in self.printQueue) {
+            for (PrinterJob *job in self.pendingQueue) {
                 if ([job.jobId isEqualToString:jobId]) {
                     jobToPrint = job;
-                    [self.printQueue removeObject:job];
+                    [self.pendingQueue removeObject:job];
                     jobFound = YES;
                     break;
                 }
@@ -67,7 +69,7 @@
 //                    [self.secondLibrary sendPrinterUnreachableEvent:newPrinterIP];
                 } else {
                     [self.queueLock lock];
-                    [self.printQueue addObject:jobToPrint];
+                    [self.pendingQueue addObject:jobToPrint];
                     [self.queueLock unlock];
                 }
                 completion(success);
@@ -91,7 +93,7 @@
         }
         
         NSMutableArray *jobsToKeep = [NSMutableArray array];
-        for (PrinterJob *job in self.printQueue) {
+        for (PrinterJob *job in self.pendingQueue) {
             if (![job.jobId isEqualToString:jobId]) {
                 [jobsToKeep addObject:job];
             } else {
@@ -99,7 +101,7 @@
             }
         }
         
-        self.printQueue = jobsToKeep;
+        self.pendingQueue = jobsToKeep;
         
         [self.queueLock unlock];
         
@@ -120,7 +122,7 @@
                 [pendingJobsArray addObject:[self jobToDictionary:self.currentJob]];
             }
             
-            for (PrinterJob *job in self.printQueue) {
+            for (PrinterJob *job in self.pendingQueue) {
                 if (job.pending) {
                     [pendingJobsArray addObject:[self jobToDictionary:job]];
                 }
@@ -158,11 +160,43 @@
 }
 
 - (void)addPrintJob:(PrinterJob *)job {
+    if (!job) {
+        NSLog(@"Warning: Attempting to add nil job");
+        return;
+    }
+
     [self.queueLock lock];
-    [self.printQueue addObject:job];
-    [self.queueLock unlock];
     
-    [self processPrintQueue];
+    BOOL shouldAddToPendingQueue = NO;
+
+    
+    @try {
+        
+        // Check if the printer IP exists in pending queue
+        for (PrinterJob *pendingJob in self.pendingQueue) {
+            if ([pendingJob.targetPrinterIp isEqualToString:job.targetPrinterIp]) {
+                shouldAddToPendingQueue = YES;
+                break;
+            }
+        }
+        
+        // Add to appropriate queue based on check
+        if (shouldAddToPendingQueue) {
+            [self.pendingQueue addObject:job];
+            NSLog(@"Job added to pending queue for printer: %@", job.targetPrinterIp);
+        } else {
+            [self.printQueue addObject:job];
+            NSLog(@"Job added to print queue for printer: %@", job.targetPrinterIp);
+        }
+    }
+    @finally {
+        [self.queueLock unlock];  // Always unlock in finally block
+    }
+    
+    // Process queue after adding job
+    if (!shouldAddToPendingQueue) {
+        [self processPrintQueue];
+    }
 }
 
 - (void)processPrintQueue {
@@ -195,12 +229,14 @@
             
             job.pending = YES;
             [self.queueLock lock];
-            [self.printQueue addObject:job];
+            [self.pendingQueue addObject:job];
             [self.queueLock unlock];
             [[PrinterConnectionManager sharedInstance] sendPrinterUnreachableEventOnce:job.targetPrinterIp];
             
         }
         
+     
+      
         [self.queueLock lock];
         self.currentJob = nil;
         [self.queueLock unlock];
@@ -384,13 +420,31 @@
         
         BOOL jobsUpdated = NO;
         
-        // Update jobs in the queue
-        for (PrinterJob *job in self.printQueue) {
-            if ([job.targetPrinterIp isEqualToString:oldIP]) {
-                job.targetPrinterIp = newIP;
-                jobsUpdated = YES;
-            }
+//        // Update pending jobs in the queue
+//        for (PrinterJob *job in self.pendingQueue) {
+//            if ([job.targetPrinterIp isEqualToString:oldIP]) {
+//                job.targetPrinterIp = newIP;
+//                jobsUpdated = YES;
+//                [self.pendingQueue removeObject:job];
+//                [self.printQueue addObject:job];
+//            }
+//        }
+        
+        // Filter jobs that need to be updated
+        NSPredicate *predicate = [NSPredicate predicateWithFormat:@"targetPrinterIp == %@", oldIP];
+        NSArray *jobsToMove = [self.pendingQueue filteredArrayUsingPredicate:predicate];
+        
+        // Update and move jobs
+        for (PrinterJob *job in jobsToMove) {
+            job.targetPrinterIp = newIP;
+            [self.printQueue addObject:job];
+            jobsUpdated = YES;
         }
+        
+        // Remove moved jobs from pending queue
+        [self.pendingQueue removeObjectsInArray:jobsToMove];
+            
+        
         
         // Update current job if it exists
         if (self.currentJob && [self.currentJob.targetPrinterIp isEqualToString:oldIP]) {

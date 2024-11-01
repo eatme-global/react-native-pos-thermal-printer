@@ -108,22 +108,22 @@ public class PrintQueueProcessor {
 
         if (printerExists) {
           try {
-            boolean printSuccess = printerManager.printToPrinter(job).get();
-            if (printSuccess) {
-              Log.i(TAG, "Printed job '" + job.getJobContent() + "' on printer " + manager);
-              eventManager.resetPrinterUnreachableStatus(job.getTargetPrinterIp());
-              processed = true;
-            } else {
-              Log.e(TAG, "Print failed for job '" + job.getJobContent() + "'. Will retry.");
-              job.setPending();
-              eventManager.sendPrinterUnreachableEventOnce(job.getTargetPrinterIp());
-
+            if(!job.getIsPending()){
               try {
-                Thread.sleep(300);
+                Thread.sleep(700);
               } catch (InterruptedException e) {
                 Log.e(TAG, "Sleep interrupted", e);
               }
-
+              boolean printSuccess = printerManager.printToPrinter(job).get();
+              if (printSuccess) {
+                Log.i(TAG, "Printed job '" + job.getJobContent() + "' on printer " + manager);
+                eventManager.resetPrinterUnreachableStatus(job.getTargetPrinterIp());
+                processed = true;
+              } else {
+                eventManager.sendPrinterUnreachableEventOnce(job.getTargetPrinterIp());
+                Log.e(TAG, "Print failed for job '" + job.getJobContent() + "'. Will retry.");
+                job.setPending();
+              }
             }
           } catch (InterruptedException | ExecutionException e) {
             job.setPending();
@@ -132,10 +132,10 @@ public class PrintQueueProcessor {
         } else {
           Log.e(TAG, "Target printer IP " + job.getTargetPrinterIp() + " not found in the printer info list.");
           job.setPending();
-          eventManager.sendPrinterUnreachableEventOnce(job.getTargetPrinterIp());
+//          eventManager.sendPrinterUnreachableEventOnce(job.getTargetPrinterIp());
 
           try {
-            Thread.sleep(300);
+            Thread.sleep(500);
           } catch (InterruptedException e) {
             Log.e(TAG, "Sleep interrupted", e);
           }
@@ -147,11 +147,10 @@ public class PrintQueueProcessor {
 
     if (!processed) {
       // If job wasn't processed successfully, re-add it to the queue
-
-
       synchronized (printQueue) {
         printQueue.offer(job);
       }
+
       // Add a small delay before retrying to avoid tight loops
       try {
         Thread.sleep(1000);
@@ -229,6 +228,7 @@ public class PrintQueueProcessor {
       for (PrinterJob job : tempQueue) {
         if (job.getTargetPrinterIp().equals(oldPrinterIp) && printerInfo != null) {
           job.setNewTargetPrinterIp(printerInfo.printerName, printerInfo.portInfo);
+          job.removePending();
         }
         // Add the job back to the original queue
         printQueue.add(job);
@@ -239,7 +239,6 @@ public class PrintQueueProcessor {
       } catch (InterruptedException e) {
         Log.e(TAG, "Sleep interrupted", e);
       }
-
       // Trigger processing of the updated queue
       processPrintQueue(binder);
     } else {
@@ -298,6 +297,7 @@ public class PrintQueueProcessor {
       for (PrinterJob job : tempQueue) {
         if (job.getJobId().equals(jobId) && printerInfo != null) {
           job.setNewTargetPrinterIp(printerInfo.printerName, printerInfo.portInfo);
+          job.removePending();
         }
         // Add the job back to the original queue
         printQueue.add(job);
