@@ -241,7 +241,7 @@
         self.currentJob = nil;
         [self.queueLock unlock];
         
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), self.printExecutor, ^{
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)), self.printExecutor, ^{
             [self processNextJob];
         });
     }];
@@ -299,7 +299,17 @@
             }
             
             [wifiManager POSWriteCommandWithData:dataM];
-            [wifiManager POSDisConnect];
+            
+            dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
+
+            // Add delay to ensure print completes
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)),
+                         dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+                [wifiManager POSDisConnect];
+                dispatch_semaphore_signal(semaphore);
+            });
+            
+            dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
             
             completion(YES);
         } else {
