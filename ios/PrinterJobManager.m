@@ -375,8 +375,10 @@
     if(item.fontSize == FontSizeBig || item.fontSize == FontSizeWide){
         width = 24;
     }
+
+    NSString *itemString = [PrinterUtils sanitizeStringForPrinter:item.text];
     
-    NSArray<NSString *> *lines = [PrinterUtils splitTextIntoLines:item.text width:width wrapWords:item.wrapWords];
+    NSArray<NSString *> *lines = [PrinterUtils splitTextIntoLines:itemString width:width wrapWords:item.wrapWords];
     
 
     for (NSString *line in lines) {

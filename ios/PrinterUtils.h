@@ -63,4 +63,7 @@
  */
 + (NSInteger)getVisualWidth:(NSString *)str;
 
++ (NSString *)sanitizeStringForPrinter:(NSString *)inputString;
+
+
 @end

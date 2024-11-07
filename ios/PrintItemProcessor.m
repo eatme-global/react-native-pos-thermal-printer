@@ -128,11 +128,14 @@
     if (columnArray) {
         for (NSDictionary *columnItem in columnArray) {
             NSString *columnText = columnItem[@"text"] ?: @"";
+
+            NSString *processedColumnText = [PrinterUtils sanitizeStringForPrinter:columnText];
+
             NSInteger columnWidth = [columnItem[@"width"] integerValue] ?: 10;
             BOOL wrapWordsColumn = [columnItem[@"wrapWords"] boolValue] ?: false;
             
             TextAlignment columnAlignment = [HelperFunctions parseAlignment:columnItem[@"alignment"]];
-            NSArray<NSString *> *lines = [PrinterUtils splitTextIntoLines:columnText width:columnWidth wrapWords:wrapWordsColumn];
+            NSArray<NSString *> *lines = [PrinterUtils splitTextIntoLines:processedColumnText width:columnWidth wrapWords:wrapWordsColumn];
             
             ColumnItem *columnItemNew = [[ColumnItem alloc] initWithText:columnText alignment:columnAlignment width:columnWidth lines:lines];
             

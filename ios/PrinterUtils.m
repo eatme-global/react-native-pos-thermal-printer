@@ -262,4 +262,48 @@
     return (character >= 0x4E00 && character <= 0x9FFF);
 }
 
+
++ (NSString *)sanitizeStringForPrinter:(NSString *)inputString {
+    if (!inputString) {
+           return @"";
+       }
+       
+       NSMutableString *result = [NSMutableString string];
+       
+       // Define allowed special characters
+       NSString *allowedSpecialChars = @"!@#$%^&*()_+-=[]\\{}|;':\",./<>?`~ ";
+       
+       // Define German and Latin special characters
+       NSString *allowedLatinChars = @"äöüßÄÖÜáéíóúýÁÉÍÓÚÝàèìòùÀÈÌÒÙãõñÃÕÑâêîôûÂÊÎÔÛëïüÿËÏÜŸçÇ";
+       
+       // Process each character
+       for (NSUInteger i = 0; i < inputString.length; i++) {
+           NSString *currentChar = [inputString substringWithRange:NSMakeRange(i, 1)];
+           unichar charCode = [currentChar characterAtIndex:0];
+           
+           // Check if it's English alphabet or number (ASCII range)
+           BOOL isEnglishOrNumber = (charCode >= 32 && charCode <= 126);
+           
+           // Check if it's an allowed special character
+           BOOL isAllowedSpecial = [allowedSpecialChars containsString:currentChar];
+           
+           // Check if it's a German/Latin character
+           BOOL isLatinChar = [allowedLatinChars containsString:currentChar];
+           
+           // Check if it's Chinese character (CJK Unified Ideographs range)
+           BOOL isChineseChar = (charCode >= 0x4E00 && charCode <= 0x9FFF);
+           
+           // Check if it's extended Latin character
+           BOOL isExtendedLatin = (charCode >= 0x00C0 && charCode <= 0x00FF);
+           
+           if (isEnglishOrNumber || isAllowedSpecial || isChineseChar || isLatinChar || isExtendedLatin) {
+               [result appendString:currentChar];
+           }
+           // No else clause - unsupported characters are simply skipped
+       }
+       
+       return result;
+}
+
+
 @end
