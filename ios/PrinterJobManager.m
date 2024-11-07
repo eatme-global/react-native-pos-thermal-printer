@@ -34,6 +34,30 @@
     return self;
 }
 
+- (NSTimeInterval)timeoutForType:(NSString *)type {
+    if ([type isEqualToString:@"KOT"]) {
+        return 0.3;
+    } else if ([type isEqualToString:@"RECEIPT"]) {
+        return 1.0;
+    } else if ([type isEqualToString:@"BILL"]) {
+        return 1.0;
+    } else if ([type isEqualToString:@"TEST_CONNECTION"]) {
+        return 0.1;
+    } else if ([type isEqualToString:@"CASH_IN_OUT"]) {
+        return 0.1;
+    } else if ([type isEqualToString:@"OPEN_DRAWER"]) {
+        return 0.1;
+    } else if ([type isEqualToString:@"SHIFT_OPEN_SUMMARY"]) {
+        return 0.4;
+    } else if ([type isEqualToString:@"SHIFT_CLOSE_SUMMARY"]) {
+        return 0.8;
+    } else if ([type isEqualToString:@"ITEM_SALES_REPORT"]) {
+        return 0.4;
+    }
+    return 0.5;
+}
+
+
 - (void)retryPendingJobFromNewPrinter:(NSString *)jobId newPrinterIP:(NSString *)newPrinterIP completion:(void (^)(BOOL success))completion {
     dispatch_async(self.printExecutor, ^{
         BOOL jobFound = NO;
@@ -241,7 +265,7 @@
         self.currentJob = nil;
         [self.queueLock unlock];
         
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)), self.printExecutor, ^{
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1 * NSEC_PER_SEC)), self.printExecutor, ^{
             [self processNextJob];
         });
     }];
@@ -249,6 +273,7 @@
 
 - (void)printJob:(PrinterJob *)job completion:(void (^)(BOOL success))completion {
     POSWIFIManager *wifiManager = [[POSWIFIManager alloc] init];
+    
 
     [wifiManager POSConnectWithHost:job.targetPrinterIp port:9100 completion:^(BOOL isConnect) {
         if (isConnect) {
@@ -300,11 +325,19 @@
             
             [wifiManager POSWriteCommandWithData:dataM];
             
+            // Parse metadata and get timeout
+            NSError *jsonError;
+            NSDictionary *metadata = [NSJSONSerialization JSONObjectWithData:[job.metadata dataUsingEncoding:NSUTF8StringEncoding]
+                                                                   options:NSJSONReadingAllowFragments
+                                                                     error:&jsonError];
+            NSString *printType = metadata[@"type"];
+            NSTimeInterval timeout = [self timeoutForType:printType];
+          
             dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
 
             // Add delay to ensure print completes
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)),
-                         dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(timeout * NSEC_PER_SEC)),
+                         dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{         
                 [wifiManager POSDisConnect];
                 dispatch_semaphore_signal(semaphore);
             });
@@ -484,5 +517,7 @@
         @"jobId": job.jobId ?: [NSNull null]
     };
 }
+
+
 
 @end
