@@ -15,10 +15,27 @@
     return [NSString stringWithFormat:@"PJ-%@-%@", timestamp, [uuidString substringToIndex:8]];
 }
 
-+ (UIImage *)resizeImage:(UIImage *)image toWidth:(CGFloat)width {
+
+// Modified resize function to handle both width and height constraints
++ (UIImage *)resizeImage:(UIImage *)image maxWidth:(CGFloat)maxWidth maxHeight:(CGFloat)maxHeight {
+    if (image == nil) {
+        return nil;
+    }
+    
     CGSize originalSize = image.size;
-    CGFloat aspectRatio = originalSize.height / originalSize.width;
-    CGSize newSize = CGSizeMake(width, width * aspectRatio);
+    CGFloat widthRatio = maxWidth / originalSize.width;
+    CGFloat heightRatio = maxHeight / originalSize.height;
+    
+    // Use the smaller ratio to ensure both width and height constraints are met
+    CGFloat scaleFactor = MIN(widthRatio, heightRatio);
+    
+    // If image is smaller than both constraints, don't upscale
+    if (originalSize.width <= maxWidth && originalSize.height <= maxHeight) {
+        return image;
+    }
+    
+    CGSize newSize = CGSizeMake(originalSize.width * scaleFactor,
+                               originalSize.height * scaleFactor);
     
     UIGraphicsBeginImageContextWithOptions(newSize, NO, 0.0);
     [image drawInRect:CGRectMake(0, 0, newSize.width, newSize.height)];

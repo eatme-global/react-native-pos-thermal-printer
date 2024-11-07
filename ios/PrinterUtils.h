@@ -14,7 +14,7 @@
  * @brief Generates a unique job ID for print jobs.
  * @return A string containing a unique job ID.
  */
-+ (UIImage *)resizeImage:(UIImage *)image toWidth:(CGFloat)width;
++ (UIImage *)resizeImage:(UIImage *)image maxWidth:(CGFloat)maxWidth maxHeight:(CGFloat)maxHeight;
 
 /**
  * @brief Aligns an image within the printer's width based on the specified alignment.

@@ -21,7 +21,8 @@
     NSInteger maxWidth = 280;
     NSInteger defaultWidth = 280;
     NSInteger minWidth = 0;
-    NSInteger imageWidth = 100;
+    NSInteger imageWidth = 280;
+    NSInteger maxHeight = 130;
        
     NSInteger width = [item[@"width"] integerValue] ?: defaultWidth;
     BOOL fullWidth = [item[@"fullWidth"] boolValue];
@@ -46,7 +47,9 @@
     
     
     UIImage *image = [UIImage imageWithData:imageData];
-    UIImage *resizedImage = [PrinterUtils resizeImage:image toWidth:imageWidth];
+    UIImage *resizedImage = [PrinterUtils resizeImage:image
+                                                maxWidth:imageWidth
+                                               maxHeight:maxHeight];
     
     if (resizedImage == nil) {
         NSLog(@"Failed to resize image from URL: %@", imageUrl);
