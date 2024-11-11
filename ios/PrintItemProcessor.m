@@ -87,8 +87,6 @@
     FontSize fontSize = [HelperFunctions parseFontSize:item[@"fontSize"] ?: @"NORMAL"];
     NSInteger units = [item[@"unit"] integerValue] ?: 0;
     BOOL wrapWords = [item[@"wrapWords"] boolValue];
-
-    NSLog(@"type: %@", type);
     
     PrintItemType printItemType;
     

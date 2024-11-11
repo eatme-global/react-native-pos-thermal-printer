@@ -241,3 +241,48 @@ export async function initializePrinterPool(): Promise<boolean> {
     return false;
   }
 }
+
+// New Implementation
+
+export async function getPendingPrinterJobs(
+  printerIp: string
+): Promise<ParsedPendingJob[]> {
+  try {
+    const rawPendingJobs: RawPendingJob[] =
+      await EscPosPrinter.getPrinterPendingJobDetails(printerIp);
+
+    if (rawPendingJobs && rawPendingJobs.length > 0) {
+      return rawPendingJobs.map((job) => ({
+        ...job,
+        metadata: JSON.parse(job.metadata),
+      }));
+    }
+  } catch (error) {
+    console.error('Error initializing printer pool:', error);
+    return [];
+  }
+
+  return [];
+}
+
+export async function deletePrinterPendingJobs(
+  printerIp: string
+): Promise<boolean> {
+  try {
+    return await EscPosPrinter.dismissPendingJobs(printerIp);
+  } catch (error) {
+    console.error('Error deleting pending job:', error);
+    return false;
+  }
+}
+
+export async function retryPendingJobsFromPrinter(
+  printerIp: string
+): Promise<boolean> {
+  try {
+    return await EscPosPrinter.retryPendingJobsFromPrinter(printerIp);
+  } catch (error) {
+    console.error('Error deleting pending job:', error);
+    return false;
+  }
+}

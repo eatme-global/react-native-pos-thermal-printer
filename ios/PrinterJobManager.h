@@ -52,4 +52,9 @@
  */
 - (void)updateJobsForPrinter:(NSString *)oldIP toNewIP:(NSString *)newIP completion:(void (^)(BOOL jobsUpdated))completion;
 
+// New Implementation
+- (void)dismissPrinterJobs:(NSString *)printerIp completion:(void (^)(BOOL removed))completion;
+- (void)getPrinterPendingJobDetails:(NSString *)printerIp completion:(void (^)(NSArray *pendingJobs))completion;
+
+
 @end

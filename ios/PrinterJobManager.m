@@ -152,6 +152,7 @@
                 }
             }
             
+            
             [self.queueLock unlock];
             
             self.isPaused = NO;
@@ -206,6 +207,7 @@
         
         // Add to appropriate queue based on check
         if (shouldAddToPendingQueue) {
+            job.pending = YES;
             [self.pendingQueue addObject:job];
             NSLog(@"Job added to pending queue for printer: %@", job.targetPrinterIp);
         } else {
@@ -224,13 +226,13 @@
 }
 
 - (void)processPrintQueue {
-    NSLog(@"ProcessPrintQueue executing");
     dispatch_async(self.printExecutor, ^{
         [self processNextJob];
     });
 }
 
 - (void)processNextJob {
+    
     if (self.isPaused) {
         return;
     }
@@ -520,6 +522,93 @@
     };
 }
 
+
+// New Printer Implementation
+
+- (void)dismissPrinterJobs:(NSString *)printerIp completion:(void (^)(BOOL removed))completion {
+    dispatch_async(self.printExecutor, ^{
+        self.isPaused = YES;
+        
+        [self.queueLock lock];
+        
+        BOOL jobsUpdated = NO;
+        
+        // Check and update current job
+        if (self.currentJob && [self.currentJob.targetPrinterIp isEqualToString:printerIp]) {
+            self.currentJob = nil;
+            jobsUpdated = YES;
+        }
+        
+        // Remove jobs from pending queue for the specified printer IP
+        NSMutableArray *jobsToKeep = [NSMutableArray array];
+        for (PrinterJob *job in self.pendingQueue) {
+            if (![job.targetPrinterIp isEqualToString:printerIp]) {
+                [jobsToKeep addObject:job];
+            } else {
+                jobsUpdated = YES;
+            }
+        }
+        
+        // Update pending queue with filtered jobs
+        if (self.pendingQueue.count != jobsToKeep.count) {
+            self.pendingQueue = jobsToKeep;
+            jobsUpdated = YES;
+        }
+        
+        [self.queueLock unlock];
+        
+        self.isPaused = NO;
+        
+        // Resume queue processing if there are jobs
+        if (self.printQueue.count > 0 || self.currentJob) {
+            [self processPrintQueue];
+        }
+        
+        completion(jobsUpdated);
+    });
+}
+
+
+- (void)getPrinterPendingJobDetails:(NSString *)printerIp completion:(void (^)(NSArray *pendingJobs))completion {
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        NSMutableArray *pendingJobsArray = [NSMutableArray array];
+        
+        self.isPaused = YES;
+        
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)), dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+            [self.queueLock lock];
+            
+            // Check current job
+            if (self.currentJob &&
+                self.currentJob.pending &&
+                [self.currentJob.targetPrinterIp isEqualToString:printerIp]) {
+                [pendingJobsArray addObject:[self jobToDictionary:self.currentJob]];
+            }
+            
+
+            NSLog(@"pendingQueue count: %lu", (unsigned long)self.pendingQueue.count);
+            // Check pending queue
+            for (PrinterJob *job in self.pendingQueue) {
+                
+                if (job.pending && [job.targetPrinterIp isEqualToString:printerIp]) {
+                    NSLog(@"printer IP: %@", job.targetPrinterIp);
+                    [pendingJobsArray addObject:[self jobToDictionary:job]];
+                }
+            }
+            
+            [self.queueLock unlock];
+            
+            self.isPaused = NO;
+            
+            [self processPrintQueue];
+            
+            NSLog(@"pending count: %lu", (unsigned long)pendingJobsArray.count);
+
+            
+            completion(pendingJobsArray);
+        });
+    });
+}
 
 
 @end

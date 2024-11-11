@@ -154,15 +154,33 @@ RCT_EXPORT_METHOD(retryPrinterConnection:(NSString *)printerIp
     [self.printerConnectionManager retryPrinterConnection:printerIp completion:^(BOOL success) {
             if (success) {
                 NSLog(@"Printer Connection is successful");
-                [self.printerJobManager updateJobsForPrinter:printerIp toNewIP:printerIp completion:^(BOOL jobsUpdated) {
-                    resolve(@(jobsUpdated));
-                }];
+                resolve(@YES);
             } else {
                 NSLog(@"Printer Connection failed");
                 resolve(@NO);
             }
         }];
 }
+
+RCT_EXPORT_METHOD(retryPendingJobs:(NSString *)printerIp
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    [self.printerConnectionManager retryPrinterConnection:printerIp completion:^(BOOL success) {
+            if (success) {
+                NSLog(@"Printer Connection is successful");
+                [self.printerJobManager updateJobsForPrinter:printerIp toNewIP:printerIp completion:^(BOOL jobsUpdated) {
+                    resolve(@(jobsUpdated));
+                }];
+                resolve(@YES);
+            } else {
+                NSLog(@"Printer Connection failed");
+                resolve(@NO);
+            }
+        }];
+}
+
+
 
 /**
  * @brief Sets print jobs for a specific printer.
@@ -225,6 +243,58 @@ RCT_EXPORT_METHOD(getPrinterPoolStatus:(RCTPromiseResolveBlock)resolve
         resolve(printers);
     }];
 }
+
+
+// New Implementations
+
+RCT_EXPORT_METHOD(getPrinterPendingJobDetails:(NSString *)printerIp
+                  resolver: (RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    [self.printerJobManager getPrinterPendingJobDetails:printerIp completion:^(NSArray *pendingJobs) {
+        resolve(pendingJobs);
+    }];
+}
+
+
+RCT_EXPORT_METHOD(dismissPendingJobs:(NSString *)printerIp
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    [self.printerConnectionManager retryPrinterConnection:printerIp completion:^(BOOL success) {
+            if (success) {
+                NSLog(@"Printer Connection is successful");
+                
+                [self.printerJobManager dismissPrinterJobs:printerIp completion:^(BOOL removed) {
+                        resolve(@(removed));
+                }];
+            } else {
+                NSLog(@"Printer Connection failed");
+                resolve(@NO);
+            }
+        }];
+}
+
+
+RCT_EXPORT_METHOD(retryPendingJobsFromPrinter:(NSString *)printerIp
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    [self.printerConnectionManager retryPrinterConnection:printerIp completion:^(BOOL success) {
+            if (success) {
+                NSLog(@"Printer Connection is successful");
+                
+                [self.printerJobManager updateJobsForPrinter:printerIp toNewIP:printerIp completion:^(BOOL jobsUpdated) {
+                    resolve(@(jobsUpdated));
+                }];
+                
+            } else {
+                NSLog(@"Printer Connection failed");
+                resolve(@NO);
+            }
+        }];
+}
+
 
 
 

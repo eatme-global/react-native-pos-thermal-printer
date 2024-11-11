@@ -75,31 +75,34 @@ const PrinterContent: React.FC = () => {
     removePrinterFromPool,
     printPendingJobsWithNewPrinter,
     isInitialized,
-    getPendingJobs,
+    // getPendingJobs,
+    getPendingPrinterJobs,
     deletePendingJob,
     retryPendingJobFromNewPrinter,
+    deletePrinterPendingJobs,
+    retryPendingJobsFromPrinter,
   } = useThermalPrinter();
 
   useEffect(() => {}, [isInitialized]);
 
   const handlePrintTest = (ip: string) => {
     const result: PrintJobRow[] = [
-      {
-        type: PrintJobRowType.TEXT,
-        text: 'String with ƒäñçÿ çhåråctérs, ä, ö, ü, and ß',
-        bold: PrintFontWeight.BOLD,
-        alignment: PrintAlignment.CENTER,
-        fontSize: PrintFontSize.NORMAL,
-        wrapWords: false,
-      },
-      {
-        type: PrintJobRowType.TEXT,
-        text: 'String with ƒäñçÿ çhåråctérs, German uses the same ä, ö, ü, and ß',
-        bold: PrintFontWeight.BOLD,
-        alignment: PrintAlignment.CENTER,
-        fontSize: PrintFontSize.NORMAL,
-        wrapWords: false,
-      },
+      // {
+      //   type: PrintJobRowType.TEXT,
+      //   text: 'String with ƒäñçÿ çhåråctérs, ä, ö, ü, and ß',
+      //   bold: PrintFontWeight.BOLD,
+      //   alignment: PrintAlignment.CENTER,
+      //   fontSize: PrintFontSize.NORMAL,
+      //   wrapWords: false,
+      // },
+      // {
+      //   type: PrintJobRowType.TEXT,
+      //   text: 'String with ƒäñçÿ çhåråctérs, German uses the same ä, ö, ü, and ß',
+      //   bold: PrintFontWeight.BOLD,
+      //   alignment: PrintAlignment.CENTER,
+      //   fontSize: PrintFontSize.NORMAL,
+      //   wrapWords: false,
+      // },
       { type: PrintJobRowType.FEED, lines: 1 },
       {
         type: PrintJobRowType.COLUMN,
@@ -129,12 +132,12 @@ const PrinterContent: React.FC = () => {
           { text: 'Price', width: 19, alignment: PrintAlignment.RIGHT },
         ],
       },
-      {
-        type: PrintJobRowType.IMAGE,
-        url: 'https://i.pinimg.com/736x/fa/66/73/fa66736df84509ac13e05c9372131550.jpg',
-        width: 100,
-        alignment: PrintAlignment.LEFT,
-      },
+      // {
+      //   type: PrintJobRowType.IMAGE,
+      //   url: 'https://i.pinimg.com/736x/fa/66/73/fa66736df84509ac13e05c9372131550.jpg',
+      //   width: 100,
+      //   alignment: PrintAlignment.LEFT,
+      // },
       {
         type: PrintJobRowType.CASHBOX,
       },
@@ -193,13 +196,34 @@ const PrinterContent: React.FC = () => {
   const handleDeleteJob = async (jobId: string) => {
     const status = await deletePendingJob(jobId);
     if (status) {
-      fetchPendingJobs();
+      // fetchPendingJobs();
     }
   };
 
-  const fetchPendingJobs = async () => {
-    const result = await getPendingJobs();
+  // const fetchPendingJobs = async () => {
+  // const result = await getPendingJobs();
+  // setPendingJobs(result);
+  // };
+
+  const fetchPrinterPendingJobs = async (ip: string) => {
+    const result = await getPendingPrinterJobs(ip);
+    console.log(result.length);
     setPendingJobs(result);
+  };
+
+  const deletePendingJobs = async (ip: string) => {
+    const result = await deletePrinterPendingJobs(ip);
+    if (result) {
+      setPendingJobs([]);
+    }
+  };
+
+  const retryPendingPrinterJobs = async (ip: string) => {
+    const result = await retryPendingJobsFromPrinter(ip);
+    if (result) {
+      // fetchPendingJobs();
+      fetchPrinterPendingJobs(ip);
+    }
   };
 
   const handlePendingJobPrintFromNewPrinter = async (jobId: string) => {
@@ -207,7 +231,7 @@ const PrinterContent: React.FC = () => {
     if (newPrinterIp) {
       const status = await retryPendingJobFromNewPrinter(jobId, newPrinterIp);
       if (status) {
-        fetchPendingJobs();
+        // fetchPendingJobs();
       }
     }
   };
@@ -340,7 +364,27 @@ const PrinterContent: React.FC = () => {
               title="Print Pending Jobs with New Printer"
               onPress={() => printPendingJobsWithNewPrinter(ipOld, ipNew)}
             />
+            <View
+              style={{
+                height: 2,
+                backgroundColor: 'black',
+                width: 300,
+                marginVertical: 20,
+              }}
+            />
 
+            <Button
+              title="delete pending Jobs 127"
+              onPress={() => deletePendingJobs('192.168.8.127')}
+            />
+            {pendingJobs.length > 0 ? (
+              <Button
+                title="retry Pending Jobs 127"
+                onPress={() => retryPendingPrinterJobs('192.168.8.127')}
+              />
+            ) : (
+              <View />
+            )}
             <View>
               {pendingJobs.length > 0 &&
                 pendingJobs.map((job, index) => {
@@ -405,7 +449,10 @@ const PrinterContent: React.FC = () => {
                 })}
             </View>
           </View>
-          <Button title="Get Pending Jobs" onPress={fetchPendingJobs} />
+          <Button
+            title="Get Pending Jobs 127"
+            onPress={() => fetchPrinterPendingJobs('192.168.8.127')}
+          />
         </View>
       </ScrollView>
     </SafeAreaView>

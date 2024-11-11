@@ -12,6 +12,9 @@ import {
   initializePrinterPool,
   retryPendingJobFromNewPrinter,
   openCashBox,
+  getPendingPrinterJobs,
+  deletePrinterPendingJobs,
+  retryPendingJobsFromPrinter,
 } from './printerModule';
 import { PRINTER_WIDTH, type PrinterStatus, type IPPrinter } from './types';
 
@@ -62,6 +65,9 @@ export const useThermalPrinter = () => {
     getPendingJobs,
     retryPendingJobFromNewPrinter,
     openCashBox,
+    getPendingPrinterJobs,
+    deletePrinterPendingJobs,
+    retryPendingJobsFromPrinter,
   };
 };
 
