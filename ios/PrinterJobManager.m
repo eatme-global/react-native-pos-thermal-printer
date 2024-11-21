@@ -192,37 +192,37 @@
 
     [self.queueLock lock];
     
-    BOOL shouldAddToPendingQueue = NO;
-
-    
+//    BOOL shouldAddToPendingQueue = NO;
+//
+//    
     @try {
-        
-        // Check if the printer IP exists in pending queue
-        for (PrinterJob *pendingJob in self.pendingQueue) {
-            if ([pendingJob.targetPrinterIp isEqualToString:job.targetPrinterIp]) {
-                shouldAddToPendingQueue = YES;
-                break;
-            }
-        }
-        
-        // Add to appropriate queue based on check
-        if (shouldAddToPendingQueue) {
-            job.pending = YES;
-            [self.pendingQueue addObject:job];
-            NSLog(@"Job added to pending queue for printer: %@", job.targetPrinterIp);
-        } else {
+//        
+//        // Check if the printer IP exists in pending queue
+//        for (PrinterJob *pendingJob in self.pendingQueue) {
+//            if ([pendingJob.targetPrinterIp isEqualToString:job.targetPrinterIp]) {
+//                shouldAddToPendingQueue = YES;
+//                break;
+//            }
+//        }
+//        
+//        // Add to appropriate queue based on check
+//        if (shouldAddToPendingQueue) {
+//            job.pending = YES;
+//            [self.pendingQueue addObject:job];
+//            NSLog(@"Job added to pending queue for printer: %@", job.targetPrinterIp);
+//        } else {
             [self.printQueue addObject:job];
             NSLog(@"Job added to print queue for printer: %@", job.targetPrinterIp);
-        }
+//        }
     }
     @finally {
         [self.queueLock unlock];  // Always unlock in finally block
     }
     
     // Process queue after adding job
-    if (!shouldAddToPendingQueue) {
+//    if (!shouldAddToPendingQueue) {
         [self processPrintQueue];
-    }
+//    }
 }
 
 - (void)processPrintQueue {
@@ -253,12 +253,14 @@
     [self printJob:job completion:^(BOOL success) {
         if (!success) {
             
-            job.pending = YES;
-            [self.queueLock lock];
-            [self.pendingQueue addObject:job];
-            [self.queueLock unlock];
-            [[PrinterConnectionManager sharedInstance] sendPrinterUnreachableEventOnce:job.targetPrinterIp];
+//            job.pending = YES;
+//            [self.queueLock lock];
+//            [self.pendingQueue addObject:job];
+//            [self.queueLock unlock];
             
+            [self.thermalPrinterLibrary sendPrinterUnreachableEvent:job.targetPrinterIp];
+           
+//            [self.thermalPrinterLibrary sendPrinterUnreachableEvent:job.targetPrinterIp];
         }
         
      
