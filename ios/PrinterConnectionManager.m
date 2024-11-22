@@ -68,13 +68,14 @@
 - (void)addPrinterToPool:(NSDictionary *)config completion:(void (^)(BOOL success))completion {
     NSString *ip = config[@"ip"];
     
-    if ([self.printerPool containsObject:ip]) {
-        completion(YES);
-        return;
-    }
-    
+
     [self.printerConnectionUtils isPrinterReachable:ip completion:^(BOOL isReachable) {
         if (isReachable) {
+            if ([self.printerPool containsObject:ip]) {
+                completion(YES);
+                return;
+            }
+            
             self.printerConfigs[ip] = config;
             [self.printerPool addObject:ip];
             [self resetPrinterUnreachableStatus:ip];

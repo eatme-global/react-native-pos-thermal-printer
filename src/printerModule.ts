@@ -242,8 +242,21 @@ export async function initializePrinterPool(): Promise<boolean> {
   }
 }
 
-// New Implementation
-
+/**
+ * Retrieves all pending print jobs for a specific printer.
+ *
+ * This function fetches and parses pending jobs from a specific printer,
+ * transforming the raw job data into a structured format with parsed metadata.
+ *
+ * @async
+ * @function getPendingPrinterJobs
+ * @param {string} printerIp - The IP address of the printer to get pending jobs from.
+ * @returns {Promise<ParsedPendingJob[]>} A promise that resolves to an array of parsed pending jobs.
+ * If no jobs are found or an error occurs, returns an empty array.
+ *
+ * @throws {Error} If there's an error fetching the pending jobs, it will be caught and logged,
+ * and the function will return an empty array.
+ */
 export async function getPendingPrinterJobs(
   printerIp: string
 ): Promise<ParsedPendingJob[]> {
@@ -265,6 +278,21 @@ export async function getPendingPrinterJobs(
   return [];
 }
 
+/**
+ * Deletes all pending print jobs for a specific printer.
+ *
+ * This function attempts to remove all pending jobs associated with the specified printer.
+ * It's useful for clearing the print queue when jobs are no longer needed or in error state.
+ *
+ * @async
+ * @function deletePrinterPendingJobs
+ * @param {string} printerIp - The IP address of the printer whose jobs should be deleted.
+ * @returns {Promise<boolean>} A promise that resolves to true if all jobs were successfully deleted,
+ * false if the operation failed.
+ *
+ * @throws {Error} If there's an error during the deletion process, it will be caught and logged,
+ * and the function will return false.
+ */
 export async function deletePrinterPendingJobs(
   printerIp: string
 ): Promise<boolean> {
@@ -276,6 +304,22 @@ export async function deletePrinterPendingJobs(
   }
 }
 
+/**
+ * Retries all pending print jobs for a specific printer.
+ *
+ * This function attempts to reprocess all pending jobs for the specified printer.
+ * It's useful for recovering from printer errors or connectivity issues where jobs
+ * need to be resent to the same printer.
+ *
+ * @async
+ * @function retryPendingJobsFromPrinter
+ * @param {string} printerIp - The IP address of the printer whose jobs should be retried.
+ * @returns {Promise<boolean>} A promise that resolves to true if the retry operation was successful,
+ * false if the operation failed.
+ *
+ * @throws {Error} If there's an error during the retry process, it will be caught and logged,
+ * and the function will return false.
+ */
 export async function retryPendingJobsFromPrinter(
   printerIp: string
 ): Promise<boolean> {

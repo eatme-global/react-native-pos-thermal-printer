@@ -12,12 +12,22 @@ import {
 } from 'react-native';
 
 import {
+  addPrinterToPool,
+  deletePendingJob,
+  deletePrinterPendingJobs,
   EventServiceProvider,
+  getPendingPrinterJobs,
+  getPrinterPoolStatus,
   PrintAlignment,
   PrintFontSize,
   PrintFontWeight,
   PrintJobRowType,
-  useThermalPrinter,
+  printPendingJobsWithNewPrinter,
+  printText,
+  reconnectPrinter,
+  removePrinterFromPool,
+  retryPendingJobFromNewPrinter,
+  retryPendingJobsFromPrinter,
 } from 'react-native-pos-thermal-printer';
 
 import type {
@@ -27,7 +37,7 @@ import type {
   PrinterStatus,
 } from 'react-native-pos-thermal-printer';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 
 export default function App() {
   const customRetryFunction = useCallback(
@@ -66,24 +76,6 @@ const PrinterContent: React.FC = () => {
   };
 
   const [pendingJobs, setPendingJobs] = useState<ParsedPendingJob[]>([]);
-
-  const {
-    reconnectPrinter,
-    printText,
-    addPrinterToPool,
-    getPrinterPoolStatus,
-    removePrinterFromPool,
-    printPendingJobsWithNewPrinter,
-    isInitialized,
-    // getPendingJobs,
-    getPendingPrinterJobs,
-    deletePendingJob,
-    retryPendingJobFromNewPrinter,
-    deletePrinterPendingJobs,
-    retryPendingJobsFromPrinter,
-  } = useThermalPrinter();
-
-  useEffect(() => {}, [isInitialized]);
 
   const handlePrintTest = (ip: string) => {
     const result: PrintJobRow[] = [
@@ -241,221 +233,235 @@ const PrinterContent: React.FC = () => {
   const [ip, setIp] = useState<string>('');
 
   return (
-    <SafeAreaView>
-      <ScrollView style={{}}>
-        <View style={styles.container}>
-          <TextInput
-            style={styles.textInput}
-            onChange={(e) => setIp(e.nativeEvent.text)}
-            placeholder="Enter IP"
-          />
-
-          <Button title="Add Printer" onPress={() => addNewPrinterToPool(ip)} />
-          <View style={styles.printerPoolStatusContainer}>
-            <Text>
-              Printer Pool Connection Status:{' '}
-              {isInitialized ? 'initialized' : 'not initialized'}
-            </Text>
-            <Text style={styles.printerPoolHeading}>Printer Pool Status</Text>
-
-            <Button
-              title="Get Printer Pool Status"
-              onPress={handlePrinterPoolStatus}
-            />
-            <View>
-              {printerPoolStatus.length > 0 &&
-                printerPoolStatus.map((printerStatus, index) => (
-                  <View
-                    key={index}
-                    style={{
-                      flexDirection: 'column',
-                      borderWidth: 1,
-                      borderColor: 'gray',
-                      backgroundColor: printerStatus.isReachable
-                        ? '#c8f7d6'
-                        : '#ffd4d9',
-                      marginBottom: 10,
-                      padding: 10,
-                    }}
-                  >
-                    <Text>Printer Name:{printerStatus.printerName}</Text>
-                    <Text>Printer IP:{printerStatus.printerIp}</Text>
-                    <Text>
-                      IP Status:{' '}
-                      {printerStatus.isReachable
-                        ? 'Reachable'
-                        : 'Not Reachable'}
-                    </Text>
-                    <View style={{ marginTop: 10, flexDirection: 'column' }}>
-                      <TouchableOpacity
-                        onPress={() => handlePrintTest(printerStatus.printerIp)}
-                        style={{
-                          backgroundColor: 'gray',
-                          paddingVertical: 10,
-                          paddingHorizontal: 20,
-                        }}
-                      >
-                        <Text style={{ color: 'white', textAlign: 'center' }}>
-                          Printer Test
-                        </Text>
-                      </TouchableOpacity>
-
-                      <TouchableOpacity
-                        onPress={() =>
-                          handleRemovePrinter(printerStatus.printerIp)
-                        }
-                        style={{
-                          backgroundColor: 'red',
-                          paddingVertical: 10,
-                          paddingHorizontal: 20,
-                        }}
-                      >
-                        <Text style={{ color: 'white', textAlign: 'center' }}>
-                          Printer Remove
-                        </Text>
-                      </TouchableOpacity>
-
-                      {!printerStatus.isReachable && (
-                        <TouchableOpacity
-                          onPress={() =>
-                            handleReConnectPrinter(printerStatus.printerIp)
-                          }
-                          style={{
-                            backgroundColor: 'orange',
-                            paddingVertical: 10,
-                            paddingHorizontal: 20,
-                          }}
-                        >
-                          <Text style={{ color: 'white', textAlign: 'center' }}>
-                            Reconnect Printer
-                          </Text>
-                        </TouchableOpacity>
-                      )}
-                    </View>
-                  </View>
-                ))}
-            </View>
-            <View
-              style={{
-                height: 2,
-                backgroundColor: 'black',
-                width: 300,
-                marginVertical: 20,
-              }}
-            />
-            <View style={{}}>
-              <Text style={styles.printerPoolHeading}>
-                Reroute pending jobs
-              </Text>
-              <TextInput
-                style={{ ...styles.textInput, width: '100%' }}
-                onChange={(e) => setOldIp(e.nativeEvent.text)}
-                placeholder="Pending jobs IP"
-              />
-
-              <TextInput
-                style={{ ...styles.textInput, width: '100%' }}
-                onChange={(e) => setNewIp(e.nativeEvent.text)}
-                placeholder="New printer IP"
-              />
-            </View>
-
-            <Button
-              title="Print Pending Jobs with New Printer"
-              onPress={() => printPendingJobsWithNewPrinter(ipOld, ipNew)}
-            />
-            <View
-              style={{
-                height: 2,
-                backgroundColor: 'black',
-                width: 300,
-                marginVertical: 20,
-              }}
+    <EventServiceProvider
+      onReconnect={async (IP: string) => {
+        console.log(IP);
+      }}
+      onBeforePrint={() => console.log('before print')}
+    >
+      <SafeAreaView>
+        <ScrollView style={{}}>
+          <View style={styles.container}>
+            <TextInput
+              style={styles.textInput}
+              onChange={(e) => setIp(e.nativeEvent.text)}
+              placeholder="Enter IP"
             />
 
             <Button
-              title="delete pending Jobs 127"
-              onPress={() => deletePendingJobs('192.168.8.127')}
+              title="Add Printer"
+              onPress={() => addNewPrinterToPool(ip)}
             />
-            {pendingJobs.length > 0 ? (
+            <View style={styles.printerPoolStatusContainer}>
+              <Text style={styles.printerPoolHeading}>Printer Pool Status</Text>
+
               <Button
-                title="retry Pending Jobs 127"
-                onPress={() => retryPendingPrinterJobs('192.168.8.127')}
+                title="Get Printer Pool Status"
+                onPress={handlePrinterPoolStatus}
               />
-            ) : (
-              <View />
-            )}
-            <View>
-              {pendingJobs.length > 0 &&
-                pendingJobs.map((job, index) => {
-                  return (
+              <View>
+                {printerPoolStatus.length > 0 &&
+                  printerPoolStatus.map((printerStatus, index) => (
                     <View
                       key={index}
                       style={{
                         flexDirection: 'column',
                         borderWidth: 1,
                         borderColor: 'gray',
-                        backgroundColor: '#ffd4d9',
+                        backgroundColor: printerStatus.isReachable
+                          ? '#c8f7d6'
+                          : '#ffd4d9',
+                        marginBottom: 10,
                         padding: 10,
                       }}
                     >
-                      <Text>Job ID:{job.jobId}</Text>
-                      <Text>Printer Name:{job.printerName}</Text>
-                      <Text>Printer IP:{job.printerName}</Text>
-                      <Text>Print Type:{job.metadata.type}</Text>
-                      <Text>Print Metadata:{JSON.stringify(job.metadata)}</Text>
-                      <TouchableOpacity
-                        onPress={() => handleDeleteJob(job.jobId)}
-                        style={{
-                          backgroundColor: 'red',
-                          paddingVertical: 10,
-                          paddingHorizontal: 20,
-                        }}
-                      >
-                        <Text style={{ color: 'white', textAlign: 'center' }}>
-                          Remove Job
-                        </Text>
-                      </TouchableOpacity>
+                      <Text>Printer Name:{printerStatus.printerName}</Text>
+                      <Text>Printer IP:{printerStatus.printerIp}</Text>
+                      <Text>
+                        IP Status:{' '}
+                        {printerStatus.isReachable
+                          ? 'Reachable'
+                          : 'Not Reachable'}
+                      </Text>
+                      <View style={{ marginTop: 10, flexDirection: 'column' }}>
+                        <TouchableOpacity
+                          onPress={() =>
+                            handlePrintTest(printerStatus.printerIp)
+                          }
+                          style={{
+                            backgroundColor: 'gray',
+                            paddingVertical: 10,
+                            paddingHorizontal: 20,
+                          }}
+                        >
+                          <Text style={{ color: 'white', textAlign: 'center' }}>
+                            Printer Test
+                          </Text>
+                        </TouchableOpacity>
 
-                      <TextInput
+                        <TouchableOpacity
+                          onPress={() =>
+                            handleRemovePrinter(printerStatus.printerIp)
+                          }
+                          style={{
+                            backgroundColor: 'red',
+                            paddingVertical: 10,
+                            paddingHorizontal: 20,
+                          }}
+                        >
+                          <Text style={{ color: 'white', textAlign: 'center' }}>
+                            Printer Remove
+                          </Text>
+                        </TouchableOpacity>
+
+                        {!printerStatus.isReachable && (
+                          <TouchableOpacity
+                            onPress={() =>
+                              handleReConnectPrinter(printerStatus.printerIp)
+                            }
+                            style={{
+                              backgroundColor: 'orange',
+                              paddingVertical: 10,
+                              paddingHorizontal: 20,
+                            }}
+                          >
+                            <Text
+                              style={{ color: 'white', textAlign: 'center' }}
+                            >
+                              Reconnect Printer
+                            </Text>
+                          </TouchableOpacity>
+                        )}
+                      </View>
+                    </View>
+                  ))}
+              </View>
+              <View
+                style={{
+                  height: 2,
+                  backgroundColor: 'black',
+                  width: 300,
+                  marginVertical: 20,
+                }}
+              />
+              <View style={{}}>
+                <Text style={styles.printerPoolHeading}>
+                  Reroute pending jobs
+                </Text>
+                <TextInput
+                  style={{ ...styles.textInput, width: '100%' }}
+                  onChange={(e) => setOldIp(e.nativeEvent.text)}
+                  placeholder="Pending jobs IP"
+                />
+
+                <TextInput
+                  style={{ ...styles.textInput, width: '100%' }}
+                  onChange={(e) => setNewIp(e.nativeEvent.text)}
+                  placeholder="New printer IP"
+                />
+              </View>
+
+              <Button
+                title="Print Pending Jobs with New Printer"
+                onPress={() => printPendingJobsWithNewPrinter(ipOld, ipNew)}
+              />
+              <View
+                style={{
+                  height: 2,
+                  backgroundColor: 'black',
+                  width: 300,
+                  marginVertical: 20,
+                }}
+              />
+
+              <Button
+                title="delete pending Jobs 127"
+                onPress={() => deletePendingJobs('192.168.8.127')}
+              />
+              {pendingJobs.length > 0 ? (
+                <Button
+                  title="retry Pending Jobs 127"
+                  onPress={() => retryPendingPrinterJobs('192.168.8.127')}
+                />
+              ) : (
+                <View />
+              )}
+              <View>
+                {pendingJobs.length > 0 &&
+                  pendingJobs.map((job, index) => {
+                    return (
+                      <View
+                        key={index}
                         style={{
+                          flexDirection: 'column',
                           borderWidth: 1,
                           borderColor: 'gray',
+                          backgroundColor: '#ffd4d9',
                           padding: 10,
-                          marginVertical: 5,
-                        }}
-                        placeholder="Enter new printer IP"
-                        value={printerIPs[job.jobId] || ''}
-                        onChangeText={(text) => handleIPChange(job.jobId, text)}
-                      />
-
-                      <TouchableOpacity
-                        onPress={() =>
-                          handlePendingJobPrintFromNewPrinter(job.jobId)
-                        }
-                        style={{
-                          backgroundColor: 'blue',
-                          paddingVertical: 10,
-                          paddingHorizontal: 20,
-                          marginVertical: 5,
                         }}
                       >
-                        <Text style={{ color: 'white', textAlign: 'center' }}>
-                          Print Job From New Printer
+                        <Text>Job ID:{job.jobId}</Text>
+                        <Text>Printer Name:{job.printerName}</Text>
+                        <Text>Printer IP:{job.printerName}</Text>
+                        <Text>Print Type:{job.metadata.type}</Text>
+                        <Text>
+                          Print Metadata:{JSON.stringify(job.metadata)}
                         </Text>
-                      </TouchableOpacity>
-                    </View>
-                  );
-                })}
+                        <TouchableOpacity
+                          onPress={() => handleDeleteJob(job.jobId)}
+                          style={{
+                            backgroundColor: 'red',
+                            paddingVertical: 10,
+                            paddingHorizontal: 20,
+                          }}
+                        >
+                          <Text style={{ color: 'white', textAlign: 'center' }}>
+                            Remove Job
+                          </Text>
+                        </TouchableOpacity>
+
+                        <TextInput
+                          style={{
+                            borderWidth: 1,
+                            borderColor: 'gray',
+                            padding: 10,
+                            marginVertical: 5,
+                          }}
+                          placeholder="Enter new printer IP"
+                          value={printerIPs[job.jobId] || ''}
+                          onChangeText={(text) =>
+                            handleIPChange(job.jobId, text)
+                          }
+                        />
+
+                        <TouchableOpacity
+                          onPress={() =>
+                            handlePendingJobPrintFromNewPrinter(job.jobId)
+                          }
+                          style={{
+                            backgroundColor: 'blue',
+                            paddingVertical: 10,
+                            paddingHorizontal: 20,
+                            marginVertical: 5,
+                          }}
+                        >
+                          <Text style={{ color: 'white', textAlign: 'center' }}>
+                            Print Job From New Printer
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+                    );
+                  })}
+              </View>
             </View>
+            <Button
+              title="Get Pending Jobs 127"
+              onPress={() => fetchPrinterPendingJobs('192.168.8.127')}
+            />
           </View>
-          <Button
-            title="Get Pending Jobs 127"
-            onPress={() => fetchPrinterPendingJobs('192.168.8.127')}
-          />
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+        </ScrollView>
+      </SafeAreaView>
+    </EventServiceProvider>
   );
 };
 

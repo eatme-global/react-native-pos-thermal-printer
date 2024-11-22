@@ -20,7 +20,7 @@ RCT_EXPORT_MODULE()
  * @return An array containing the names of supported events.
  */
 - (NSArray<NSString *> *)supportedEvents {
-    return @[@"PrinterUnreachable"];
+    return @[@"PrinterUnreachable", @"PrePrintCheck"];
 }
 
 
@@ -196,9 +196,17 @@ RCT_EXPORT_METHOD(setPrintJobs:(NSString *)ip
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-    [self.printerJobManager setPrintJobs:ip content:content metadata:metadata completion:^(BOOL success) {
-        resolve(@(success));
-    }];
+    // Send pre-print event
+       if (self.bridge) {
+           [self sendEventWithName:@"PrePrintCheck" body:@""];
+       }
+       
+       // Add a small delay to allow the JS side to process
+       dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+           [self.printerJobManager setPrintJobs:ip content:content metadata:metadata completion:^(BOOL success) {
+               resolve(@(success));
+           }];
+       });
 }
 
 /**
