@@ -330,3 +330,11 @@ export async function retryPendingJobsFromPrinter(
     return false;
   }
 }
+
+export async function getPrinterStatus(printerIp: string): Promise<void> {
+  try {
+    return await EscPosPrinter.checkPrinterStatus(printerIp);
+  } catch (error) {
+    console.error('Error fetching printer status:', error);
+  }
+}

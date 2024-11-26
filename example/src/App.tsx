@@ -18,6 +18,7 @@ import {
   EventServiceProvider,
   getPendingPrinterJobs,
   getPrinterPoolStatus,
+  getPrinterStatus,
   PrintAlignment,
   PrintFontSize,
   PrintFontWeight,
@@ -133,13 +134,13 @@ const PrinterContent: React.FC = () => {
       {
         type: PrintJobRowType.CASHBOX,
       },
-      {
-        type: PrintJobRowType.IMAGE,
-        width: 50,
-        url: 'https://png.pngtree.com/png-clipart/20190921/original/pngtree-beautiful-black-and-white-butterfly-png-image_4699516.jpg',
-        alignment: PrintAlignment.CENTER,
-        printerWidth: 190.0,
-      },
+      // {
+      //   type: PrintJobRowType.IMAGE,
+      //   width: 50,
+      //   url: 'https://png.pngtree.com/png-clipart/20190921/original/pngtree-beautiful-black-and-white-butterfly-png-image_4699516.jpg',
+      //   alignment: PrintAlignment.CENTER,
+      //   printerWidth: 190.0,
+      // },
       // {
       //   type: PrintJobRowType.QRCODE,
       //   text: 'https://upload.wikimedia.org/wikipedia/commons/2/24/Adidas_logo.png',
@@ -226,6 +227,10 @@ const PrinterContent: React.FC = () => {
         // fetchPendingJobs();
       }
     }
+  };
+
+  const getPrinterStatusPrinter = async (ip: string) => {
+    await getPrinterStatus(ip);
   };
 
   const [ipOld, setOldIp] = useState<string>('');
@@ -332,6 +337,20 @@ const PrinterContent: React.FC = () => {
                             </Text>
                           </TouchableOpacity>
                         )}
+                        <TouchableOpacity
+                          onPress={() =>
+                            getPrinterStatusPrinter(printerStatus.printerIp)
+                          }
+                          style={{
+                            backgroundColor: 'orange',
+                            paddingVertical: 10,
+                            paddingHorizontal: 20,
+                          }}
+                        >
+                          <Text style={{ color: 'white', textAlign: 'center' }}>
+                            Get Printer Status
+                          </Text>
+                        </TouchableOpacity>
                       </View>
                     </View>
                   ))}

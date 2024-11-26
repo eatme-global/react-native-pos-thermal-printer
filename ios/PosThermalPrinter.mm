@@ -3,6 +3,8 @@
 #import "PrinterConnectionManager.h"
 #import "PrinterUtils.h"
 
+#import "PrinterStatus.h"
+
 @interface PosThermalPrinter()
 
 @property (nonatomic, strong) PrinterJobManager *printerJobManager;
@@ -222,6 +224,38 @@ RCT_EXPORT_METHOD(addPrinterToPool:(NSDictionary *)config
     [self.printerConnectionManager addPrinterToPool:config completion:^(BOOL success) {
         resolve(@(success));
     }];
+}
+
+/**
+ * @brief Adds a printer to the printer pool.
+ * @param config A dictionary containing the printer configuration.
+ * @param resolve A block to call with the result of the operation.
+ * @param reject A block to call if an error occurs.
+ */
+RCT_EXPORT_METHOD(checkPrinterStatus:(NSString *)printerIp
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+   
+    // Initialize the printer controller
+    PrinterController *printer = [[PrinterController alloc] initWithIP:printerIp port:9100];
+
+    // Asynchronous status check
+    [printer checkPrinterStatusWithCompletion:^(BOOL isOffline, PrinterStatus *status, NSError *error) {
+        if (error) {
+            NSLog(@"Error: %@", error.localizedDescription);
+            return;
+        }
+        
+        if (isOffline) {
+            NSLog(@"Printer is offline");
+        } else {
+            NSLog(@"Printer is online");
+        }
+    }];
+
+    // Clean up when done
+    [printer disconnectPrinter];
 }
 
 /**

@@ -6,6 +6,7 @@
 #import "PosCommand.h"
 #import "PosThermalPrinter.h"
 #import "HelperFunctions.h"
+#import "PrinterStatus.h"
 
 @interface PrinterJobManager ()
 
@@ -90,7 +91,7 @@
             jobToPrint.targetPrinterIp = newPrinterIP;
             [self printJob:jobToPrint completion:^(BOOL success) {
                 if (success) {
-//                    [self.secondLibrary sendPrinterUnreachableEvent:newPrinterIP];
+                    // Do Nothing
                 } else {
                     [self.queueLock lock];
                     [self.pendingQueue addObject:jobToPrint];
@@ -164,7 +165,7 @@
     });
 }
 
-- (void)setPrintJobs:(NSString *)ip content:(NSArray *)content metadata:(NSString *)metadata completion:(void (^)(BOOL success))completion {
+- (void) setPrintJobs:(NSString *)ip content:(NSArray *)content metadata:(NSString *)metadata completion:(void (^)(BOOL success))completion {
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
         NSMutableArray *printItems = [NSMutableArray array];
         
@@ -191,38 +192,16 @@
     }
 
     [self.queueLock lock];
-    
-//    BOOL shouldAddToPendingQueue = NO;
-//
-//    
+
     @try {
-//        
-//        // Check if the printer IP exists in pending queue
-//        for (PrinterJob *pendingJob in self.pendingQueue) {
-//            if ([pendingJob.targetPrinterIp isEqualToString:job.targetPrinterIp]) {
-//                shouldAddToPendingQueue = YES;
-//                break;
-//            }
-//        }
-//        
-//        // Add to appropriate queue based on check
-//        if (shouldAddToPendingQueue) {
-//            job.pending = YES;
-//            [self.pendingQueue addObject:job];
-//            NSLog(@"Job added to pending queue for printer: %@", job.targetPrinterIp);
-//        } else {
             [self.printQueue addObject:job];
             NSLog(@"Job added to print queue for printer: %@", job.targetPrinterIp);
-//        }
     }
     @finally {
         [self.queueLock unlock];  // Always unlock in finally block
     }
-    
-    // Process queue after adding job
-//    if (!shouldAddToPendingQueue) {
-        [self processPrintQueue];
-//    }
+  
+    [self processPrintQueue];
 }
 
 - (void)processPrintQueue {
@@ -252,15 +231,7 @@
     
     [self printJob:job completion:^(BOOL success) {
         if (!success) {
-            
-//            job.pending = YES;
-//            [self.queueLock lock];
-//            [self.pendingQueue addObject:job];
-//            [self.queueLock unlock];
-            
             [self.thermalPrinterLibrary sendPrinterUnreachableEvent:job.targetPrinterIp];
-           
-//            [self.thermalPrinterLibrary sendPrinterUnreachableEvent:job.targetPrinterIp];
         }
         
      
@@ -278,83 +249,130 @@
 - (void)printJob:(PrinterJob *)job completion:(void (^)(BOOL success))completion {
     POSWIFIManager *wifiManager = [[POSWIFIManager alloc] init];
     
-
-    [wifiManager POSConnectWithHost:job.targetPrinterIp port:9100 completion:^(BOOL isConnect) {
-        if (isConnect) {
-            NSMutableData *dataM = [NSMutableData dataWithData:[PosCommand initializePrinter]];
-            
-            for (PrintItem *item in job.jobContent) {
-                switch (item.fontSize) {
-                    case FontSizeNormal:
-                        [dataM appendData:[HelperFunctions selectFont:1 width:1]];
-                        break;
-                    case FontSizeWide:
-                        [dataM appendData:[HelperFunctions selectFont:1 width:2]];
-                        break;
-                    case FontSizeTall:
-                        [dataM appendData:[HelperFunctions selectFont:2 width:1]];
-                        break;
-                    case FontSizeBig:
-                        [dataM appendData:[HelperFunctions selectFont:2 width:2]];
-                        break;
-                }
-                
-                switch (item.type) {
-                    case PrintItemTypeText:
-                        [self addTextToPrintData:dataM item:item];
-                        break;
-                    case PrintItemTypeFeed:
-                        [dataM appendData:[PosCommand printAndFeedForwardWhitN:item.lines]];
-                        break;
-                    case PrintItemTypeImage:
-                        [dataM appendData:[PosCommand printAndFeedLine]];
-                        [dataM appendData:[PosCommand printRasteBmpWithM:RasterNolmorWH andImage:item.bitmapImage andType:Dithering]];
-                        break;
-                    case PrintItemTypeColumn:
-                        [self addColumnToPrintData:dataM item:item];
-                        break;
-                    case PrintItemTypeQRCode:
-                        [self addQRCodeToPrintData:dataM item:item];
-                        break;
-                    case PrintItemTypeCashBox:
-                        [wifiManager POSWriteCommandWithData:[PosCommand openCashBoxRealTimeWithM:0 andT:2]];
-                        break;
-                    case PrintItemTypeCut:
-                        [dataM appendData:[PosCommand selectCutPageModelAndCutpage:0]];
-                        break;
-                    default:
-                        break;
-                }
+    // Check printer status
+    PrinterController *printer = [[PrinterController alloc] initWithIP:job.targetPrinterIp port:9100];
+    BOOL isOffline = [printer isPrinterOffline];
+    [printer disconnectPrinter];
+    
+    NSLog(@"Printer is %@", isOffline ? @"offline" : @"online");
+    
+    // Create connection block that handles the printing process
+    void (^connectAndPrint)(void) = ^{
+        [wifiManager POSConnectWithHost:job.targetPrinterIp port:9100 completion:^(BOOL isConnect) {
+            if (!isConnect) {
+                [[PrinterConnectionManager sharedInstance] sendPrinterUnreachableEventOnce:job.targetPrinterIp];
+                completion(NO);
+                return;
             }
             
+            // Initialize printer and prepare data
+            NSMutableData *dataM = [NSMutableData dataWithData:[PosCommand initializePrinter]];
+            
+            // Process print items
+            for (PrintItem *item in job.jobContent) {
+                // Handle font size
+                [self configureFontSize:item.fontSize forData:dataM];
+                
+                // Handle item type
+                [self processItemType:item withData:dataM wifiManager:wifiManager];
+            }
+            
+            // Send print data
             [wifiManager POSWriteCommandWithData:dataM];
             
-            // Parse metadata and get timeout
-            NSError *jsonError;
-            NSDictionary *metadata = [NSJSONSerialization JSONObjectWithData:[job.metadata dataUsingEncoding:NSUTF8StringEncoding]
-                                                                   options:NSJSONReadingAllowFragments
-                                                                     error:&jsonError];
-            NSString *printType = metadata[@"type"];
-            NSTimeInterval timeout = [self timeoutForType:printType];
-          
-            dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
-
-            // Add delay to ensure print completes
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(timeout * NSEC_PER_SEC)),
-                         dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{         
-                [wifiManager POSDisConnect];
-                dispatch_semaphore_signal(semaphore);
-            });
-            
-            dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
-            
-            completion(YES);
-        } else {
-            [[PrinterConnectionManager sharedInstance] sendPrinterUnreachableEventOnce:job.targetPrinterIp];
-            completion(NO);
-        }
-    }];
+            // Handle completion and cleanup
+            [self handlePrintCompletion:job wifiManager:wifiManager completion:completion];
+        }];
+    };
+    
+    // If printer is offline, delay before trying to print
+    if (isOffline) {
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)),
+                      dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), connectAndPrint);
+    } else {
+        connectAndPrint();
+    }
 }
+
+- (void)configureFontSize:(FontSize)fontSize forData:(NSMutableData *)dataM {
+    switch (fontSize) {
+        case FontSizeNormal:
+            [dataM appendData:[HelperFunctions selectFont:1 width:1]];
+            break;
+        case FontSizeWide:
+            [dataM appendData:[HelperFunctions selectFont:1 width:2]];
+            break;
+        case FontSizeTall:
+            [dataM appendData:[HelperFunctions selectFont:2 width:1]];
+            break;
+        case FontSizeBig:
+            [dataM appendData:[HelperFunctions selectFont:2 width:2]];
+            break;
+    }
+}
+
+- (void)processItemType:(PrintItem *)item withData:(NSMutableData *)dataM wifiManager:(POSWIFIManager *)wifiManager {
+    switch (item.type) {
+        case PrintItemTypeText:
+            [self addTextToPrintData:dataM item:item];
+            break;
+            
+        case PrintItemTypeFeed:
+            [dataM appendData:[PosCommand printAndFeedForwardWhitN:item.lines]];
+            break;
+            
+        case PrintItemTypeImage:
+            [dataM appendData:[PosCommand printAndFeedLine]];
+            [dataM appendData:[PosCommand printRasteBmpWithM:RasterNolmorWH
+                                                  andImage:item.bitmapImage
+                                                  andType:Dithering]];
+            break;
+            
+        case PrintItemTypeColumn:
+            [self addColumnToPrintData:dataM item:item];
+            break;
+            
+        case PrintItemTypeQRCode:
+            [self addQRCodeToPrintData:dataM item:item];
+            break;
+            
+        case PrintItemTypeCashBox:
+            [wifiManager POSWriteCommandWithData:[PosCommand openCashBoxRealTimeWithM:0 andT:2]];
+            break;
+            
+        case PrintItemTypeCut:
+            [dataM appendData:[PosCommand selectCutPageModelAndCutpage:0]];
+            break;
+            
+        default:
+            break;
+    }
+}
+
+- (void)handlePrintCompletion:(PrinterJob *)job
+                 wifiManager:(POSWIFIManager *)wifiManager
+                 completion:(void (^)(BOOL))completion {
+    // Parse metadata
+    NSError *jsonError;
+    NSDictionary *metadata = [NSJSONSerialization JSONObjectWithData:[job.metadata dataUsingEncoding:NSUTF8StringEncoding]
+                                                           options:NSJSONReadingAllowFragments
+                                                             error:&jsonError];
+    NSString *printType = metadata[@"type"];
+    NSTimeInterval timeout = [self timeoutForType:printType];
+    
+    // Handle completion with semaphore
+    dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
+    
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(timeout * NSEC_PER_SEC)),
+                  dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        [wifiManager POSDisConnect];
+        dispatch_semaphore_signal(semaphore);
+    });
+    
+    dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
+    completion(YES);
+}
+
 
 - (void)addTextToPrintData:(NSMutableData *)dataM item:(PrintItem *)item {
     NSStringEncoding encodeCharset;
@@ -468,16 +486,6 @@
         [self.queueLock lock];
         
         BOOL jobsUpdated = NO;
-        
-//        // Update pending jobs in the queue
-//        for (PrinterJob *job in self.pendingQueue) {
-//            if ([job.targetPrinterIp isEqualToString:oldIP]) {
-//                job.targetPrinterIp = newIP;
-//                jobsUpdated = YES;
-//                [self.pendingQueue removeObject:job];
-//                [self.printQueue addObject:job];
-//            }
-//        }
         
         // Filter jobs that need to be updated
         NSPredicate *predicate = [NSPredicate predicateWithFormat:@"targetPrinterIp == %@", oldIP];
