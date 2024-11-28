@@ -10,7 +10,7 @@ import {
   type RawPendingJob,
 } from './types';
 
-const EscPosPrinter = NativeModules.PosThermalPrinter
+export const EscPosPrinter = NativeModules.PosThermalPrinter
   ? NativeModules.PosThermalPrinter
   : new Proxy(
       {},
@@ -22,11 +22,13 @@ const EscPosPrinter = NativeModules.PosThermalPrinter
     );
 
 /**
+ *
  * Attempts to reconnect to a printer by IP address.
  *
  * @param {string} ip - The IP address of the printer to reconnect.
  * @returns {Promise<boolean>} - A promise that resolves to a boolean indicating whether the reconnection was successful.
  */
+
 export async function reconnectPrinter(ip: string): Promise<boolean> {
   try {
     const result = await EscPosPrinter.retryPrinterConnection(ip);
@@ -120,7 +122,12 @@ export async function addPrinterToPool(printer: IPPrinter): Promise<any> {
  * @returns {Promise<any>} - A promise that resolves when the printer is removed.
  */
 export async function removePrinterFromPool(ip: string): Promise<any> {
-  return await EscPosPrinter.removePrinterFromPool(ip);
+  try {
+    return await EscPosPrinter.removePrinterFromPool(ip);
+  } catch (error) {
+    console.error('Error removing printer from pool:', error);
+    return false;
+  }
 }
 
 /**

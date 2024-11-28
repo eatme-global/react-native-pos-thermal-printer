@@ -23,28 +23,47 @@ export const EventServiceProvider: React.FC<EventServiceProviderProps> = ({
   onBeforePrint,
 }) => {
   useEffect(() => {
-    const initialize = async () => {
-      // Initialize printer pool
-      await initializePrinterPool();
+    let isSubscribed = true;
+
+    const initializePrinters = async () => {
+      try {
+        await initializePrinterPool();
+      } catch (error) {
+        console.error('Failed to initialize printer pool:', error);
+      }
     };
 
-    initialize();
+    const handlePrinterUnreachable = async (event: { printerIp: string }) => {
+      if (!isSubscribed) return;
+      try {
+        await onReconnect?.(event.printerIp);
+      } catch (error) {
+        console.error('Failed to reconnect printer:', error);
+      }
+    };
 
+    const handlePrePrint = () => {
+      if (!isSubscribed) return;
+      onBeforePrint?.();
+    };
+
+    // Initialize printers
+    initializePrinters();
+
+    // Set up event listeners
     const unreachableSubscription = eventEmitter.addListener(
       'PrinterUnreachable',
-      async (event: { printerIp: string }) => {
-        await onReconnect?.(event.printerIp);
-      }
+      handlePrinterUnreachable
     );
 
     const prePrintSubscription = eventEmitter.addListener(
       'PrePrintCheck',
-      async () => {
-        onBeforePrint?.();
-      }
+      handlePrePrint
     );
 
+    // Cleanup function
     return () => {
+      isSubscribed = false;
       unreachableSubscription.remove();
       prePrintSubscription.remove();
     };
@@ -52,3 +71,5 @@ export const EventServiceProvider: React.FC<EventServiceProviderProps> = ({
 
   return <>{children}</>;
 };
+
+export default EventServiceProvider;

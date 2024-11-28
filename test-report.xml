@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testExecutions version="1">
+  <file path="/Users/sihan/Desktop/react-native-pos-thermal-printer/__tests__/index.test.tsx">
+    <testCase name="printText should call native module with correct parameters" duration="3"/>
+    <testCase name="printText should handle errors when adding print jobs" duration="0"/>
+    <testCase name="openCashBox should send correct cash drawer open command" duration="52"/>
+    <testCase name="openCashBox should handle errors when opening cash drawer" duration="1"/>
+    <testCase name="reconnectPrinter should attempt to reconnect and return success status" duration="0"/>
+    <testCase name="reconnectPrinter should handle errors when reconnecting printers" duration="0"/>
+    <testCase name="getPrinterPoolStatus should return printer status array" duration="0"/>
+    <testCase name="getPrinterPoolStatus should handle errors and return empty array" duration="1"/>
+    <testCase name="getPendingJobs should parse and return pending jobs" duration="1"/>
+    <testCase name="getPendingJobs should handle parsing errors and return empty array" duration="1"/>
+    <testCase name="getPendingJobs should return empty array when no jobs exist" duration="0"/>
+    <testCase name="getPendingJobs should handle null response" duration="1"/>
+    <testCase name="addPrinterToPool should add printer to pool successfully" duration="1"/>
+    <testCase name="addPrinterToPool should handle errors when adding printer" duration="0"/>
+    <testCase name="initializePrinterPool should initialize printer pool successfully" duration="1"/>
+    <testCase name="initializePrinterPool should handle initialization errors" duration="0"/>
+    <testCase name="removePrinterFromPool should remove printer from pool successfully" duration="0"/>
+    <testCase name="removePrinterFromPool should handle errors when removing printer" duration="1"/>
+    <testCase name="printImage should print image successfully" duration="0"/>
+    <testCase name="printImage should handle errors when printing image" duration="1"/>
+    <testCase name="printPendingJobsWithNewPrinter should print pending jobs with new printer successfully" duration="0"/>
+    <testCase name="printPendingJobsWithNewPrinter should handle errors when printing with new printer" duration="1"/>
+    <testCase name="printPendingJobsWithNewPrinter should handle parsing errors in jobs metadata" duration="1"/>
+    <testCase name="printPendingJobsWithNewPrinter should return empty array for null response" duration="0"/>
+    <testCase name="deletePendingJob should delete pending job successfully" duration="1"/>
+    <testCase name="deletePendingJob should handle errors when deleting pending job" duration="0"/>
+    <testCase name="retryPendingJobFromNewPrinter should retry pending job from new printer successfully" duration="1"/>
+    <testCase name="retryPendingJobFromNewPrinter should handle errors when retrying from new printer" duration="1"/>
+    <testCase name="getPendingPrinterJobs should get and parse pending printer jobs successfully" duration="0"/>
+    <testCase name="getPendingPrinterJobs should handle errors and return empty array" duration="1"/>
+    <testCase name="deletePrinterPendingJobs should delete printer pending jobs successfully" duration="0"/>
+    <testCase name="deletePrinterPendingJobs should handle errors when deleting printer pending jobs" duration="2"/>
+    <testCase name="retryPendingJobsFromPrinter should retry pending jobs from printer successfully" duration="1"/>
+    <testCase name="retryPendingJobsFromPrinter should handle errors when retrying pending jobs" duration="0"/>
+    <testCase name="getPrinterStatus should get printer status successfully" duration="1"/>
+    <testCase name="getPrinterStatus should handle errors when getting printer status" duration="0"/>
+    <testCase name="EscPosPrinter Proxy should use PosThermalPrinter when available" duration="1"/>
+    <testCase name="EscPosPrinter Proxy should throw LINKING_ERROR when native module is not available" duration="4"/>
+    <testCase name="EscPosPrinter Proxy should throw LINKING_ERROR when native module is null" duration="1"/>
+  </file>
+</testExecutions>

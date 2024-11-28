@@ -80,3 +80,11 @@ lib/
 # React Native Codegen
 ios/generated
 android/generated
+
+# Test
+coverage
+
+# Sonar
+test-report.xml
+.scannerwork
+
