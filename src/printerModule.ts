@@ -131,20 +131,6 @@ export async function removePrinterFromPool(ip: string): Promise<any> {
 }
 
 /**
- * Prints an image using a base64 encoded string.
- *
- * @param {string} base64Image - The base64 encoded image string.
- * @returns {Promise<void>} - A promise that resolves when the image is printed.
- */
-export async function printImage(base64Image: string): Promise<void> {
-  try {
-    await EscPosPrinter.printImage(base64Image);
-  } catch (error) {
-    console.error("Error printing image:", error);
-  }
-}
-
-/**
  * Retrieves the current status of the printer pool.
  *
  * @returns {Promise<PrinterStatus[]>} - A promise that resolves to an array of printer status objects.
