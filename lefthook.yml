@@ -1,16 +1,38 @@
+# # pre-commit:
+# #     parallel: true
+# #     commands:
+# #         lint:
+# #             glob: '*.{js,ts,jsx,tsx}'
+# #             run: npx eslint {staged_files}
+# #         types:
+# #             glob: '*.{js,ts,jsx,tsx}'
+# #             run: npx tsc
+# #         test:
+# #             run: yarn run pre-commit
+
+# # # commit-msg:
+# # #   parallel: true
+# # #   commands:
+# # #     commitlint:
+# # #       run: npx commitlint --edit {1}
+
+# commit-msg:
+#     commands:
+#         'lint commit message':
+#             run: yarn run commitlint --edit {1}
 pre-commit:
   parallel: true
   commands:
     lint:
-      glob: '*.{js,ts,jsx,tsx}'
+      glob: "*.{js,ts,jsx,tsx}"
       run: npx eslint {staged_files}
     types:
-      glob: '*.{js,ts,jsx,tsx}'
+      glob: "*.{js,ts,jsx,tsx}"
       run: npx tsc
     test:
       run: yarn run pre-commit
+
 commit-msg:
-  parallel: true
   commands:
     commitlint:
-      run: npx commitlint --edit
+      run: npx commitlint --edit $LEFTHOOK_COMMITFILE

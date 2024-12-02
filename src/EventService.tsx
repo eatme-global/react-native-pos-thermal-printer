@@ -1,12 +1,12 @@
-import React, { useEffect } from 'react';
-import { NativeEventEmitter, NativeModules, Platform } from 'react-native';
-import { initializePrinterPool } from './printerModule';
+import React, { useEffect } from "react";
+import { NativeEventEmitter, NativeModules, Platform } from "react-native";
+import { initializePrinterPool } from "./printerModule";
 
 const { PrinterReachability } = NativeModules;
 const { PosThermalPrinter } = NativeModules;
 
 const eventEmitter = new NativeEventEmitter(
-  Platform.OS === 'android' ? PrinterReachability : PosThermalPrinter
+  Platform.OS === "android" ? PrinterReachability : PosThermalPrinter,
 );
 
 type ReconnectFunction = (printerIp: string) => Promise<void>;
@@ -29,7 +29,7 @@ export const EventServiceProvider: React.FC<EventServiceProviderProps> = ({
       try {
         await initializePrinterPool();
       } catch (error) {
-        console.error('Failed to initialize printer pool:', error);
+        console.error("Failed to initialize printer pool:", error);
       }
     };
 
@@ -38,7 +38,7 @@ export const EventServiceProvider: React.FC<EventServiceProviderProps> = ({
       try {
         await onReconnect?.(event.printerIp);
       } catch (error) {
-        console.error('Failed to reconnect printer:', error);
+        console.error("Failed to reconnect printer:", error);
       }
     };
 
@@ -52,13 +52,13 @@ export const EventServiceProvider: React.FC<EventServiceProviderProps> = ({
 
     // Set up event listeners
     const unreachableSubscription = eventEmitter.addListener(
-      'PrinterUnreachable',
-      handlePrinterUnreachable
+      "PrinterUnreachable",
+      handlePrinterUnreachable,
     );
 
     const prePrintSubscription = eventEmitter.addListener(
-      'PrePrintCheck',
-      handlePrePrint
+      "PrePrintCheck",
+      handlePrePrint,
     );
 
     // Cleanup function

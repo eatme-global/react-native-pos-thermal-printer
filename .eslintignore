@@ -1,0 +1,10 @@
+/.bundle
+/.husky
+/android
+/ios
+/node_modules
+/coverage
+/example/android
+/example/ios
+/example/node_modules
+/lib

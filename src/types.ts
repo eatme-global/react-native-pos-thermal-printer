@@ -1,6 +1,6 @@
 export enum PRINTER_WIDTH {
-  MM80 = '80mm',
-  MM58 = '58mm',
+  MM80 = "80mm",
+  MM58 = "58mm",
 }
 
 export interface IPPrinter {
@@ -15,13 +15,13 @@ export interface PrinterStatus {
 
 // Enums for better structure
 export enum PrintJobRowType {
-  TEXT = 'TEXT',
-  FEED = 'FEED',
-  CUT = 'CUT',
-  COLUMN = 'COLUMN',
-  IMAGE = 'IMAGE',
-  QRCODE = 'QRCODE',
-  CASHBOX = 'CASHBOX',
+  TEXT = "TEXT",
+  FEED = "FEED",
+  CUT = "CUT",
+  COLUMN = "COLUMN",
+  IMAGE = "IMAGE",
+  QRCODE = "QRCODE",
+  CASHBOX = "CASHBOX",
 }
 
 export type PrintFontWeight = true | false;
@@ -32,16 +32,16 @@ export const PrintFontWeight = {
 };
 
 export enum PrintFontSize {
-  NORMAL = 'NORMAL',
-  WIDE = 'WIDE',
-  TALL = 'TALL',
-  BIG = 'BIG',
+  NORMAL = "NORMAL",
+  WIDE = "WIDE",
+  TALL = "TALL",
+  BIG = "BIG",
 }
 
 export enum PrintAlignment {
-  LEFT = 'LEFT',
-  CENTER = 'CENTER',
-  RIGHT = 'RIGHT',
+  LEFT = "LEFT",
+  CENTER = "CENTER",
+  RIGHT = "RIGHT",
 }
 interface Column {
   wrapWords?: boolean;

@@ -1,4 +1,4 @@
-import { NativeEventEmitter, NativeModules } from 'react-native';
+import { NativeEventEmitter, NativeModules } from "react-native";
 import {
   addPrinterToPool,
   getPendingJobs,
@@ -16,7 +16,7 @@ import {
   deletePrinterPendingJobs,
   retryPendingJobsFromPrinter,
   getPrinterStatus,
-} from '../src/printerModule';
+} from "../src/printerModule";
 import {
   PrintAlignment,
   PrintFontSize,
@@ -24,14 +24,14 @@ import {
   type IPPrinter,
   type PrintJobMetadata,
   type PrintJobRow,
-} from '../src/types';
-import { LINKING_ERROR } from '../src/constants';
+} from "../src/types";
+import { LINKING_ERROR } from "../src/constants";
 
-const testIp = '192.168.1.100';
+const testIp = "192.168.1.100";
 
 // Single combined mock for react-native
-jest.mock('react-native', () => {
-  const mockSelect = jest.fn((obj) => obj.ios || obj.default || '');
+jest.mock("react-native", () => {
+  const mockSelect = jest.fn((obj) => obj.ios || obj.default || "");
 
   return {
     NativeModules: {
@@ -55,7 +55,7 @@ jest.mock('react-native', () => {
       PrinterReachability: {},
     },
     Platform: {
-      OS: 'ios',
+      OS: "ios",
       select: mockSelect,
     },
     NativeEventEmitter: jest.fn(() => ({
@@ -74,16 +74,16 @@ const mockEventEmitter = {
 
 (NativeEventEmitter as jest.Mock).mockImplementation(() => mockEventEmitter);
 
-describe('printText', () => {
+describe("printText", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('should call native module with correct parameters', async () => {
+  it("should call native module with correct parameters", async () => {
     const testPayload: PrintJobRow[] = [
       {
         type: PrintJobRowType.TEXT,
-        text: 'Test Receipt',
+        text: "Test Receipt",
         bold: true,
         fontSize: PrintFontSize.NORMAL,
         alignment: PrintAlignment.CENTER,
@@ -91,8 +91,8 @@ describe('printText', () => {
       },
     ];
     const testMetadata: PrintJobMetadata = {
-      type: 'Receipt',
-      orderId: '12345',
+      type: "Receipt",
+      orderId: "12345",
     };
 
     await printText(testIp, testPayload, testMetadata);
@@ -100,21 +100,21 @@ describe('printText', () => {
     expect(NativeModules.PosThermalPrinter.setPrintJobs).toHaveBeenCalledWith(
       testIp,
       testPayload,
-      JSON.stringify(testMetadata)
+      JSON.stringify(testMetadata),
     );
   });
 
-  it('should handle errors when adding print jobs', async () => {
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+  it("should handle errors when adding print jobs", async () => {
+    const consoleSpy = jest.spyOn(console, "error").mockImplementation();
 
     NativeModules.PosThermalPrinter.setPrintJobs.mockRejectedValue(
-      new Error('Remove error')
+      new Error("Remove error"),
     );
 
     const testPayload: PrintJobRow[] = [
       {
         type: PrintJobRowType.TEXT,
-        text: 'Test Receipt',
+        text: "Test Receipt",
         bold: true,
         fontSize: PrintFontSize.NORMAL,
         alignment: PrintAlignment.CENTER,
@@ -122,8 +122,8 @@ describe('printText', () => {
       },
     ];
     const testMetadata: PrintJobMetadata = {
-      type: 'Receipt',
-      orderId: '12345',
+      type: "Receipt",
+      orderId: "12345",
     };
 
     await printText(testIp, testPayload, testMetadata);
@@ -132,21 +132,21 @@ describe('printText', () => {
   });
 });
 
-describe('openCashBox', () => {
-  it('should send correct cash drawer open command', async () => {
+describe("openCashBox", () => {
+  it("should send correct cash drawer open command", async () => {
     await openCashBox(testIp);
 
     expect(NativeModules.PosThermalPrinter.setPrintJobs).toHaveBeenCalledWith(
       testIp,
       [{ type: PrintJobRowType.CASHBOX }],
-      JSON.stringify({ type: 'Open Cashbox' })
+      JSON.stringify({ type: "Open Cashbox" }),
     );
   });
 
-  it('should handle errors when opening cash drawer', async () => {
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+  it("should handle errors when opening cash drawer", async () => {
+    const consoleSpy = jest.spyOn(console, "error").mockImplementation();
     NativeModules.PosThermalPrinter.setPrintJobs.mockRejectedValue(
-      new Error('Cash drawer error')
+      new Error("Cash drawer error"),
     );
 
     await openCashBox(testIp);
@@ -156,20 +156,20 @@ describe('openCashBox', () => {
   });
 });
 
-describe('reconnectPrinter', () => {
-  it('should attempt to reconnect and return success status', async () => {
+describe("reconnectPrinter", () => {
+  it("should attempt to reconnect and return success status", async () => {
     NativeModules.PosThermalPrinter.retryPrinterConnection.mockResolvedValue(
-      true
+      true,
     );
     const result = await reconnectPrinter(testIp);
     expect(result).toBe(true);
   });
 
-  it('should handle errors when reconnecting printers', async () => {
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+  it("should handle errors when reconnecting printers", async () => {
+    const consoleSpy = jest.spyOn(console, "error").mockImplementation();
 
     NativeModules.PosThermalPrinter.retryPrinterConnection.mockRejectedValue(
-      false
+      false,
     );
     const result = await reconnectPrinter(testIp);
     expect(result).toBe(false);
@@ -178,27 +178,27 @@ describe('reconnectPrinter', () => {
   });
 });
 
-describe('getPrinterPoolStatus', () => {
-  it('should return printer status array', async () => {
+describe("getPrinterPoolStatus", () => {
+  it("should return printer status array", async () => {
     const mockStatus = [
       {
         printerIp: testIp,
         isReachable: true,
-        printerName: 'Test Printer',
+        printerName: "Test Printer",
       },
     ];
     NativeModules.PosThermalPrinter.getPrinterPoolStatus.mockResolvedValue(
-      mockStatus
+      mockStatus,
     );
 
     const status = await getPrinterPoolStatus();
     expect(status).toEqual(mockStatus);
   });
 
-  it('should handle errors and return empty array', async () => {
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+  it("should handle errors and return empty array", async () => {
+    const consoleSpy = jest.spyOn(console, "error").mockImplementation();
     NativeModules.PosThermalPrinter.getPrinterPoolStatus.mockRejectedValue(
-      new Error('Status error')
+      new Error("Status error"),
     );
 
     const status = await getPrinterPoolStatus();
@@ -209,36 +209,36 @@ describe('getPrinterPoolStatus', () => {
   });
 });
 
-describe('getPendingJobs', () => {
-  it('should parse and return pending jobs', async () => {
+describe("getPendingJobs", () => {
+  it("should parse and return pending jobs", async () => {
     const mockRawJobs = [
       {
-        jobId: '1',
+        jobId: "1",
         printerIp: testIp,
-        printerName: 'Test Printer',
-        metadata: JSON.stringify({ type: 'Receipt', orderId: '12345' }),
+        printerName: "Test Printer",
+        metadata: JSON.stringify({ type: "Receipt", orderId: "12345" }),
       },
     ];
     NativeModules.PosThermalPrinter.getPendingJobDetails.mockResolvedValue(
-      mockRawJobs
+      mockRawJobs,
     );
 
     const jobs = await getPendingJobs();
-    expect(jobs[0]?.metadata).toEqual({ type: 'Receipt', orderId: '12345' });
+    expect(jobs[0]?.metadata).toEqual({ type: "Receipt", orderId: "12345" });
   });
 
-  it('should handle parsing errors and return empty array', async () => {
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+  it("should handle parsing errors and return empty array", async () => {
+    const consoleSpy = jest.spyOn(console, "error").mockImplementation();
     const mockRawJobs = [
       {
-        jobId: '1',
+        jobId: "1",
         printerIp: testIp,
-        printerName: 'Test Printer',
-        metadata: 'invalid-json', // Invalid JSON to trigger parse error
+        printerName: "Test Printer",
+        metadata: "invalid-json", // Invalid JSON to trigger parse error
       },
     ];
     NativeModules.PosThermalPrinter.getPendingJobDetails.mockResolvedValue(
-      mockRawJobs
+      mockRawJobs,
     );
 
     const jobs = await getPendingJobs();
@@ -248,7 +248,7 @@ describe('getPendingJobs', () => {
     consoleSpy.mockRestore();
   });
 
-  it('should return empty array when no jobs exist', async () => {
+  it("should return empty array when no jobs exist", async () => {
     NativeModules.PosThermalPrinter.getPendingJobDetails.mockResolvedValue([]);
 
     const jobs = await getPendingJobs();
@@ -256,10 +256,10 @@ describe('getPendingJobs', () => {
     expect(jobs).toEqual([]);
   });
 
-  it('should handle null response', async () => {
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+  it("should handle null response", async () => {
+    const consoleSpy = jest.spyOn(console, "error").mockImplementation();
     NativeModules.PosThermalPrinter.getPendingJobDetails.mockResolvedValue(
-      null
+      null,
     );
 
     const jobs = await getPendingJobs();
@@ -269,23 +269,23 @@ describe('getPendingJobs', () => {
   });
 });
 
-describe('addPrinterToPool', () => {
-  it('should add printer to pool successfully', async () => {
+describe("addPrinterToPool", () => {
+  it("should add printer to pool successfully", async () => {
     const printer: IPPrinter = { ip: testIp };
     NativeModules.PosThermalPrinter.addPrinterToPool.mockResolvedValue(true);
 
     const result = await addPrinterToPool(printer);
     expect(result).toBe(true);
     expect(
-      NativeModules.PosThermalPrinter.addPrinterToPool
+      NativeModules.PosThermalPrinter.addPrinterToPool,
     ).toHaveBeenCalledWith(printer);
   });
 
-  it('should handle errors when adding printer', async () => {
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+  it("should handle errors when adding printer", async () => {
+    const consoleSpy = jest.spyOn(console, "error").mockImplementation();
     const printer: IPPrinter = { ip: testIp };
     NativeModules.PosThermalPrinter.addPrinterToPool.mockRejectedValue(
-      new Error('Add printer error')
+      new Error("Add printer error"),
     );
 
     const result = await addPrinterToPool(printer);
@@ -296,23 +296,23 @@ describe('addPrinterToPool', () => {
   });
 });
 
-describe('initializePrinterPool', () => {
-  it('should initialize printer pool successfully', async () => {
+describe("initializePrinterPool", () => {
+  it("should initialize printer pool successfully", async () => {
     NativeModules.PosThermalPrinter.initializePrinterPool.mockResolvedValue(
-      true
+      true,
     );
 
     const result = await initializePrinterPool();
     expect(result).toBe(true);
     expect(
-      NativeModules.PosThermalPrinter.initializePrinterPool
+      NativeModules.PosThermalPrinter.initializePrinterPool,
     ).toHaveBeenCalled();
   });
 
-  it('should handle initialization errors', async () => {
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+  it("should handle initialization errors", async () => {
+    const consoleSpy = jest.spyOn(console, "error").mockImplementation();
     NativeModules.PosThermalPrinter.initializePrinterPool.mockRejectedValue(
-      new Error('Init error')
+      new Error("Init error"),
     );
 
     const result = await initializePrinterPool();
@@ -323,25 +323,25 @@ describe('initializePrinterPool', () => {
   });
 });
 
-describe('removePrinterFromPool', () => {
-  it('should remove printer from pool successfully', async () => {
+describe("removePrinterFromPool", () => {
+  it("should remove printer from pool successfully", async () => {
     NativeModules.PosThermalPrinter.removePrinterFromPool.mockResolvedValue(
-      true
+      true,
     );
 
     const result = await removePrinterFromPool(testIp);
 
     expect(result).toBe(true);
     expect(
-      NativeModules.PosThermalPrinter.removePrinterFromPool
+      NativeModules.PosThermalPrinter.removePrinterFromPool,
     ).toHaveBeenCalledWith(testIp);
   });
 
-  it('should handle errors when removing printer', async () => {
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+  it("should handle errors when removing printer", async () => {
+    const consoleSpy = jest.spyOn(console, "error").mockImplementation();
 
     NativeModules.PosThermalPrinter.removePrinterFromPool.mockRejectedValue(
-      new Error('Remove error')
+      new Error("Remove error"),
     );
 
     const result = await removePrinterFromPool(testIp);
@@ -352,21 +352,21 @@ describe('removePrinterFromPool', () => {
   });
 });
 
-describe('printImage', () => {
-  const testBase64 = 'base64EncodedImage';
+describe("printImage", () => {
+  const testBase64 = "base64EncodedImage";
 
-  it('should print image successfully', async () => {
+  it("should print image successfully", async () => {
     await printImage(testBase64);
 
     expect(NativeModules.PosThermalPrinter.printImage).toHaveBeenCalledWith(
-      testBase64
+      testBase64,
     );
   });
 
-  it('should handle errors when printing image', async () => {
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+  it("should handle errors when printing image", async () => {
+    const consoleSpy = jest.spyOn(console, "error").mockImplementation();
     NativeModules.PosThermalPrinter.printImage.mockRejectedValue(
-      new Error('Print error')
+      new Error("Print error"),
     );
 
     await printImage(testBase64);
@@ -376,22 +376,22 @@ describe('printImage', () => {
   });
 });
 
-describe('printPendingJobsWithNewPrinter', () => {
-  it('should print pending jobs with new printer successfully', async () => {
+describe("printPendingJobsWithNewPrinter", () => {
+  it("should print pending jobs with new printer successfully", async () => {
     NativeModules.PosThermalPrinter.printFromNewPrinter.mockResolvedValue(true);
 
     const result = await printPendingJobsWithNewPrinter(testIp, testIp);
 
     expect(result).toBe(true);
     expect(
-      NativeModules.PosThermalPrinter.printFromNewPrinter
+      NativeModules.PosThermalPrinter.printFromNewPrinter,
     ).toHaveBeenCalledWith(testIp, testIp);
   });
 
-  it('should handle errors when printing with new printer', async () => {
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+  it("should handle errors when printing with new printer", async () => {
+    const consoleSpy = jest.spyOn(console, "error").mockImplementation();
     NativeModules.PosThermalPrinter.printFromNewPrinter.mockRejectedValue(
-      new Error('Print error')
+      new Error("Print error"),
     );
 
     const result = await printPendingJobsWithNewPrinter(testIp, testIp);
@@ -401,18 +401,18 @@ describe('printPendingJobsWithNewPrinter', () => {
     consoleSpy.mockRestore();
   });
 
-  it('should handle parsing errors in jobs metadata', async () => {
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+  it("should handle parsing errors in jobs metadata", async () => {
+    const consoleSpy = jest.spyOn(console, "error").mockImplementation();
     const mockRawJobs = [
       {
-        jobId: '1',
+        jobId: "1",
         printerIp: testIp,
-        printerName: 'Test Printer',
-        metadata: 'invalid-json',
+        printerName: "Test Printer",
+        metadata: "invalid-json",
       },
     ];
     NativeModules.PosThermalPrinter.getPrinterPendingJobDetails.mockResolvedValue(
-      mockRawJobs
+      mockRawJobs,
     );
 
     const jobs = await getPendingPrinterJobs(testIp);
@@ -422,9 +422,9 @@ describe('printPendingJobsWithNewPrinter', () => {
     consoleSpy.mockRestore();
   });
 
-  it('should return empty array for null response', async () => {
+  it("should return empty array for null response", async () => {
     NativeModules.PosThermalPrinter.getPrinterPendingJobDetails.mockResolvedValue(
-      null
+      null,
     );
 
     const jobs = await getPendingPrinterJobs(testIp);
@@ -433,24 +433,24 @@ describe('printPendingJobsWithNewPrinter', () => {
   });
 });
 
-describe('deletePendingJob', () => {
-  const testJobId = 'job123';
+describe("deletePendingJob", () => {
+  const testJobId = "job123";
 
-  it('should delete pending job successfully', async () => {
+  it("should delete pending job successfully", async () => {
     NativeModules.PosThermalPrinter.deletePendingJobs.mockResolvedValue(true);
 
     const result = await deletePendingJob(testJobId);
 
     expect(result).toBe(true);
     expect(
-      NativeModules.PosThermalPrinter.deletePendingJobs
+      NativeModules.PosThermalPrinter.deletePendingJobs,
     ).toHaveBeenCalledWith(testJobId);
   });
 
-  it('should handle errors when deleting pending job', async () => {
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+  it("should handle errors when deleting pending job", async () => {
+    const consoleSpy = jest.spyOn(console, "error").mockImplementation();
     NativeModules.PosThermalPrinter.deletePendingJobs.mockRejectedValue(
-      new Error('Delete error')
+      new Error("Delete error"),
     );
 
     const result = await deletePendingJob(testJobId);
@@ -461,26 +461,26 @@ describe('deletePendingJob', () => {
   });
 });
 
-describe('retryPendingJobFromNewPrinter', () => {
-  const testJobId = 'job123';
+describe("retryPendingJobFromNewPrinter", () => {
+  const testJobId = "job123";
 
-  it('should retry pending job from new printer successfully', async () => {
+  it("should retry pending job from new printer successfully", async () => {
     NativeModules.PosThermalPrinter.retryPendingJobFromNewPrinter.mockResolvedValue(
-      true
+      true,
     );
 
     const result = await retryPendingJobFromNewPrinter(testJobId, testIp);
 
     expect(result).toBe(true);
     expect(
-      NativeModules.PosThermalPrinter.retryPendingJobFromNewPrinter
+      NativeModules.PosThermalPrinter.retryPendingJobFromNewPrinter,
     ).toHaveBeenCalledWith(testJobId, testIp);
   });
 
-  it('should handle errors when retrying from new printer', async () => {
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+  it("should handle errors when retrying from new printer", async () => {
+    const consoleSpy = jest.spyOn(console, "error").mockImplementation();
     NativeModules.PosThermalPrinter.retryPendingJobFromNewPrinter.mockRejectedValue(
-      new Error('Retry error')
+      new Error("Retry error"),
     );
 
     const result = await retryPendingJobFromNewPrinter(testJobId, testIp);
@@ -491,30 +491,30 @@ describe('retryPendingJobFromNewPrinter', () => {
   });
 });
 
-describe('getPendingPrinterJobs', () => {
-  it('should get and parse pending printer jobs successfully', async () => {
+describe("getPendingPrinterJobs", () => {
+  it("should get and parse pending printer jobs successfully", async () => {
     const mockRawJobs = [
       {
-        jobId: '1',
+        jobId: "1",
         printerIp: testIp,
-        printerName: 'Test Printer',
-        metadata: JSON.stringify({ type: 'Receipt', orderId: '12345' }),
+        printerName: "Test Printer",
+        metadata: JSON.stringify({ type: "Receipt", orderId: "12345" }),
       },
     ];
     NativeModules.PosThermalPrinter.getPrinterPendingJobDetails.mockResolvedValue(
-      mockRawJobs
+      mockRawJobs,
     );
 
     const jobs = await getPendingPrinterJobs(testIp);
 
     expect(jobs).toHaveLength(1);
-    expect(jobs[0]?.metadata).toEqual({ type: 'Receipt', orderId: '12345' });
+    expect(jobs[0]?.metadata).toEqual({ type: "Receipt", orderId: "12345" });
   });
 
-  it('should handle errors and return empty array', async () => {
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+  it("should handle errors and return empty array", async () => {
+    const consoleSpy = jest.spyOn(console, "error").mockImplementation();
     NativeModules.PosThermalPrinter.getPrinterPendingJobDetails.mockRejectedValue(
-      new Error('Get jobs error')
+      new Error("Get jobs error"),
     );
 
     const jobs = await getPendingPrinterJobs(testIp);
@@ -525,22 +525,22 @@ describe('getPendingPrinterJobs', () => {
   });
 });
 
-describe('deletePrinterPendingJobs', () => {
-  it('should delete printer pending jobs successfully', async () => {
+describe("deletePrinterPendingJobs", () => {
+  it("should delete printer pending jobs successfully", async () => {
     NativeModules.PosThermalPrinter.dismissPendingJobs.mockResolvedValue(true);
 
     const result = await deletePrinterPendingJobs(testIp);
 
     expect(result).toBe(true);
     expect(
-      NativeModules.PosThermalPrinter.dismissPendingJobs
+      NativeModules.PosThermalPrinter.dismissPendingJobs,
     ).toHaveBeenCalledWith(testIp);
   });
 
-  it('should handle errors when deleting printer pending jobs', async () => {
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+  it("should handle errors when deleting printer pending jobs", async () => {
+    const consoleSpy = jest.spyOn(console, "error").mockImplementation();
     NativeModules.PosThermalPrinter.dismissPendingJobs.mockRejectedValue(
-      new Error('Delete error')
+      new Error("Delete error"),
     );
 
     const result = await deletePrinterPendingJobs(testIp);
@@ -551,24 +551,24 @@ describe('deletePrinterPendingJobs', () => {
   });
 });
 
-describe('retryPendingJobsFromPrinter', () => {
-  it('should retry pending jobs from printer successfully', async () => {
+describe("retryPendingJobsFromPrinter", () => {
+  it("should retry pending jobs from printer successfully", async () => {
     NativeModules.PosThermalPrinter.retryPendingJobsFromPrinter.mockResolvedValue(
-      true
+      true,
     );
 
     const result = await retryPendingJobsFromPrinter(testIp);
 
     expect(result).toBe(true);
     expect(
-      NativeModules.PosThermalPrinter.retryPendingJobsFromPrinter
+      NativeModules.PosThermalPrinter.retryPendingJobsFromPrinter,
     ).toHaveBeenCalledWith(testIp);
   });
 
-  it('should handle errors when retrying pending jobs', async () => {
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+  it("should handle errors when retrying pending jobs", async () => {
+    const consoleSpy = jest.spyOn(console, "error").mockImplementation();
     NativeModules.PosThermalPrinter.retryPendingJobsFromPrinter.mockRejectedValue(
-      new Error('Retry error')
+      new Error("Retry error"),
     );
 
     const result = await retryPendingJobsFromPrinter(testIp);
@@ -579,25 +579,25 @@ describe('retryPendingJobsFromPrinter', () => {
   });
 });
 
-describe('getPrinterStatus', () => {
-  it('should get printer status successfully', async () => {
-    const mockStatus = { status: 'ready' };
+describe("getPrinterStatus", () => {
+  it("should get printer status successfully", async () => {
+    const mockStatus = { status: "ready" };
     NativeModules.PosThermalPrinter.checkPrinterStatus.mockResolvedValue(
-      mockStatus
+      mockStatus,
     );
 
     const result = await getPrinterStatus(testIp);
 
     expect(result).toEqual(mockStatus);
     expect(
-      NativeModules.PosThermalPrinter.checkPrinterStatus
+      NativeModules.PosThermalPrinter.checkPrinterStatus,
     ).toHaveBeenCalledWith(testIp);
   });
 
-  it('should handle errors when getting printer status', async () => {
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+  it("should handle errors when getting printer status", async () => {
+    const consoleSpy = jest.spyOn(console, "error").mockImplementation();
     NativeModules.PosThermalPrinter.checkPrinterStatus.mockRejectedValue(
-      new Error('Status error')
+      new Error("Status error"),
     );
 
     await getPrinterStatus(testIp);
@@ -607,26 +607,26 @@ describe('getPrinterStatus', () => {
   });
 });
 
-describe('EscPosPrinter Proxy', () => {
-  it('should use PosThermalPrinter when available', () => {
+describe("EscPosPrinter Proxy", () => {
+  it("should use PosThermalPrinter when available", () => {
     const mockPrinter = {
       setPrintJobs: jest.fn(),
     };
     NativeModules.PosThermalPrinter = mockPrinter;
 
     jest.isolateModules(() => {
-      const { EscPosPrinter } = require('../src/printerModule');
+      const { EscPosPrinter } = require("../src/printerModule");
       expect(EscPosPrinter).toBe(mockPrinter);
     });
   });
 
-  it('should throw LINKING_ERROR when native module is not available', () => {
+  it("should throw LINKING_ERROR when native module is not available", () => {
     // Remove PosThermalPrinter
     delete NativeModules.PosThermalPrinter;
 
     let proxyEscPosPrinter: any;
     jest.isolateModules(() => {
-      const { EscPosPrinter } = require('../src/printerModule');
+      const { EscPosPrinter } = require("../src/printerModule");
       proxyEscPosPrinter = EscPosPrinter;
     });
 
@@ -636,13 +636,13 @@ describe('EscPosPrinter Proxy', () => {
     }).toThrow(LINKING_ERROR);
   });
 
-  it('should throw LINKING_ERROR when native module is null', () => {
+  it("should throw LINKING_ERROR when native module is null", () => {
     // Remove PosThermalPrinter
     NativeModules.PosThermalPrinter = null;
 
     let proxyEscPosPrinter: any;
     jest.isolateModules(() => {
-      const { EscPosPrinter } = require('../src/printerModule');
+      const { EscPosPrinter } = require("../src/printerModule");
       proxyEscPosPrinter = EscPosPrinter;
     });
 
