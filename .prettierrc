@@ -1,0 +1,12 @@
+{
+  "proseWrap": "preserve",
+  "arrowParens": "always",
+  "bracketSpacing": true,
+  "semi": true,
+  "unorderedListStyle": "dash",
+  "quoteProps": "consistent",
+  "tabWidth": 2,
+  "trailingComma": "all",
+  "useTabs": false,
+  "singleQuote": false
+}
