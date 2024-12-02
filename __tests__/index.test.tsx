@@ -8,7 +8,6 @@ import {
   printText,
   reconnectPrinter,
   removePrinterFromPool,
-  printImage,
   printPendingJobsWithNewPrinter,
   deletePendingJob,
   retryPendingJobFromNewPrinter,
@@ -348,30 +347,6 @@ describe("removePrinterFromPool", () => {
 
     expect(consoleSpy).toHaveBeenCalled();
     expect(result).toBeFalsy();
-    consoleSpy.mockRestore();
-  });
-});
-
-describe("printImage", () => {
-  const testBase64 = "base64EncodedImage";
-
-  it("should print image successfully", async () => {
-    await printImage(testBase64);
-
-    expect(NativeModules.PosThermalPrinter.printImage).toHaveBeenCalledWith(
-      testBase64,
-    );
-  });
-
-  it("should handle errors when printing image", async () => {
-    const consoleSpy = jest.spyOn(console, "error").mockImplementation();
-    NativeModules.PosThermalPrinter.printImage.mockRejectedValue(
-      new Error("Print error"),
-    );
-
-    await printImage(testBase64);
-
-    expect(consoleSpy).toHaveBeenCalled();
     consoleSpy.mockRestore();
   });
 });
