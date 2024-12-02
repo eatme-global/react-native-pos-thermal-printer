@@ -59,14 +59,14 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/eatme-global/react-native-thermal-printer.git"
+    "url": "git+https://github.com/eatme-global/react-native-pos-thermal-printer.git"
   },
   "author": "Mohamed Sihan <mohamed.s@eatmeglobal.com> (https://github.com/Mshihan)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/eatme-global/react-native-thermal-printer/issues"
+    "url": "https://github.com/eatme-global/react-native-pos-thermal-printer/issues"
   },
-  "homepage": "https://github.com/eatme-global/react-native-thermal-printer#readme",
+  "homepage": "https://github.com/eatme-global/react-native-pos-thermal-printer#readme",
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
   },
