@@ -14,6 +14,11 @@ buildscript {
   }
 }
 
+plugins {
+    id 'org.jetbrains.kotlinx.kover' version '0.7.5'
+}
+
+
 def reactNativeArchitectures() {
   def value = rootProject.getProperties().get("reactNativeArchitectures")
   return value ? value.split(",") : ["armeabi-v7a", "x86", "x86_64", "arm64-v8a"]
@@ -25,6 +30,7 @@ def isNewArchitectureEnabled() {
 
 apply plugin: "com.android.library"
 apply plugin: "kotlin-android"
+// apply plugin: 'jacoco'
 
 if (isNewArchitectureEnabled()) {
   apply plugin: "com.facebook.react"
@@ -66,11 +72,14 @@ android {
 
   }
 
-  buildTypes {
-    release {
-      minifyEnabled false
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+        debug {
+            testCoverageEnabled true
+        }
     }
-  }
 
   lintOptions {
     disable "GradleCompatible"
@@ -80,7 +89,31 @@ android {
     sourceCompatibility JavaVersion.VERSION_1_8
     targetCompatibility JavaVersion.VERSION_1_8
   }
+
+  // testOptions {
+  //     unitTests {
+  //         includeAndroidResources = true
+  //         returnDefaultValues = true
+  //         all {
+  //             jacoco {
+  //                 includeNoLocationClasses = true
+  //                 excludes = ['jdk.internal.*']
+  //             }
+  //         }
+  //     }
+  // }
+
+   testOptions {
+        unitTests {
+            includeAndroidResources = true
+            returnDefaultValues = true
+        }
+    }
 }
+
+// jacoco {
+//     toolVersion = "0.8.11"
+// }
 
 repositories {
   mavenCentral()
@@ -96,5 +129,49 @@ dependencies {
   implementation "com.facebook.react:react-native:+"
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
   implementation files('libs/PosPrinterSDK.jar')
+
+  // Test dependencies
+  testImplementation 'junit:junit:4.13.2'
+  testImplementation 'org.mockito:mockito-core:4.8.1'
+  testImplementation 'org.mockito:mockito-inline:4.8.1'
+  testImplementation 'org.robolectric:robolectric:4.11.1'
+  testImplementation 'androidx.test:core:1.5.0'
+  testImplementation 'org.mockito.kotlin:mockito-kotlin:4.1.0'
+  testImplementation 'org.powermock:powermock-module-junit4:2.0.9'
+  testImplementation 'org.powermock:powermock-api-mockito2:2.0.9'
 }
 
+// Add this to your build.gradle
+tasks.register('coverageReport') {
+    dependsOn 'koverHtmlReportDebug'
+    dependsOn 'koverXmlReportDebug'
+}
+
+
+kover {
+    htmlReport {
+        reportDir.set(layout.buildDirectory.dir("reports/kover/html"))
+        filters {
+            excludes {
+                classes(
+                    "*.BuildConfig",
+                    "*.R",
+                    "*.R\$*"
+                )
+            }
+        }
+    }
+    
+    xmlReport {
+        reportFile.set(layout.buildDirectory.file("reports/kover/report.xml"))
+    }
+
+    verify {
+        rule {
+            bound {
+                minValue = 0  // Minimum coverage percentage
+                valueType = 'LINE'
+            }
+        }
+    }
+}

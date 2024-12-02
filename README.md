@@ -10,15 +10,13 @@ npm install react-native-pos-thermal-printer
 
 ## Usage
 
-
 ```js
-import { multiply } from 'react-native-pos-thermal-printer';
+import { multiply } from "react-native-pos-thermal-printer";
 
 // ...
 
 const result = await multiply(3, 7);
 ```
-
 
 ## Contributing
 

@@ -9,7 +9,7 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-} from 'react-native';
+} from "react-native";
 
 import {
   addPrinterToPool,
@@ -29,27 +29,27 @@ import {
   removePrinterFromPool,
   retryPendingJobFromNewPrinter,
   retryPendingJobsFromPrinter,
-} from 'react-native-pos-thermal-printer';
+} from "react-native-pos-thermal-printer";
 
 import type {
   IPPrinter,
   ParsedPendingJob,
   PrintJobRow,
   PrinterStatus,
-} from 'react-native-pos-thermal-printer';
+} from "react-native-pos-thermal-printer";
 
-import { useCallback, useState } from 'react';
+import { useCallback, useState } from "react";
 
 export default function App() {
   const customRetryFunction = useCallback(
     async (printerIp: string | { ip: string }) => {
       // Implement a reconnect mechanism [reconnect printer]
       Alert.alert(
-        'Printer Unreachable',
-        `Unable to connect to printer at IP ${printerIp}`
+        "Printer Unreachable",
+        `Unable to connect to printer at IP ${printerIp}`,
       );
     },
-    []
+    [],
   );
   return (
     <EventServiceProvider onReconnect={customRetryFunction}>
@@ -103,14 +103,14 @@ const PrinterContent: React.FC = () => {
         fontSize: PrintFontSize.NORMAL,
         columns: [
           {
-            text: '123456789|123456789|',
+            text: "123456789|123456789|",
             width: 20,
             alignment: PrintAlignment.LEFT,
           },
-          { text: '', width: 2, alignment: PrintAlignment.LEFT },
-          { text: 'Qty', width: 5, alignment: PrintAlignment.CENTER },
-          { text: '', width: 2, alignment: PrintAlignment.LEFT },
-          { text: 'Price', width: 19, alignment: PrintAlignment.RIGHT },
+          { text: "", width: 2, alignment: PrintAlignment.LEFT },
+          { text: "Qty", width: 5, alignment: PrintAlignment.CENTER },
+          { text: "", width: 2, alignment: PrintAlignment.LEFT },
+          { text: "Price", width: 19, alignment: PrintAlignment.RIGHT },
         ],
       },
       {
@@ -118,11 +118,11 @@ const PrinterContent: React.FC = () => {
         bold: true,
         fontSize: PrintFontSize.NORMAL,
         columns: [
-          { text: 'TRY', width: 20, alignment: PrintAlignment.LEFT },
-          { text: '', width: 2, alignment: PrintAlignment.LEFT },
-          { text: 'Qty', width: 5, alignment: PrintAlignment.CENTER },
-          { text: '', width: 2, alignment: PrintAlignment.LEFT },
-          { text: 'Price', width: 19, alignment: PrintAlignment.RIGHT },
+          { text: "TRY", width: 20, alignment: PrintAlignment.LEFT },
+          { text: "", width: 2, alignment: PrintAlignment.LEFT },
+          { text: "Qty", width: 5, alignment: PrintAlignment.CENTER },
+          { text: "", width: 2, alignment: PrintAlignment.LEFT },
+          { text: "Price", width: 19, alignment: PrintAlignment.RIGHT },
         ],
       },
       // {
@@ -153,7 +153,7 @@ const PrinterContent: React.FC = () => {
       { type: PrintJobRowType.CUT },
     ];
 
-    printText(ip, result, { type: 'Receipt', category: 'Drinks' });
+    printText(ip, result, { type: "Receipt", category: "Drinks" });
   };
 
   const addNewPrinterToPool = async (ip: string) => {
@@ -233,16 +233,16 @@ const PrinterContent: React.FC = () => {
     await getPrinterStatus(ip);
   };
 
-  const [ipOld, setOldIp] = useState<string>('');
-  const [ipNew, setNewIp] = useState<string>('');
-  const [ip, setIp] = useState<string>('');
+  const [ipOld, setOldIp] = useState<string>("");
+  const [ipNew, setNewIp] = useState<string>("");
+  const [ip, setIp] = useState<string>("");
 
   return (
     <EventServiceProvider
       onReconnect={async (IP: string) => {
         console.log(IP);
       }}
-      onBeforePrint={() => console.log('before print')}
+      onBeforePrint={() => console.log("before print")}
     >
       <SafeAreaView>
         <ScrollView style={{}}>
@@ -270,12 +270,12 @@ const PrinterContent: React.FC = () => {
                     <View
                       key={index}
                       style={{
-                        flexDirection: 'column',
+                        flexDirection: "column",
                         borderWidth: 1,
-                        borderColor: 'gray',
+                        borderColor: "gray",
                         backgroundColor: printerStatus.isReachable
-                          ? '#c8f7d6'
-                          : '#ffd4d9',
+                          ? "#c8f7d6"
+                          : "#ffd4d9",
                         marginBottom: 10,
                         padding: 10,
                       }}
@@ -283,23 +283,23 @@ const PrinterContent: React.FC = () => {
                       <Text>Printer Name:{printerStatus.printerName}</Text>
                       <Text>Printer IP:{printerStatus.printerIp}</Text>
                       <Text>
-                        IP Status:{' '}
+                        IP Status:{" "}
                         {printerStatus.isReachable
-                          ? 'Reachable'
-                          : 'Not Reachable'}
+                          ? "Reachable"
+                          : "Not Reachable"}
                       </Text>
-                      <View style={{ marginTop: 10, flexDirection: 'column' }}>
+                      <View style={{ marginTop: 10, flexDirection: "column" }}>
                         <TouchableOpacity
                           onPress={() =>
                             handlePrintTest(printerStatus.printerIp)
                           }
                           style={{
-                            backgroundColor: 'gray',
+                            backgroundColor: "gray",
                             paddingVertical: 10,
                             paddingHorizontal: 20,
                           }}
                         >
-                          <Text style={{ color: 'white', textAlign: 'center' }}>
+                          <Text style={{ color: "white", textAlign: "center" }}>
                             Printer Test
                           </Text>
                         </TouchableOpacity>
@@ -309,12 +309,12 @@ const PrinterContent: React.FC = () => {
                             handleRemovePrinter(printerStatus.printerIp)
                           }
                           style={{
-                            backgroundColor: 'red',
+                            backgroundColor: "red",
                             paddingVertical: 10,
                             paddingHorizontal: 20,
                           }}
                         >
-                          <Text style={{ color: 'white', textAlign: 'center' }}>
+                          <Text style={{ color: "white", textAlign: "center" }}>
                             Printer Remove
                           </Text>
                         </TouchableOpacity>
@@ -325,13 +325,13 @@ const PrinterContent: React.FC = () => {
                               handleReConnectPrinter(printerStatus.printerIp)
                             }
                             style={{
-                              backgroundColor: 'orange',
+                              backgroundColor: "orange",
                               paddingVertical: 10,
                               paddingHorizontal: 20,
                             }}
                           >
                             <Text
-                              style={{ color: 'white', textAlign: 'center' }}
+                              style={{ color: "white", textAlign: "center" }}
                             >
                               Reconnect Printer
                             </Text>
@@ -342,12 +342,12 @@ const PrinterContent: React.FC = () => {
                             getPrinterStatusPrinter(printerStatus.printerIp)
                           }
                           style={{
-                            backgroundColor: 'orange',
+                            backgroundColor: "orange",
                             paddingVertical: 10,
                             paddingHorizontal: 20,
                           }}
                         >
-                          <Text style={{ color: 'white', textAlign: 'center' }}>
+                          <Text style={{ color: "white", textAlign: "center" }}>
                             Get Printer Status
                           </Text>
                         </TouchableOpacity>
@@ -358,7 +358,7 @@ const PrinterContent: React.FC = () => {
               <View
                 style={{
                   height: 2,
-                  backgroundColor: 'black',
+                  backgroundColor: "black",
                   width: 300,
                   marginVertical: 20,
                 }}
@@ -368,13 +368,13 @@ const PrinterContent: React.FC = () => {
                   Reroute pending jobs
                 </Text>
                 <TextInput
-                  style={{ ...styles.textInput, width: '100%' }}
+                  style={{ ...styles.textInput, width: "100%" }}
                   onChange={(e) => setOldIp(e.nativeEvent.text)}
                   placeholder="Pending jobs IP"
                 />
 
                 <TextInput
-                  style={{ ...styles.textInput, width: '100%' }}
+                  style={{ ...styles.textInput, width: "100%" }}
                   onChange={(e) => setNewIp(e.nativeEvent.text)}
                   placeholder="New printer IP"
                 />
@@ -387,7 +387,7 @@ const PrinterContent: React.FC = () => {
               <View
                 style={{
                   height: 2,
-                  backgroundColor: 'black',
+                  backgroundColor: "black",
                   width: 300,
                   marginVertical: 20,
                 }}
@@ -395,12 +395,12 @@ const PrinterContent: React.FC = () => {
 
               <Button
                 title="delete pending Jobs 127"
-                onPress={() => deletePendingJobs('192.168.8.127')}
+                onPress={() => deletePendingJobs("192.168.8.127")}
               />
               {pendingJobs.length > 0 ? (
                 <Button
                   title="retry Pending Jobs 127"
-                  onPress={() => retryPendingPrinterJobs('192.168.8.127')}
+                  onPress={() => retryPendingPrinterJobs("192.168.8.127")}
                 />
               ) : (
                 <View />
@@ -412,10 +412,10 @@ const PrinterContent: React.FC = () => {
                       <View
                         key={index}
                         style={{
-                          flexDirection: 'column',
+                          flexDirection: "column",
                           borderWidth: 1,
-                          borderColor: 'gray',
-                          backgroundColor: '#ffd4d9',
+                          borderColor: "gray",
+                          backgroundColor: "#ffd4d9",
                           padding: 10,
                         }}
                       >
@@ -429,12 +429,12 @@ const PrinterContent: React.FC = () => {
                         <TouchableOpacity
                           onPress={() => handleDeleteJob(job.jobId)}
                           style={{
-                            backgroundColor: 'red',
+                            backgroundColor: "red",
                             paddingVertical: 10,
                             paddingHorizontal: 20,
                           }}
                         >
-                          <Text style={{ color: 'white', textAlign: 'center' }}>
+                          <Text style={{ color: "white", textAlign: "center" }}>
                             Remove Job
                           </Text>
                         </TouchableOpacity>
@@ -442,12 +442,12 @@ const PrinterContent: React.FC = () => {
                         <TextInput
                           style={{
                             borderWidth: 1,
-                            borderColor: 'gray',
+                            borderColor: "gray",
                             padding: 10,
                             marginVertical: 5,
                           }}
                           placeholder="Enter new printer IP"
-                          value={printerIPs[job.jobId] || ''}
+                          value={printerIPs[job.jobId] || ""}
                           onChangeText={(text) =>
                             handleIPChange(job.jobId, text)
                           }
@@ -458,13 +458,13 @@ const PrinterContent: React.FC = () => {
                             handlePendingJobPrintFromNewPrinter(job.jobId)
                           }
                           style={{
-                            backgroundColor: 'blue',
+                            backgroundColor: "blue",
                             paddingVertical: 10,
                             paddingHorizontal: 20,
                             marginVertical: 5,
                           }}
                         >
-                          <Text style={{ color: 'white', textAlign: 'center' }}>
+                          <Text style={{ color: "white", textAlign: "center" }}>
                             Print Job From New Printer
                           </Text>
                         </TouchableOpacity>
@@ -475,7 +475,7 @@ const PrinterContent: React.FC = () => {
             </View>
             <Button
               title="Get Pending Jobs 127"
-              onPress={() => fetchPrinterPendingJobs('192.168.8.127')}
+              onPress={() => fetchPrinterPendingJobs("192.168.8.127")}
             />
           </View>
         </ScrollView>
@@ -488,20 +488,20 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     marginVertical: 50,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   textInput: {
-    width: '80%',
-    borderColor: 'gray',
+    width: "80%",
+    borderColor: "gray",
     borderWidth: 1,
     marginBottom: 10,
     padding: 10,
   },
   printerPoolStatusContainer: { gap: 5, marginTop: 20, marginBottom: 10 },
   printerPoolHeading: {
-    textAlign: 'center',
-    fontWeight: 'bold',
+    textAlign: "center",
+    fontWeight: "bold",
     marginTop: 10,
     marginBottom: 10,
   },
