@@ -1,3 +1,10 @@
+## [0.8.3-beta.1](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.8.2...v0.8.3-beta.1) (2024-12-05)
+
+
+### Bug Fixes
+
+* removed the crashing script installing the npm package ([5ccd645](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/5ccd645644995b8e7c40713427f9d875fc776ebc))
+
 ## [0.8.2](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.8.1...v0.8.2) (2024-12-05)
 
 ### Bug Fixes
