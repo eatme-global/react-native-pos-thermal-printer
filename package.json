@@ -48,7 +48,6 @@
     "pre-commit": "yarn test --watchAll=false --passWithNoTests",
     "sonar": "sonar-scanner",
     "commitlint": "commitlint --edit",
-    "postinstall": "husky",
     "format:fix": "prettier --write .",
     "format": "prettier --check ."
   },

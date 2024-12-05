@@ -1,6 +1,5 @@
 ## [0.8.2](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.8.1...v0.8.2) (2024-12-05)
 
-
 ### Bug Fixes
 
 * added github action token ([689cf66](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/689cf665f37de513a80aa0b19e75dd3e339296a7))
