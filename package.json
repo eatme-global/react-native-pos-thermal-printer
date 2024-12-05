@@ -1,6 +1,6 @@
 {
   "name": "react-native-pos-thermal-printer",
-  "version": "0.8.2-beta.2",
+  "version": "0.8.2",
   "description": "pos printer package for react native",
   "source": "./src/index.tsx",
   "main": "./lib/commonjs/index.js",
@@ -48,7 +48,6 @@
     "pre-commit": "yarn test --watchAll=false --passWithNoTests",
     "sonar": "sonar-scanner",
     "commitlint": "commitlint --edit",
-    "postinstall": "husky",
     "format:fix": "prettier --write .",
     "format": "prettier --check ."
   },
