@@ -1,3 +1,10 @@
+## [0.8.4](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.8.3...v0.8.4) (2024-12-05)
+
+
+### Bug Fixes
+
+* ios job handle method changed to avoid false prints ([8088caa](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/8088caaad9a8b470fd88a5cb69433607113d1bb6))
+
 ## [0.8.3](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.8.2...v0.8.3) (2024-12-05)
 
 
