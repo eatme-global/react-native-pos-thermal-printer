@@ -1,4 +1,3 @@
-
 ## [0.8.2-beta.2](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.8.2-beta.1...v0.8.2-beta.2) (2024-12-05)
 
 ### Bug Fixes

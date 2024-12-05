@@ -211,18 +211,24 @@
 }
 
 - (void)processNextJob {
-    
-    if (self.isPaused) {
+    if (self.isPaused || (_printQueue.count == 0 && self.currentJob == nil)) {
         return;
     }
     
     [self.queueLock lock];
-    PrinterJob *job = nil;
-    if (self.currentJob == nil && self.printQueue.count > 0) {
+    
+    if (self.currentJob != nil) {
+        [self.queueLock unlock];
+        return;
+    }
+    
+
+    if (self.printQueue.count > 0) {
         self.currentJob = self.printQueue.firstObject;
         [self.printQueue removeObjectAtIndex:0];
     }
-    job = self.currentJob;
+    
+    PrinterJob *job = self.currentJob;
     [self.queueLock unlock];
     
     if (job == nil) {
@@ -234,13 +240,12 @@
             [self.thermalPrinterLibrary sendPrinterUnreachableEvent:job.targetPrinterIp];
         }
         
-     
-      
         [self.queueLock lock];
         self.currentJob = nil;
         [self.queueLock unlock];
         
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1 * NSEC_PER_SEC)), self.printExecutor, ^{
+        // Add a small delay before processing the next job to ensure proper cleanup
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.5 * NSEC_PER_SEC)), self.printExecutor, ^{
             [self processNextJob];
         });
     }];
@@ -249,49 +254,59 @@
 - (void)printJob:(PrinterJob *)job completion:(void (^)(BOOL success))completion {
     POSWIFIManager *wifiManager = [[POSWIFIManager alloc] init];
     
-    // Check printer status
-    PrinterController *printer = [[PrinterController alloc] initWithIP:job.targetPrinterIp port:9100];
-    BOOL isOffline = [printer isPrinterOffline];
-    [printer disconnectPrinter];
+    // Add a job identifier to track unique jobs
+    static NSInteger jobCounter = 0;
+    NSInteger currentJobId = ++jobCounter;
     
-    NSLog(@"Printer is %@", isOffline ? @"offline" : @"online");
-    
-    // Create connection block that handles the printing process
-    void (^connectAndPrint)(void) = ^{
-        [wifiManager POSConnectWithHost:job.targetPrinterIp port:9100 completion:^(BOOL isConnect) {
-            if (!isConnect) {
+    // Check printer status with retry mechanism
+    [self checkPrinterStatus:job.targetPrinterIp completion:^(BOOL isOffline) {
+        void (^connectAndPrint)(void) = ^{
+            // Add guard to ensure the job is still valid
+            if (self.currentJob != job) {
                 completion(NO);
                 return;
             }
             
-            // Initialize printer and prepare data
-            NSMutableData *dataM = [NSMutableData dataWithData:[PosCommand initializePrinter]];
-            
-            // Process print items
-            for (PrintItem *item in job.jobContent) {
-                // Handle font size
-                [self configureFontSize:item.fontSize forData:dataM];
+            [wifiManager POSConnectWithHost:job.targetPrinterIp port:9100 completion:^(BOOL isConnect) {
+                if (!isConnect) {
+                    completion(NO);
+                    return;
+                }
                 
-                // Handle item type
-                [self processItemType:item withData:dataM wifiManager:wifiManager];
-            }
-            
-            // Send print data
-            [wifiManager POSWriteCommandWithData:dataM];
-            
-            // Handle completion and cleanup
-            [self handlePrintCompletion:job wifiManager:wifiManager completion:completion];
-        }];
-    };
-    
-    // If printer is offline, delay before trying to print
-    if (isOffline) {
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)),
-                      dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), connectAndPrint);
-    } else {
-        connectAndPrint();
-    }
+                NSMutableData *dataM = [NSMutableData dataWithData:[PosCommand initializePrinter]];
+                
+                for (PrintItem *item in job.jobContent) {
+                    [self configureFontSize:item.fontSize forData:dataM];
+                    [self processItemType:item withData:dataM wifiManager:wifiManager];
+                }
+                
+                [wifiManager POSWriteCommandWithData:dataM];
+                
+                [self handlePrintCompletion:job wifiManager:wifiManager completion:^(BOOL success) {
+                    completion(success);
+                }];
+            }];
+        };
+        
+        if (isOffline) {
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)),
+                          dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), connectAndPrint);
+        } else {
+            connectAndPrint();
+        }
+    }];
 }
+
+// New helper method for checking printer status
+- (void)checkPrinterStatus:(NSString *)printerIP completion:(void (^)(BOOL isOffline))completion {
+    PrinterController *printer = [[PrinterController alloc] initWithIP:printerIP port:9100];
+    BOOL isOffline = [printer isPrinterOffline];
+    [printer disconnectPrinter];
+    
+    completion(isOffline);
+}
+
+
 
 - (void)configureFontSize:(FontSize)fontSize forData:(NSMutableData *)dataM {
     switch (fontSize) {
