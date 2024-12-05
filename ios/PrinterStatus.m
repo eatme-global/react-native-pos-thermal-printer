@@ -91,6 +91,7 @@ NSString * const PrinterControllerErrorDomain = @"com.yourcompany.printercontrol
 
 #pragma mark - Printer Status
 
+
 - (BOOL)isPrinterOffline {
     if (!self.isConnected) {
         if (![self connectToPrinter]) {
@@ -98,53 +99,86 @@ NSString * const PrinterControllerErrorDomain = @"com.yourcompany.printercontrol
         }
     }
     
-    uint8_t commandBytes[] = {16, 4, 1, 16, 4, 2, 16, 4, 3, 16, 4, 4};
-    NSData *command = [NSData dataWithBytes:commandBytes length:sizeof(commandBytes)];
+    __block BOOL isOffline = YES;  // Default to offline
+    dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
     
-    if (![self writeData:command]) {
-        return YES;
-    }
+    // Explicitly capture self
+    __weak typeof(self) weakSelf = self;
     
-    uint8_t buffer[4] = {0};
-    NSInteger bytesRead = [self readBytes:buffer length:4];
-    
-    if (bytesRead != 4) {
-        return YES;
-    }
-    
-    // Check if printer is not responding
-    if (buffer[0] == 0 && buffer[1] == 0 && buffer[2] == 0 && buffer[3] == 0) {
-        monitorPrinter = NO;
-        self.status.error = NO;
-        self.status.offline = NO;
-        
-        if (index > 1) {
-            PrinterType = 1;
-            return NO;
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
+        // Create strong reference inside block
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        if (!strongSelf) {
+            dispatch_semaphore_signal(semaphore);
+            return;
         }
-    }
+        
+        uint8_t commandBytes[] = {16, 4, 1, 16, 4, 2, 16, 4, 3, 16, 4, 4};
+        NSData *command = [NSData dataWithBytes:commandBytes length:sizeof(commandBytes)];
+        
+        if (![strongSelf writeData:command]) {
+            isOffline = YES;
+            dispatch_semaphore_signal(semaphore);
+            return;
+        }
+        
+        uint8_t buffer[4] = {0};
+        NSInteger bytesRead = [strongSelf readBytes:buffer length:4];
+        
+        if (bytesRead != 4) {
+            isOffline = YES;
+            dispatch_semaphore_signal(semaphore);
+            return;
+        }
+        
+        // Check if printer is not responding
+        if (buffer[0] == 0 && buffer[1] == 0 && buffer[2] == 0 && buffer[3] == 0) {
+            monitorPrinter = NO;
+            strongSelf.status.error = NO;
+            strongSelf.status.offline = NO;
+            
+            if (index > 1) {
+                PrinterType = 1;
+                isOffline = NO;
+                dispatch_semaphore_signal(semaphore);
+                return;
+            }
+        }
+        
+        // Update status
+        isOffline = (buffer[0] & 0x08) != 0;
+        if (buffer[0] == 0) {
+            isOffline = YES;
+        }
+        
+        strongSelf.status.offline = isOffline;
+        strongSelf.status.cashdrawerOpen = (buffer[0] & 0x04) == 0;
+        strongSelf.status.coverOpen = (buffer[1] & 0x04) != 0;
+        strongSelf.status.cutterError = (buffer[2] & 0x08) != 0;
+        strongSelf.status.receiptPaperEmpty = (buffer[3] & 0x60) != 0;
+        strongSelf.status.receiptPaperNearEmptyInner = (buffer[3] & 0x0C) != 0;
+        
+        if (!strongSelf.status.offline &&
+            !strongSelf.status.coverOpen &&
+            !strongSelf.status.cutterError &&
+            !strongSelf.status.receiptPaperEmpty &&
+            !strongSelf.status.receiptPaperNearEmptyInner) {
+            strongSelf.status.error = NO;
+        } else {
+            strongSelf.status.error = YES;
+        }
+        
+        dispatch_semaphore_signal(semaphore);
+    });
     
-    // Update status
-    BOOL isOffline = (buffer[0] & 0x08) != 0;
-    if (buffer[0] == 0) {
+    // Wait for 1 second
+    dispatch_time_t timeout = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.7 * NSEC_PER_SEC));
+    if (dispatch_semaphore_wait(semaphore, timeout) != 0) {
+        // Timeout occurred
         isOffline = YES;
-    }
-    
-    self.status.offline = isOffline;
-    self.status.cashdrawerOpen = (buffer[0] & 0x04) == 0;
-    self.status.coverOpen = (buffer[1] & 0x04) != 0;
-    self.status.cutterError = (buffer[2] & 0x08) != 0;
-    self.status.receiptPaperEmpty = (buffer[3] & 0x60) != 0;
-    self.status.receiptPaperNearEmptyInner = (buffer[3] & 0x0C) != 0;
-    
-    if (!self.status.offline &&
-        !self.status.coverOpen &&
-        !self.status.cutterError &&
-        !self.status.receiptPaperEmpty &&
-        !self.status.receiptPaperNearEmptyInner) {
-        self.status.error = NO;
-    } else {
+        self.status.offline = YES;
         self.status.error = YES;
+        [self disconnectPrinter];
     }
     
     return isOffline;

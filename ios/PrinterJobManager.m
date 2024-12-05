@@ -260,7 +260,6 @@
     void (^connectAndPrint)(void) = ^{
         [wifiManager POSConnectWithHost:job.targetPrinterIp port:9100 completion:^(BOOL isConnect) {
             if (!isConnect) {
-                [[PrinterConnectionManager sharedInstance] sendPrinterUnreachableEventOnce:job.targetPrinterIp];
                 completion(NO);
                 return;
             }
