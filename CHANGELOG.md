@@ -1,9 +1,8 @@
 ## [0.8.2-beta.2](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.8.2-beta.1...v0.8.2-beta.2) (2024-12-05)
 
-
 ### Bug Fixes
 
-* printer unreachable status not emmiting fixes ([32020f6](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/32020f62ee2b825a996cd007e5b54d9853b56bd6))
+- printer unreachable status not emmiting fixes ([32020f6](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/32020f62ee2b825a996cd007e5b54d9853b56bd6))
 
 ## [0.8.2-beta.1](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.8.1...v0.8.2-beta.1) (2024-12-02)
 
