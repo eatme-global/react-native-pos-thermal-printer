@@ -200,7 +200,6 @@ const PrinterContent: React.FC = () => {
 
   const fetchPrinterPendingJobs = async (ip: string) => {
     const result = await getPendingPrinterJobs(ip);
-    console.log(result.length);
     setPendingJobs(result);
   };
 
@@ -240,9 +239,9 @@ const PrinterContent: React.FC = () => {
   return (
     <EventServiceProvider
       onReconnect={async (IP: string) => {
-        console.log(IP);
+        console.info(IP);
       }}
-      onBeforePrint={() => console.log("before print")}
+      onBeforePrint={() => console.info("before print")}
     >
       <SafeAreaView>
         <ScrollView style={{}}>
