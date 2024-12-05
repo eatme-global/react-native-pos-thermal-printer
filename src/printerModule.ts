@@ -1,5 +1,5 @@
-import { NativeModules } from 'react-native';
-import { LINKING_ERROR } from './constants';
+import { NativeModules } from "react-native";
+import { LINKING_ERROR } from "./constants";
 import {
   PrintJobRowType,
   type IPPrinter,
@@ -8,7 +8,7 @@ import {
   type PrintJobMetadata,
   type PrintJobRow,
   type RawPendingJob,
-} from './types';
+} from "./types";
 
 export const EscPosPrinter = NativeModules.PosThermalPrinter
   ? NativeModules.PosThermalPrinter
@@ -18,7 +18,7 @@ export const EscPosPrinter = NativeModules.PosThermalPrinter
         get() {
           throw new Error(LINKING_ERROR);
         },
-      }
+      },
     );
 
 /**
@@ -34,7 +34,7 @@ export async function reconnectPrinter(ip: string): Promise<boolean> {
     const result = await EscPosPrinter.retryPrinterConnection(ip);
     return result;
   } catch (error) {
-    console.error('Error retrying printer connection: ', error);
+    console.error("Error retrying printer connection: ", error);
     return false;
   }
 }
@@ -50,12 +50,12 @@ export async function reconnectPrinter(ip: string): Promise<boolean> {
 export async function printText(
   ip: string,
   payload: PrintJobRow[],
-  metadata: PrintJobMetadata
+  metadata: PrintJobMetadata,
 ): Promise<void> {
   try {
     await EscPosPrinter.setPrintJobs(ip, payload, JSON.stringify(metadata));
   } catch (error) {
-    console.error('Error printing text:', error);
+    console.error("Error printing text:", error);
   }
 }
 
@@ -68,15 +68,15 @@ export async function printText(
 export async function openCashBox(ip: string): Promise<void> {
   try {
     const metadata: PrintJobMetadata = {
-      type: 'Open Cashbox',
+      type: "Open Cashbox",
     };
     await EscPosPrinter.setPrintJobs(
       ip,
       [{ type: PrintJobRowType.CASHBOX }],
-      JSON.stringify(metadata)
+      JSON.stringify(metadata),
     );
   } catch (error) {
-    console.error('Error opening cashbox:', error);
+    console.error("Error opening cashbox:", error);
   }
 }
 
@@ -89,12 +89,12 @@ export async function openCashBox(ip: string): Promise<void> {
  */
 export async function printPendingJobsWithNewPrinter(
   oldPrinterIp: string,
-  newPrinterIp: string
+  newPrinterIp: string,
 ): Promise<any> {
   try {
     return await EscPosPrinter.printFromNewPrinter(oldPrinterIp, newPrinterIp);
   } catch (error) {
-    console.error('Error printing pending jobs with new printer:', error);
+    console.error("Error printing pending jobs with new printer:", error);
     return false;
   }
 }
@@ -110,7 +110,7 @@ export async function addPrinterToPool(printer: IPPrinter): Promise<any> {
     const result = await EscPosPrinter.addPrinterToPool(printer);
     return result;
   } catch (error) {
-    console.error('Error adding printer to pool:', error);
+    console.error("Error adding printer to pool:", error);
     return false;
   }
 }
@@ -125,22 +125,8 @@ export async function removePrinterFromPool(ip: string): Promise<any> {
   try {
     return await EscPosPrinter.removePrinterFromPool(ip);
   } catch (error) {
-    console.error('Error removing printer from pool:', error);
+    console.error("Error removing printer from pool:", error);
     return false;
-  }
-}
-
-/**
- * Prints an image using a base64 encoded string.
- *
- * @param {string} base64Image - The base64 encoded image string.
- * @returns {Promise<void>} - A promise that resolves when the image is printed.
- */
-export async function printImage(base64Image: string): Promise<void> {
-  try {
-    await EscPosPrinter.printImage(base64Image);
-  } catch (error) {
-    console.error('Error printing image:', error);
   }
 }
 
@@ -153,7 +139,7 @@ export async function getPrinterPoolStatus(): Promise<PrinterStatus[]> {
   try {
     return await EscPosPrinter.getPrinterPoolStatus();
   } catch (error) {
-    console.error('Error fetching printer pool status:', error);
+    console.error("Error fetching printer pool status:", error);
     return [];
   }
 }
@@ -181,7 +167,7 @@ export async function getPendingJobs(): Promise<ParsedPendingJob[]> {
       }));
     }
   } catch (error) {
-    console.error('Error initializing printer pool:', error);
+    console.error("Error initializing printer pool:", error);
     return [];
   }
 
@@ -204,7 +190,7 @@ export async function deletePendingJob(jobId: string): Promise<boolean> {
   try {
     return await EscPosPrinter.deletePendingJobs(jobId);
   } catch (error) {
-    console.error('Error deleting pending job:', error);
+    console.error("Error deleting pending job:", error);
     return false;
   }
 }
@@ -225,12 +211,12 @@ export async function deletePendingJob(jobId: string): Promise<boolean> {
  */
 export async function retryPendingJobFromNewPrinter(
   jobId: string,
-  printerIp: string
+  printerIp: string,
 ): Promise<boolean> {
   try {
     return await EscPosPrinter.retryPendingJobFromNewPrinter(jobId, printerIp);
   } catch (error) {
-    console.error('Error retrying pending job from new printer:', error);
+    console.error("Error retrying pending job from new printer:", error);
     return false;
   }
 }
@@ -244,7 +230,7 @@ export async function initializePrinterPool(): Promise<boolean> {
   try {
     return await EscPosPrinter.initializePrinterPool();
   } catch (error) {
-    console.error('Error initializing printer pool:', error);
+    console.error("Error initializing printer pool:", error);
     return false;
   }
 }
@@ -265,7 +251,7 @@ export async function initializePrinterPool(): Promise<boolean> {
  * and the function will return an empty array.
  */
 export async function getPendingPrinterJobs(
-  printerIp: string
+  printerIp: string,
 ): Promise<ParsedPendingJob[]> {
   try {
     const rawPendingJobs: RawPendingJob[] =
@@ -278,7 +264,7 @@ export async function getPendingPrinterJobs(
       }));
     }
   } catch (error) {
-    console.error('Error initializing printer pool:', error);
+    console.error("Error initializing printer pool:", error);
     return [];
   }
 
@@ -301,12 +287,12 @@ export async function getPendingPrinterJobs(
  * and the function will return false.
  */
 export async function deletePrinterPendingJobs(
-  printerIp: string
+  printerIp: string,
 ): Promise<boolean> {
   try {
     return await EscPosPrinter.dismissPendingJobs(printerIp);
   } catch (error) {
-    console.error('Error deleting pending job:', error);
+    console.error("Error deleting pending job:", error);
     return false;
   }
 }
@@ -328,12 +314,12 @@ export async function deletePrinterPendingJobs(
  * and the function will return false.
  */
 export async function retryPendingJobsFromPrinter(
-  printerIp: string
+  printerIp: string,
 ): Promise<boolean> {
   try {
     return await EscPosPrinter.retryPendingJobsFromPrinter(printerIp);
   } catch (error) {
-    console.error('Error deleting pending job:', error);
+    console.error("Error deleting pending job:", error);
     return false;
   }
 }
@@ -342,6 +328,6 @@ export async function getPrinterStatus(printerIp: string): Promise<void> {
   try {
     return await EscPosPrinter.checkPrinterStatus(printerIp);
   } catch (error) {
-    console.error('Error fetching printer status:', error);
+    console.error("Error fetching printer status:", error);
   }
 }
