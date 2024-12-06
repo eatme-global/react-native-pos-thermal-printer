@@ -1,5 +1,5 @@
 yarn typecheck
 yarn test
-yarn format:fix
+yarn format
 yarn lint
 
