@@ -1,0 +1,13 @@
+name: Production Release
+on:
+  push:
+    branches: ["main"]
+permissions:
+  contents: write
+jobs:
+  release:
+    name: Release
+    uses: ./.github/workflows/deploy.yml
+    with:
+      environment: prod
+    secrets: inherit

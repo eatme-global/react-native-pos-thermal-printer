@@ -1,0 +1,13 @@
+name: QA Release
+on:
+  push:
+    branches: ["release/qa"]
+permissions:
+  contents: write
+jobs:
+  release:
+    name: Release
+    uses: ./.github/workflows/deploy.yml
+    with:
+      environment: qa
+    secrets: inherit
