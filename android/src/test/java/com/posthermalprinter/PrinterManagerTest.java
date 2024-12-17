@@ -35,6 +35,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 import java.lang.reflect.Field;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import static org.mockito.Mockito.verify;
@@ -142,7 +143,7 @@ public void testRemovePrinterAsync_Success() {
     }
 
     @Test
-    public void testGetPrinterPoolStatus() {
+    public void testGetPrinterPoolStatus() throws ExecutionException, InterruptedException {
         when(mockBinder.GetPrinterInfoList()).thenReturn(new ArrayList<>());
         List<PrinterStatus> status = printerManager.getPrinterPoolStatus();
         assertNotNull(status);
