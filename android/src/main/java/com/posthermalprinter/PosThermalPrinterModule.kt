@@ -247,6 +247,44 @@ class PosThermalPrinterModule(private val reactContext: ReactApplicationContext)
     promise.resolve(true);
   }
 
+
+  /**
+   * Transfers pending print jobs from one printer to another.
+   *
+   * @param printerIp The IP address of the printer.
+   * @param promise A promise to resolve with the result of the operation.
+   */
+  @RequiresApi(Build.VERSION_CODES.N)
+  @ReactMethod
+  fun checkPrinterStatus(printerIp: String, promise: Promise) {
+//    val status = printerManager?.checkPrinterStatus(printerIp);
+    promise.resolve(false);
+  }
+
+
+  @ReactMethod
+  fun retryPendingJobs(printerIp: String, promise: Promise) {
+    promise.resolve(true);
+  }
+
+  @ReactMethod
+  fun retryPendingJobsFromPrinter(printerIp: String, promise: Promise) {
+    promise.resolve(true);
+  }
+
+  @ReactMethod
+  fun getPrinterPendingJobDetails(printerIp: String, promise: Promise) {
+    promise.resolve(intArrayOf());
+  }
+
+  @ReactMethod
+  fun dismissPendingJobs(printerIp: String, promise: Promise) {
+    promise.resolve(intArrayOf());
+  }
+
+
+
+
   //endregion
 
   /**

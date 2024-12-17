@@ -39,11 +39,11 @@ public class PrinterEventManager {
    *
    * @param printerIp The IP address of the unreachable printer.
    */
-  public void sendPrinterUnreachableEventOnce(String printerIp) {
-    if (reportedUnreachablePrinters.add(printerIp)) {
-      sendPrinterUnreachableEvent(printerIp);
-    }
-  }
+//  public void sendPrinterUnreachableEventOnce(String printerIp) {
+//    if (reportedUnreachablePrinters.add(printerIp)) {
+//      sendPrinterUnreachableEvent(printerIp);
+//    }
+//  }
 
   /**
    * Resets the unreachable status for a given printer IP.
@@ -52,16 +52,16 @@ public class PrinterEventManager {
    *
    * @param printerIp The IP address of the printer to reset.
    */
-  public void resetPrinterUnreachableStatus(String printerIp) {
-    reportedUnreachablePrinters.remove(printerIp);
-  }
+//  public void resetPrinterUnreachableStatus(String printerIp) {
+//    reportedUnreachablePrinters.remove(printerIp);
+//  }
 
   /**
    * Sends a printer unreachable event to the React Native layer.
    *
    * @param printerIp The IP address of the unreachable printer.
    */
-  private void sendPrinterUnreachableEvent(String printerIp) {
+  public void sendPrinterUnreachableEvent(String printerIp) {
     WritableMap params = Arguments.createMap();
     params.putString("printerIp", printerIp);
     reactContext

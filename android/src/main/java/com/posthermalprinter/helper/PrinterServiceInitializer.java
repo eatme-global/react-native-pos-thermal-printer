@@ -29,6 +29,8 @@ public class PrinterServiceInitializer {
   private static IMyBinder binder;
   private static PrinterManager printerManager;
 
+  public static boolean initialized;
+
   /**
    * Asynchronously initializes the printer service.
    *
@@ -40,48 +42,54 @@ public class PrinterServiceInitializer {
   public static CompletableFuture<Boolean> initializeServiceAsync(ReactApplicationContext reactContext) {
     CompletableFuture<Boolean> future = new CompletableFuture<>();
 
-    try {
-      Log.i("initializeService", "Initializing service");
+    if(initialized){
+      future.complete(true);
+      Log.i("initializeServiceAsync", "already initialized");
+    } else {
+      try {
+        Log.i("initializeService", "Initializing service");
 
-      ServiceConnection serviceConnection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-          binder = (IMyBinder) service;
-          Log.i("onServiceConnected", "Service Connected Successfully");
-          future.complete(true);
+        ServiceConnection serviceConnection = new ServiceConnection() {
+          @Override
+          public void onServiceConnected(ComponentName name, IBinder service) {
+            binder = (IMyBinder) service;
+            initialized = true;
+            Log.i("onServiceConnected", "Service Connected Successfully");
+            future.complete(true);
+          }
+
+          @Override
+          public void onServiceDisconnected(ComponentName name) {
+            binder = null;
+            Log.i("onServiceDisconnected", "Service Disconnected Successfully");
+            future.completeExceptionally(new Exception("Service Disconnected"));
+          }
+        };
+
+        printerManager = new PrinterManager(new ArrayList<String>(), reactContext);
+
+        Intent intent = new Intent(reactContext, PosprinterService.class);
+        boolean success = reactContext.bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
+
+        if (!success) {
+          Log.e("initializeService", "Failed to bind service");
+          future.complete(false);
+        } else {
+          Log.i("initializeService", "Service binding initiated");
         }
 
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-          binder = null;
-          Log.i("onServiceDisconnected", "Service Disconnected Successfully");
-          future.completeExceptionally(new Exception("Service Disconnected"));
-        }
-      };
+        // Handle future cancellation
+        future.whenComplete((result, throwable) -> {
+          if (future.isCancelled()) {
+            reactContext.unbindService(serviceConnection);
+            Log.i("initializeService", "Service unbound due to future cancellation");
+          }
+        });
 
-      printerManager = new PrinterManager(new ArrayList<String>(), reactContext);
-
-      Intent intent = new Intent(reactContext, PosprinterService.class);
-      boolean success = reactContext.bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
-
-      if (!success) {
-        Log.e("initializeService", "Failed to bind service");
-        future.complete(false);
-      } else {
-        Log.i("initializeService", "Service binding initiated");
+      } catch (Exception e) {
+        Log.e("initializeService", "Exception on catch block", e);
+        future.completeExceptionally(e);
       }
-
-      // Handle future cancellation
-      future.whenComplete((result, throwable) -> {
-        if (future.isCancelled()) {
-          reactContext.unbindService(serviceConnection);
-          Log.i("initializeService", "Service unbound due to future cancellation");
-        }
-      });
-
-    } catch (Exception e) {
-      Log.e("initializeService", "Exception on catch block", e);
-      future.completeExceptionally(e);
     }
 
     return future;

@@ -19,6 +19,7 @@ import {
   getPendingPrinterJobs,
   getPrinterPoolStatus,
   getPrinterStatus,
+  initializePrinterPool,
   PrintAlignment,
   PrintFontSize,
   PrintFontWeight,
@@ -162,6 +163,7 @@ const PrinterContent: React.FC = () => {
     };
 
     const status = await addPrinterToPool(printer);
+    console.log("addPrinterToPoolStatus: ", status);
     if (status) {
       handlePrinterPoolStatus();
     }
@@ -245,6 +247,10 @@ const PrinterContent: React.FC = () => {
     >
       <SafeAreaView>
         <ScrollView style={{}}>
+          <Button
+            title="Initialize Printer"
+            onPress={() => initializePrinterPool()}
+          />
           <View style={styles.container}>
             <TextInput
               style={styles.textInput}
@@ -257,7 +263,9 @@ const PrinterContent: React.FC = () => {
               onPress={() => addNewPrinterToPool(ip)}
             />
             <View style={styles.printerPoolStatusContainer}>
-              <Text style={styles.printerPoolHeading}>Printer Pool Status</Text>
+              <Text style={styles.printerPoolHeading}>
+                Printer Pool Status: {}
+              </Text>
 
               <Button
                 title="Get Printer Pool Status"

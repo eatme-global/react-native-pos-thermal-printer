@@ -22,6 +22,9 @@ import com.facebook.react.bridge.WritableMap;
 import net.posprinter.posprinterface.IMyBinder;
 import net.posprinter.utils.PosPrinterDev;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 
 @RequiresApi(api = Build.VERSION_CODES.N)
 public class PrintQueueProcessor {
@@ -64,7 +67,6 @@ public class PrintQueueProcessor {
       return;
     }
 
-    ArrayList<PosPrinterDev.PrinterInfo> infoList = binder.GetPrinterInfoList();
 
     printExecutor.submit(() -> {
       while (true) {
@@ -78,7 +80,11 @@ public class PrintQueueProcessor {
           break;
         }
 
-        processJob(job, infoList);
+        try {
+          processJob(job);
+        } catch (JSONException e) {
+          throw new RuntimeException(e);
+        }
       }
     });
   }
@@ -87,7 +93,6 @@ public class PrintQueueProcessor {
    * Processes a single print job.
    *
    * @param job The {@link PrinterJob} to be processed.
-   * @param infoList A list of {@link PosPrinterDev.PrinterInfo} objects representing available printers.
    *
    * @implNote This method:
    *           1. Checks if the target printer is in the printer pool.
@@ -100,64 +105,65 @@ public class PrintQueueProcessor {
    * @see PrinterJob
    * @see PosPrinterDev.PrinterInfo
    */
-  private void processJob(PrinterJob job, ArrayList<PosPrinterDev.PrinterInfo> infoList) {
-    boolean processed = false;
+  private void processJob(PrinterJob job) throws JSONException {
     for (String manager : printerPool) {
       if (manager.equals(job.getTargetPrinterIp())) {
-        boolean printerExists = isPrinterInInfoList(infoList, job.getTargetPrinterIp());
-
-        if (printerExists) {
+//        if (printerExists) {
           try {
-            if(!job.getIsPending()){
-              try {
-                Thread.sleep(700);
-              } catch (InterruptedException e) {
-                Log.e(TAG, "Sleep interrupted", e);
-              }
-              boolean printSuccess = printerManager.printToPrinter(job).get();
-              if (printSuccess) {
-                Log.i(TAG, "Printed job '" + job.getJobContent() + "' on printer " + manager);
-                eventManager.resetPrinterUnreachableStatus(job.getTargetPrinterIp());
-                processed = true;
-              } else {
-                eventManager.sendPrinterUnreachableEventOnce(job.getTargetPrinterIp());
-                Log.e(TAG, "Print failed for job '" + job.getJobContent() + "'. Will retry.");
-                job.setPending();
-              }
+            try {
+              Thread.sleep(700);
+            } catch (InterruptedException e) {
+              Log.e(TAG, "Sleep interrupted", e);
             }
+
+            boolean printSuccess = printerManager.printToPrinter(job).get();
+            if (printSuccess) {
+              Log.i(TAG, "Printed job '" + job.getJobContent() + "' on printer " + manager);
+//              eventManager.resetPrinterUnreachableStatus(job.getTargetPrinterIp());
+            } else {
+//              eventManager.sendPrinterUnreachableEventOnce(job.getTargetPrinterIp());
+              eventManager.sendPrinterUnreachableEvent(job.getTargetPrinterIp());
+              Log.e(TAG, "Print failed for job '" + job.getJobContent() + "'.");
+            }
+
           } catch (InterruptedException | ExecutionException e) {
-            job.setPending();
             Log.e(TAG, "Error processing print job: ", e);
           }
-        } else {
-          Log.e(TAG, "Target printer IP " + job.getTargetPrinterIp() + " not found in the printer info list.");
-          job.setPending();
-//          eventManager.sendPrinterUnreachableEventOnce(job.getTargetPrinterIp());
 
-          try {
-            Thread.sleep(500);
-          } catch (InterruptedException e) {
-            Log.e(TAG, "Sleep interrupted", e);
-          }
 
-        }
+
         break;
       }
     }
 
-    if (!processed) {
-      // If job wasn't processed successfully, re-add it to the queue
-      synchronized (printQueue) {
-        printQueue.offer(job);
-      }
 
-      // Add a small delay before retrying to avoid tight loops
-      try {
-        Thread.sleep(1000);
-      } catch (InterruptedException e) {
-        Log.e(TAG, "Sleep interrupted", e);
-      }
+    // Add a small delay according to the print type
+    try {
+      JSONObject jsonObject = new JSONObject(job.getMetadata());
+      Log.i("printToPrinter" , String.valueOf(jsonObject.getString("type").equals("Receipt")));
+
+      long timeout = timeoutForType(jsonObject.getString("type"));
+
+      Thread.sleep(timeout);
+    } catch (InterruptedException e) {
+      Log.e(TAG, "Sleep interrupted", e);
     }
+
+  }
+
+  private long timeoutForType(String type) {
+    if (type == null) {
+      return 500;  // default case for null
+    }
+
+    return switch (type) {
+      case "KOT" -> 300;
+      case "RECEIPT", "BILL" -> 1000;
+      case "TEST_CONNECTION", "CASH_IN_OUT", "OPEN_DRAWER" -> 100;
+      case "SHIFT_OPEN_SUMMARY", "ITEM_SALES_REPORT" -> 400;
+      case "SHIFT_CLOSE_SUMMARY" -> 800;
+      default -> 500;
+    };
   }
 
   /**
