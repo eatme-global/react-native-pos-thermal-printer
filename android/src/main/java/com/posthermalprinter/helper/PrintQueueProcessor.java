@@ -146,6 +146,31 @@ public class PrintQueueProcessor {
    * @see PrinterJob
    * @see PosPrinterDev.PrinterInfo
    */
+//  private void processJob(PrinterJob job) throws JSONException {
+//    for (String manager : printerPool) {
+//      if (manager.equals(job.getTargetPrinterIp())) {
+////        if (printerExists) {
+//          try {
+//            boolean printSuccess = printerManager.printToPrinter(job).get();
+//            if (printSuccess) {
+//              Log.i(TAG, "Printed job '" + job.getJobContent() + "' on printer " + manager);
+////              eventManager.resetPrinterUnreachableStatus(job.getTargetPrinterIp());
+//            } else {
+////              eventManager.sendPrinterUnreachableEventOnce(job.getTargetPrinterIp());
+//              eventManager.sendPrinterUnreachableEvent(job.getTargetPrinterIp());
+//              Log.e(TAG, "Print failed for job '" + job.getJobContent() + "'.");
+//            }
+//
+//          } catch (InterruptedException | ExecutionException e) {
+//            Log.e(TAG, "Error processing print job: ", e);
+//          }
+//
+//
+//
+//        break;
+//      }
+//    }
+
   private void processJob(PrinterJob job) throws JSONException {
     for (String manager : printerPool) {
       if (manager.equals(job.getTargetPrinterIp())) {
