@@ -11,6 +11,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.TimeUnit;
 
 import android.util.Log;
 
@@ -34,15 +36,56 @@ public class PrintQueueProcessor {
   private final List<String> printerPool;
   private final PrinterManager printerManager;
   private final PrinterEventManager eventManager;
-  private final ExecutorService printExecutor;
+  private  ExecutorService printExecutor;
+  private volatile boolean isRunning = true;
+
+
+
 
   public PrintQueueProcessor(BlockingQueue<PrinterJob> printQueue, List<String> printerPool, PrinterManager printerManager, PrinterEventManager eventManager) {
     this.printQueue = printQueue;
     this.printerPool = printerPool;
     this.printerManager = printerManager;
     this.eventManager = eventManager;
-    this.printExecutor = Executors.newCachedThreadPool();
+    this.printExecutor = Executors.newSingleThreadExecutor();
+    startQueueProcessor();
   }
+
+
+  private void startQueueProcessor() {
+    printExecutor.execute(new Runnable() {
+      @Override
+      public void run() {
+        while (isRunning) {
+          try {
+            // Take will block until a job is available
+            PrinterJob job = printQueue.take();
+            if (job != null) {
+              try {
+                processJob(job);
+              } catch (JSONException e) {
+                Log.e(TAG, "Error processing job: " + e.getMessage());
+              }
+            }
+          } catch (InterruptedException e) {
+            Log.e(TAG, "Queue processor interrupted: " + e.getMessage());
+            if (!isRunning) {
+              break;
+            }
+          } catch (Exception e) {
+            Log.e(TAG, "Unexpected error in queue processor: " + e.getMessage());
+            // Add a small delay before continuing
+            try {
+              Thread.sleep(1000);
+            } catch (InterruptedException ie) {
+              Thread.currentThread().interrupt();
+            }
+          }
+        }
+      }
+    });
+  }
+
 
   /**
    * Processes the print queue by submitting print jobs to the print executor.
@@ -62,46 +105,19 @@ public class PrintQueueProcessor {
    * @see PrinterJob
    * @see PosPrinterDev.PrinterInfo
    */
-
   public void processPrintQueue(IMyBinder binder) {
     if (binder == null) {
       Log.e(TAG, "Binder is null, cannot process print queue");
       return;
     }
 
-    printExecutor.submit(() -> {
-      List<CompletableFuture<Void>> futures = new ArrayList<>();
-
-      while (true) {
-        PrinterJob job;
-        synchronized (printQueue) {
-          job = printQueue.poll();
-        }
-
-        if (job == null) {
-          break;
-        }
-
-        // Create a CompletableFuture for this job
-        CompletableFuture<Void> jobFuture = CompletableFuture.runAsync(() -> {
-          try {
-            processJob(job);
-          } catch (JSONException e) {
-            Log.e(TAG, "Error processing job: " + e.getMessage());
-          }
-        }, printExecutor);
-
-        futures.add(jobFuture);
-      }
-
-      // Wait for all jobs to complete without blocking the UI
-      CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
-        .exceptionally(throwable -> {
-          Log.e(TAG, "Error in print queue processing: " + throwable.getMessage());
-          return null;
-        });
-    });
+    // Instead of submitting new tasks, just ensure the queue processor is running
+    if (!isRunning) {
+      isRunning = true;
+      startQueueProcessor();
+    }
   }
+
 
   /**
    * Processes a single print job.
@@ -479,6 +495,15 @@ public class PrintQueueProcessor {
    * @see ExecutorService#shutdown()
    */
   public void shutdown() {
+    isRunning = false;
     printExecutor.shutdown();
+    try {
+      if (!printExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
+        printExecutor.shutdownNow();
+      }
+    } catch (InterruptedException e) {
+      printExecutor.shutdownNow();
+      Thread.currentThread().interrupt();
+    }
   }
 }
