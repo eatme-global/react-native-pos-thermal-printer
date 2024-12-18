@@ -62,33 +62,6 @@ public class PrintQueueProcessor {
    * @see PrinterJob
    * @see PosPrinterDev.PrinterInfo
    */
-//  public void processPrintQueue(IMyBinder binder) {
-//    if (binder == null) {
-//      Log.e(TAG, "Binder is null, cannot process print queue");
-//      return;
-//    }
-//
-//
-//    printExecutor.submit(() -> {
-//      while (true) {
-//        PrinterJob job;
-//        synchronized (printQueue) {
-//          job = printQueue.poll();
-//        }
-//
-//        if (job == null) {
-//          // No more jobs in the queue, exit the loop
-//          break;
-//        }
-//
-//        try {
-//          processJob(job);
-//        } catch (JSONException e) {
-//          throw new RuntimeException(e);
-//        }
-//      }
-//    });
-//  }
 
   public void processPrintQueue(IMyBinder binder) {
     if (binder == null) {
