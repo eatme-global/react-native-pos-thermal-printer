@@ -1,3 +1,11 @@
+## [0.8.5-beta.3](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.8.5-beta.2...v0.8.5-beta.3) (2024-12-18)
+
+
+### Bug Fixes
+
+* improved print speed ([23937a3](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/23937a35a42c8417ec0249772014bc0e7aadcd51))
+* improved print speed ([dfe8b30](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/dfe8b304bc7db01c51e5a3c9e162cd90662b249f))
+
 ## [0.8.5-beta.2](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.8.5-beta.1...v0.8.5-beta.2) (2024-12-18)
 
 
