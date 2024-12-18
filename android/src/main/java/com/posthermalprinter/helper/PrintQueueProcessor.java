@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
@@ -61,14 +62,43 @@ public class PrintQueueProcessor {
    * @see PrinterJob
    * @see PosPrinterDev.PrinterInfo
    */
+//  public void processPrintQueue(IMyBinder binder) {
+//    if (binder == null) {
+//      Log.e(TAG, "Binder is null, cannot process print queue");
+//      return;
+//    }
+//
+//
+//    printExecutor.submit(() -> {
+//      while (true) {
+//        PrinterJob job;
+//        synchronized (printQueue) {
+//          job = printQueue.poll();
+//        }
+//
+//        if (job == null) {
+//          // No more jobs in the queue, exit the loop
+//          break;
+//        }
+//
+//        try {
+//          processJob(job);
+//        } catch (JSONException e) {
+//          throw new RuntimeException(e);
+//        }
+//      }
+//    });
+//  }
+
   public void processPrintQueue(IMyBinder binder) {
     if (binder == null) {
       Log.e(TAG, "Binder is null, cannot process print queue");
       return;
     }
 
-
     printExecutor.submit(() -> {
+      List<CompletableFuture<Void>> futures = new ArrayList<>();
+
       while (true) {
         PrinterJob job;
         synchronized (printQueue) {
@@ -76,16 +106,27 @@ public class PrintQueueProcessor {
         }
 
         if (job == null) {
-          // No more jobs in the queue, exit the loop
           break;
         }
 
-        try {
-          processJob(job);
-        } catch (JSONException e) {
-          throw new RuntimeException(e);
-        }
+        // Create a CompletableFuture for this job
+        CompletableFuture<Void> jobFuture = CompletableFuture.runAsync(() -> {
+          try {
+            processJob(job);
+          } catch (JSONException e) {
+            Log.e(TAG, "Error processing job: " + e.getMessage());
+          }
+        }, printExecutor);
+
+        futures.add(jobFuture);
       }
+
+      // Wait for all jobs to complete without blocking the UI
+      CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
+        .exceptionally(throwable -> {
+          Log.e(TAG, "Error in print queue processing: " + throwable.getMessage());
+          return null;
+        });
     });
   }
 
@@ -105,36 +146,63 @@ public class PrintQueueProcessor {
    * @see PrinterJob
    * @see PosPrinterDev.PrinterInfo
    */
+//  private void processJob(PrinterJob job) throws JSONException {
+//    for (String manager : printerPool) {
+//      if (manager.equals(job.getTargetPrinterIp())) {
+////        if (printerExists) {
+//          try {
+//            boolean printSuccess = printerManager.printToPrinter(job).get();
+//            if (printSuccess) {
+//              Log.i(TAG, "Printed job '" + job.getJobContent() + "' on printer " + manager);
+////              eventManager.resetPrinterUnreachableStatus(job.getTargetPrinterIp());
+//            } else {
+////              eventManager.sendPrinterUnreachableEventOnce(job.getTargetPrinterIp());
+//              eventManager.sendPrinterUnreachableEvent(job.getTargetPrinterIp());
+//              Log.e(TAG, "Print failed for job '" + job.getJobContent() + "'.");
+//            }
+//
+//          } catch (InterruptedException | ExecutionException e) {
+//            Log.e(TAG, "Error processing print job: ", e);
+//          }
+//
+//
+//
+//        break;
+//      }
+//    }
+
   private void processJob(PrinterJob job) throws JSONException {
     for (String manager : printerPool) {
       if (manager.equals(job.getTargetPrinterIp())) {
-//        if (printerExists) {
-          try {
-            try {
-              Thread.sleep(700);
-            } catch (InterruptedException e) {
-              Log.e(TAG, "Sleep interrupted", e);
-            }
-
-            boolean printSuccess = printerManager.printToPrinter(job).get();
+        // Use thenAccept instead of blocking get()
+        printerManager.printToPrinter(job)
+          .thenAccept(printSuccess -> {
             if (printSuccess) {
               Log.i(TAG, "Printed job '" + job.getJobContent() + "' on printer " + manager);
-//              eventManager.resetPrinterUnreachableStatus(job.getTargetPrinterIp());
             } else {
-//              eventManager.sendPrinterUnreachableEventOnce(job.getTargetPrinterIp());
               eventManager.sendPrinterUnreachableEvent(job.getTargetPrinterIp());
               Log.e(TAG, "Print failed for job '" + job.getJobContent() + "'.");
             }
 
-          } catch (InterruptedException | ExecutionException e) {
-            Log.e(TAG, "Error processing print job: ", e);
-          }
-
-
-
-        break;
+            // Handle the delay after print completion
+            try {
+              JSONObject jsonObject = new JSONObject(job.getMetadata());
+              long timeout = timeoutForType(jsonObject.getString("type"));
+              Thread.sleep(timeout);
+            } catch (InterruptedException e) {
+              Log.e(TAG, "Sleep interrupted", e);
+            } catch (JSONException e) {
+              Log.e(TAG, "JSON parsing error", e);
+            }
+          })
+          .exceptionally(throwable -> {
+            Log.e(TAG, "Error processing print job: " + throwable.getMessage());
+            return null;
+          });
+        return; // Exit the loop after starting the print job
       }
     }
+
 
 
     // Add a small delay according to the print type
