@@ -1,3 +1,10 @@
+## [0.8.5-beta.2](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.8.5-beta.1...v0.8.5-beta.2) (2024-12-18)
+
+
+### Bug Fixes
+
+* restrict image height constrains and code improvements ([c6980b7](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/c6980b780f89131becdd4c846713833a8b2c1ee2))
+
 ## [0.8.5-beta.1](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.8.4...v0.8.5-beta.1) (2024-12-17)
 
 
