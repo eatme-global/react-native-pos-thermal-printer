@@ -1,3 +1,10 @@
+## [0.8.5-beta.4](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.8.5-beta.3...v0.8.5-beta.4) (2024-12-18)
+
+
+### Bug Fixes
+
+* printer pool automatic thread pool shutdown fix ([e2dd949](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/e2dd94918e6fc23067159823dc18fcc2a2f6d013))
+
 ## [0.8.5-beta.3](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.8.5-beta.2...v0.8.5-beta.3) (2024-12-18)
 
 
