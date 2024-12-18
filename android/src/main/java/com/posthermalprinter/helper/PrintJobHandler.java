@@ -4,6 +4,7 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.os.Build;
+import android.util.Log;
 
 import androidx.annotation.RequiresApi;
 import com.facebook.react.bridge.ReadableArray;
@@ -174,48 +175,111 @@ public class PrintJobHandler {
    * @param list The list to add the processed data to.
    * @param item The PrintItem containing image data.
    */
-  private static void processImageItem(List<byte[]> list, PrintItem item){
-    int width = (int) Math.floor((double) (576 * item.getWidthPercentage()) / 100);
-    Bitmap originalImage = BitmapProcess.compressBmpByYourWidth(item.getBitmapImage(), width);
+  private static void processImageItem(List<byte[]> list, PrintItem item) {
+    try {
+      // Validate input parameters
+      if (list == null || item == null) {
+        throw new IllegalArgumentException("List or PrintItem cannot be null");
+      }
 
-    // Create a new bitmap with the full printer width
-    Bitmap centeredImage = Bitmap.createBitmap(576, originalImage.getHeight(), Bitmap.Config.ARGB_8888);
-    Canvas canvas = new Canvas(centeredImage);
+      Bitmap originalImage = item.getBitmapImage();
+      if (originalImage == null) {
+        // Handle null bitmap - you might want to log this or handle it differently
+        list.add(DataForSendToPrinterPos80.printAndFeedLine());
+        return;
+      }
 
-    // Fill with white (or whatever your paper color is)
+      // Maximum dimensions
+      int maxWidth = (int) Math.floor((double) (576 * item.getWidthPercentage()) / 100);
+      int maxHeight = 300; // Set your desired maximum height here
 
-    canvas.drawColor(Color.WHITE);
+      // Validate dimensions
+      if (maxWidth <= 0) {
+        maxWidth = 576; // Default to full width if percentage calculation results in 0 or negative
+      }
 
-    // Calculate the left position to center the original image
-    float left = 0;
+      // Calculate scaling ratios
+      float widthRatio = (float) maxWidth / originalImage.getWidth();
+      float heightRatio = (float) maxHeight / originalImage.getHeight();
 
-    if(item.getAlignment() == TextAlignment.CENTER){
-      left = (576 - width) / 2f;
+      // Use the smaller ratio to maintain aspect ratio while fitting within bounds
+      float scaleFactor = Math.min(widthRatio, heightRatio);
+
+      // Calculate new dimensions
+      int newWidth = (int) (originalImage.getWidth() * scaleFactor);
+      int newHeight = (int) (originalImage.getHeight() * scaleFactor);
+
+      // Compress the image to the calculated dimensions
+      Bitmap scaledImage = null;
+      try {
+        scaledImage = BitmapProcess.compressBmpByYourWidth(originalImage, newWidth);
+        if (scaledImage == null) {
+          throw new IllegalStateException("Failed to compress bitmap");
+        }
+      } catch (Exception e) {
+        // Handle compression failure
+        list.add(DataForSendToPrinterPos80.printAndFeedLine());
+        return;
+      }
+
+      // Create a new bitmap with the full printer width
+      Bitmap centeredImage = null;
+      try {
+        centeredImage = Bitmap.createBitmap(576, newHeight, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(centeredImage);
+
+        // Fill with white
+        canvas.drawColor(Color.WHITE);
+
+        // Calculate the left position based on alignment
+        float left = 0;
+
+        if (item.getAlignment() == TextAlignment.CENTER) {
+          left = (576 - newWidth) / 2f;
+        } else if (item.getAlignment() == TextAlignment.RIGHT) {
+          left = 576 - newWidth;
+        }
+
+        // Draw the scaled image
+        canvas.drawBitmap(scaledImage, left, 0f, null);
+
+        // Print the centered image
+        list.add(DataForSendToPrinterPos80.printRasterBmp(
+          0,
+          centeredImage,
+          BitmapToByteData.BmpType.Threshold,
+          BitmapToByteData.AlignType.Left,
+          576
+        ));
+      } catch (Exception e) {
+        // Handle bitmap creation or drawing failure
+        list.add(DataForSendToPrinterPos80.printAndFeedLine());
+      } finally {
+        // Ensure resources are always cleaned up
+        try {
+          scaledImage.recycle();
+        } catch (Exception e) {
+          // Ignore recycling errors
+        }
+        if (centeredImage != null) {
+          try {
+            centeredImage.recycle();
+          } catch (Exception e) {
+            // Ignore recycling errors
+          }
+        }
+      }
+
+      // Feed line
+      list.add(DataForSendToPrinterPos80.printAndFeedLine());
+
+    } catch (Exception e) {
+      // Catch any unexpected errors
+      assert list != null;
+      list.add(DataForSendToPrinterPos80.printAndFeedLine());
     }
-
-    if(item.getAlignment() == TextAlignment.RIGHT){
-      left = 576 - width;
-    }
-
-    // Draw the original image centered on the new bitmap
-    canvas.drawBitmap(originalImage, left, 0f, null);
-
-    // Print the centered image
-    list.add(DataForSendToPrinterPos80.printRasterBmp(
-      0,
-      centeredImage,
-      BitmapToByteData.BmpType.Threshold,
-      BitmapToByteData.AlignType.Left, // Use Left alignment since the image is already centered
-      576
-    ));
-
-    // Feed line
-    list.add(DataForSendToPrinterPos80.printAndFeedLine());
-
-    // Don't forget to recycle the bitmaps if you're done with them
-    originalImage.recycle();
-    centeredImage.recycle();
   }
+
 
   /**
    * Processes a text print item.
@@ -260,9 +324,6 @@ public class PrintJobHandler {
     if (item.isBold()) {
       list.add(DataForSendToPrinterPos80.selectOrCancelBoldModel(0));
     }
-
-    // Add a line feed after the text
-    list.add(DataForSendToPrinterPos80.printAndFeedLine());
   }
 
   /**
@@ -332,6 +393,7 @@ public class PrintJobHandler {
       int widthPercentage = item.hasKey("width") ? Math.min(item.getInt("width"), 100) : 60;
       boolean wrapWords = item.hasKey("wrapWords") ? item.getBoolean("wrapWords") : false;
       boolean fullWidth = item.hasKey("fullWidth") ? item.getBoolean("fullWidth") : false;
+      double printerWidth = item.hasKey("printerWidth") ? item.getDouble("printerWidth") : 576;
 
 
 
@@ -343,14 +405,19 @@ public class PrintJobHandler {
           printItems.add(textItem);
           break;
         case "IMAGE":
-          Bitmap bitmap = ImagePrinter.downloadImageAsBitmap(imageUrl);
+
+          Bitmap bitmap = !Objects.equals(imageUrl, "") ?  ImagePrinter.downloadImageAsBitmap(imageUrl) : null;
           PrintItem imageItem = new PrintItem(PrintItem.Type.IMAGE, imageUrl, fontWeight, alignment, feedLines, new ArrayList<>(), fontSize);
           imageItem.setBitmap(bitmap);
+          imageItem.setPrinterWidth((float) printerWidth);
+
 
           if(fullWidth){
             imageItem.setWidthPercentage(100);
+            imageItem.setFullWidth(true);
           } else {
             imageItem.setWidthPercentage(widthPercentage);
+            imageItem.setFullWidth(false);
           }
 
           printItems.add(imageItem);

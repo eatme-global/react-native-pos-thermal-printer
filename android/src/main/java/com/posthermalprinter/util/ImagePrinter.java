@@ -20,7 +20,8 @@ public class ImagePrinter {
    * @return A Bitmap representation of the downloaded image.
    * @throws IOException If there's an error in opening the connection or reading the image data.
    */
-  public static Bitmap downloadImageAsBitmap(String imageUrl) throws IOException {
+  public static Bitmap downloadImageAsBitmap(String imageUrl)  {
+   try{
     URL url = new URL(imageUrl);
     HttpURLConnection connection = (HttpURLConnection) url.openConnection();
     connection.setDoInput(true);
@@ -30,5 +31,8 @@ public class ImagePrinter {
     input.close();
     connection.disconnect();
     return myBitmap;
+   }catch (Exception e){
+     return null;
+    }
   }
 }

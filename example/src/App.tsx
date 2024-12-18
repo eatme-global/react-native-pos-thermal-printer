@@ -2,6 +2,7 @@
 import {
   Alert,
   Button,
+  Platform,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -81,22 +82,22 @@ const PrinterContent: React.FC = () => {
 
   const handlePrintTest = (ip: string) => {
     const result: PrintJobRow[] = [
-      // {
-      //   type: PrintJobRowType.TEXT,
-      //   text: 'String with ƒäñçÿ çhåråctérs, ä, ö, ü, and ß',
-      //   bold: PrintFontWeight.BOLD,
-      //   alignment: PrintAlignment.CENTER,
-      //   fontSize: PrintFontSize.NORMAL,
-      //   wrapWords: false,
-      // },
-      // {
-      //   type: PrintJobRowType.TEXT,
-      //   text: 'String with ƒäñçÿ çhåråctérs, German uses the same ä, ö, ü, and ß',
-      //   bold: PrintFontWeight.BOLD,
-      //   alignment: PrintAlignment.CENTER,
-      //   fontSize: PrintFontSize.NORMAL,
-      //   wrapWords: false,
-      // },
+      {
+        type: PrintJobRowType.TEXT,
+        text: "String with ƒäñçÿ çhåråctérs, ä, ö, ü, and ß",
+        bold: PrintFontWeight.BOLD,
+        alignment: PrintAlignment.CENTER,
+        fontSize: PrintFontSize.NORMAL,
+        wrapWords: false,
+      },
+      {
+        type: PrintJobRowType.TEXT,
+        text: "String with ƒäñçÿ çhåråctérs, German uses the same ä, ö, ü, and ß",
+        bold: PrintFontWeight.BOLD,
+        alignment: PrintAlignment.CENTER,
+        fontSize: PrintFontSize.NORMAL,
+        wrapWords: false,
+      },
       { type: PrintJobRowType.FEED, lines: 1 },
       {
         type: PrintJobRowType.COLUMN,
@@ -149,7 +150,7 @@ const PrinterContent: React.FC = () => {
       // },
       {
         type: PrintJobRowType.FEED,
-        lines: 5,
+        lines: Platform.OS === "ios" ? 5 : 0,
       },
       { type: PrintJobRowType.CUT },
     ];
