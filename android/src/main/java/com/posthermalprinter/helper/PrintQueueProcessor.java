@@ -146,6 +146,7 @@ public class PrintQueueProcessor {
    * @see PrinterJob
    * @see PosPrinterDev.PrinterInfo
    */
+
   private void processJob(PrinterJob job) throws JSONException {
     for (String manager : printerPool) {
       if (manager.equals(job.getTargetPrinterIp())) {
