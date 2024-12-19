@@ -1,3 +1,10 @@
+## [0.8.5-beta.5](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.8.5-beta.4...v0.8.5-beta.5) (2024-12-19)
+
+
+### Bug Fixes
+
+* add timeout between same printer prints ([a611623](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/a61162318ab59894b1a356fdf26e21921a91bdf0))
+
 ## [0.8.5-beta.4](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.8.5-beta.3...v0.8.5-beta.4) (2024-12-18)
 
 
