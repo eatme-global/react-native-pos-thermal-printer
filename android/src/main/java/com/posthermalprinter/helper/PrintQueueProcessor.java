@@ -5,8 +5,10 @@ import androidx.annotation.RequiresApi;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
@@ -39,6 +41,9 @@ public class PrintQueueProcessor {
   private  ExecutorService printExecutor;
   private volatile boolean isRunning = true;
 
+  private String lastPrinterIp = null;
+
+
 
 
 
@@ -47,7 +52,7 @@ public class PrintQueueProcessor {
     this.printerPool = printerPool;
     this.printerManager = printerManager;
     this.eventManager = eventManager;
-    this.printExecutor = Executors.newSingleThreadExecutor();
+    this.printExecutor = Executors.newFixedThreadPool(3);
     startQueueProcessor();
   }
 
@@ -58,11 +63,37 @@ public class PrintQueueProcessor {
       public void run() {
         while (isRunning) {
           try {
+            if(printQueue.isEmpty()){
+              lastPrinterIp = null;
+            }
             // Take will block until a job is available
             PrinterJob job = printQueue.take();
             if (job != null) {
+              String currentPrinterIp = job.getTargetPrinterIp();
+
+              // If this job is for the same printer as the last one, add delay
+              if (lastPrinterIp != null && lastPrinterIp.equals(currentPrinterIp)) {
+                try {
+                  Thread.sleep(1000);
+                } catch (InterruptedException ie) {
+                  Thread.currentThread().interrupt();
+                  break;
+                }
+              }
+
               try {
                 processJob(job);
+                lastPrinterIp = currentPrinterIp;
+
+                // Add metadata-based delay
+                try {
+                  JSONObject jsonObject = new JSONObject(job.getMetadata());
+                  long timeout = timeoutForType(jsonObject.getString("type"));
+                  Thread.sleep(timeout);
+                } catch (JSONException je) {
+                  // If metadata parsing fails, use default delay
+                  Thread.sleep(500);
+                }
               } catch (JSONException e) {
                 Log.e(TAG, "Error processing job: " + e.getMessage());
               }
@@ -74,12 +105,7 @@ public class PrintQueueProcessor {
             }
           } catch (Exception e) {
             Log.e(TAG, "Unexpected error in queue processor: " + e.getMessage());
-            // Add a small delay before continuing
-            try {
-              Thread.sleep(1000);
-            } catch (InterruptedException ie) {
-              Thread.currentThread().interrupt();
-            }
+
           }
         }
       }
