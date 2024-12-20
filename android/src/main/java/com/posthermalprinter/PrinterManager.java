@@ -188,79 +188,37 @@ import java.util.concurrent.TimeUnit;
   @RequiresApi(api = Build.VERSION_CODES.N)
   public CompletableFuture<Boolean> printToPrinter(PrinterJob job) {
     CompletableFuture<Boolean> printResult = new CompletableFuture<>();
+    POSPrinter printer = null;
 
-    // Execute on background thread
-    printExecutor.execute(() -> {
-      try {
-        IMyBinder binder = PosThermalPrinterModule.Companion.getBinder();
+    try {
+      printer = new POSPrinter(job.getTargetPrinterIp());
+      var processedJob = PrintJobHandler.processDataBeforeSend(job);
 
-        if (binder == null) {
-          printResult.complete(false);
-          return;
-        }
+      // Create final reference for the printer to use in lambda
+      final POSPrinter finalPrinter = printer;
 
-        Log.i("printToPrinter", "Printer function start executing");
-        binder.ConnectNetPort(job.getTargetPrinterIp(), 9100, new TaskCallback() {
-          @Override
-          public void OnSucceed() {
-            Log.i("printToPrinter**", "Printer successfully connected");
-//            need to implement this if the prints got messed up
-//            try {
-//              Thread.sleep(600);
-//
-//              PosPrinterDev.PrinterStatus status = binder.GetPrinterStatus();
-//
-//              if(status.offline){
-//                Thread.sleep(500);
-//              }
-//            } catch (InterruptedException e) {
-//              Log.e("Print Job", "Sleep interrupted", e);
-//              printResult.complete(false);
-//              safeDisconnect(binder);
-//              return;
-//            }
-
-            try {
-              printResult.complete(true);
-              binder.WriteSendData(new TaskCallback() {
-                  @Override
-                  public void OnSucceed() {
-                      Log.i("printToPrinter", "Printer write data is success");
-                      safeDisconnect(binder);
-                      printResult.complete(true);
-                  }
-
-                  @Override
-                  public void OnFailed() {
-                      Log.i("printToPrinter", "Printer write data is failed");
-                      safeDisconnect(binder);
-                      printResult.complete(false);
-                  }
-              }, new ProcessData() {
-                  @Override
-                  public List<byte[]> processDataBeforeSend() {
-                      return PrintJobHandler.processDataBeforeSend(job);
-                  }
-              });
-
-            } catch (Exception e) {
-              Log.e("Print Job", "Error during printing", e);
-              safeDisconnect(binder);
-              printResult.complete(false);
-            }
-          }
-
-          @Override
-          public void OnFailed() {
-            Log.e("printToPrinter", "Failed to connect to printer");
+      printer.printData(processedJob, success -> {
+        try {
+          if (success) {
+            Log.d("printToPrinter", "print successful");
+            printResult.complete(true);
+          } else {
+            Log.d("printToPrinter", "print un-successful");
+            eventManager.sendPrinterUnreachableEvent(job.getTargetPrinterIp());
             printResult.complete(false);
           }
-        });
-      } catch (Exception e) {
-        Log.e("Print Job", "Error in background thread", e);
-        printResult.complete(false);
+        } finally {
+          // Ensure printer is always destroyed
+          finalPrinter.destroy();
+        }
+      });
+    } catch (Exception e) {
+      Log.e("printToPrinter", "Error setting up print job", e);
+      if (printer != null) {
+        printer.destroy();
       }
-    });
+      printResult.completeExceptionally(e);
+    }
 
     return printResult;
   }
@@ -359,7 +317,7 @@ import java.util.concurrent.TimeUnit;
     return additionResult;
   }
 
-  
+
   /**
    * Shuts down the print executor service.
    * This method should be called when the PrinterManager is no longer needed.
