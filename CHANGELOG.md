@@ -1,3 +1,12 @@
+## [0.8.5-beta.6](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.8.5-beta.5...v0.8.5-beta.6) (2024-12-20)
+
+
+### Bug Fixes
+
+* printer jam fixes when handling multiple prints android ([954b35e](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/954b35ef38018624014dfed4076d55395c918b4b))
+* printer jam fixes when handling multiple prints android ([10c37af](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/10c37af78e397a636f2457f69c0bb5c200f729bc))
+* printer jam fixes when handling multiple prints android ([9b25e29](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/9b25e29b68290c8af56fa4c069681b53b4269045))
+
 ## [0.8.5-beta.5](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.8.5-beta.4...v0.8.5-beta.5) (2024-12-19)
 
 
