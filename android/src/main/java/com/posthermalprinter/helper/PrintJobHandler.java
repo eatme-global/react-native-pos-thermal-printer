@@ -40,7 +40,16 @@ public class PrintJobHandler {
   public static List<byte[]> processDataBeforeSend(PrinterJob job) {
     List<byte[]> list = new ArrayList<>();
 //    list.add(DataForSendToPrinterPos80.initializePrinter());
+//    list.add(DataForSendToPrinterPos80.initializePrinter());
 
+    byte[] init = {
+      0x1B, 0x40,      // Initialize printer (ESC @)
+      0x1B, 0x21, 0x00,// Normal text mode
+      0x1B, 0x61, 0x00,// Left alignment
+      0x1B, 0x74, 0x00,// Select character code table (PC437: USA, Standard Europe)
+      0x1D, 0x21, 0x00 // Normal character size
+    };
+    list.add(init);
     byte[] init = {
       0x1B, 0x40,      // Initialize printer (ESC @)
       0x1B, 0x21, 0x00,// Normal text mode
@@ -117,7 +126,21 @@ public class PrintJobHandler {
   private static void processColumnItem(List<byte[]> list, PrintItem item) {
     Charset encodeCharset;
     ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+    ByteArrayOutputStream buffer = new ByteArrayOutputStream();
 
+    try {
+      // Set initial charset and model
+      if (TextProcessor.columnsContainChineseCharacters(item.getColumns())) {
+        encodeCharset = Charset.forName("GBK");
+        DataForSendToPrinterPos80.setCharsetName("GBK");
+        buffer.write(DataForSendToPrinterPos80.selectChineseCharModel());
+        buffer.write(DataForSendToPrinterPos80.setChineseCharLeftAndRightSpace(0, 0));
+      } else {
+        encodeCharset = Charset.forName("CP437");
+        DataForSendToPrinterPos80.setCharsetName("CP437");
+        buffer.write(DataForSendToPrinterPos80.CancelChineseCharModel());
+        buffer.write(DataForSendToPrinterPos80.selectCharacterCodePage(0));
+      }
     try {
       // Set initial charset and model
       if (TextProcessor.columnsContainChineseCharacters(item.getColumns())) {
@@ -134,7 +157,16 @@ public class PrintJobHandler {
 
       if (item.getColumns() != null) {
         List<ColumnItem> columns = item.getColumns();
+      if (item.getColumns() != null) {
+        List<ColumnItem> columns = item.getColumns();
 
+        // Find max lines
+        int maxLines = 0;
+        for (ColumnItem col : columns) {
+          if (col.getLines() != null) {
+            maxLines = Math.max(maxLines, col.getLines().size());
+          }
+        }
         // Find max lines
         int maxLines = 0;
         for (ColumnItem col : columns) {
@@ -145,8 +177,16 @@ public class PrintJobHandler {
 
         // Process each line
         for (int lineIndex = 0; lineIndex < maxLines; lineIndex++) {
+        // Process each line
+        for (int lineIndex = 0; lineIndex < maxLines; lineIndex++) {
           StringBuilder lineBuilder = new StringBuilder();
 
+          // Build the line
+          for (ColumnItem column : columns) {
+            String line = "";
+            if (column.getLines() != null && lineIndex < column.getLines().size()) {
+              line = column.getLines().get(lineIndex);
+            }
           // Build the line
           for (ColumnItem column : columns) {
             String line = "";
@@ -157,14 +197,24 @@ public class PrintJobHandler {
             if (line == null) {
               line = "";
             }
+            if (line == null) {
+              line = "";
+            }
 
+            TextAlignment alignment = column.getAlignment() != null ?
+              column.getAlignment() : TextAlignment.LEFT;
+            String formattedText = TextProcessor.padText(line, column.getWidth(), alignment);
             TextAlignment alignment = column.getAlignment() != null ?
               column.getAlignment() : TextAlignment.LEFT;
             String formattedText = TextProcessor.padText(line, column.getWidth(), alignment);
 
             lineBuilder.append(formattedText);
           }
+            lineBuilder.append(formattedText);
+          }
 
+          // Write alignment
+          buffer.write(DataForSendToPrinterPos80.selectAlignment(0));
           // Write alignment
           buffer.write(DataForSendToPrinterPos80.selectAlignment(0));
 
@@ -187,7 +237,30 @@ public class PrintJobHandler {
           // Line feed
           buffer.write(DataForSendToPrinterPos80.printAndFeedLine());
         }
+          // If bold is needed, enable it once at the start
+          if (item.isBold()) {
+            // Try using a different emphasis command
+            buffer.write(new byte[]{0x1B, 0x21, 0x08}); // ESC ! 8 - Enable emphasis
+          }
+
+          // Write the line
+          buffer.write(lineBuilder.toString().getBytes(encodeCharset));
+
+          // If bold was enabled, disable it at the end
+          if (item.isBold()) {
+            buffer.write(new byte[]{0x1B, 0x21, 0x00}); // ESC ! 0 - Reset to normal
+          }
+
+          // Line feed
+          buffer.write(DataForSendToPrinterPos80.printAndFeedLine());
+        }
       }
+
+      // Send all data at once
+      list.add(buffer.toByteArray());
+
+    } catch (IOException e) {
+      e.printStackTrace();
 
       // Send all data at once
       list.add(buffer.toByteArray());
@@ -331,6 +404,8 @@ public class PrintJobHandler {
     // Set alignment
     list.add(DataForSendToPrinterPos80.selectAlignment(item.getAlignmentAsInt()));
 
+
+    // If bold is needed, enable it once at the start
 
     // If bold is needed, enable it once at the start
     if (item.isBold()) {
