@@ -15,6 +15,7 @@ import net.posprinter.utils.BitmapProcess;
 import net.posprinter.utils.BitmapToByteData;
 import net.posprinter.utils.DataForSendToPrinterPos80;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.time.Instant;
@@ -38,8 +39,16 @@ public class PrintJobHandler {
   @RequiresApi(api = Build.VERSION_CODES.N)
   public static List<byte[]> processDataBeforeSend(PrinterJob job) {
     List<byte[]> list = new ArrayList<>();
-    list.add(DataForSendToPrinterPos80.initializePrinter());
+//    list.add(DataForSendToPrinterPos80.initializePrinter());
 
+    byte[] init = {
+      0x1B, 0x40,      // Initialize printer (ESC @)
+      0x1B, 0x21, 0x00,// Normal text mode
+      0x1B, 0x61, 0x00,// Left alignment
+      0x1B, 0x74, 0x00,// Select character code table (PC437: USA, Standard Europe)
+      0x1D, 0x21, 0x00 // Normal character size
+    };
+    list.add(init);
     for (PrintItem item : job.getJobContent()) {
       list.addAll(processItem(item));
     }
@@ -104,71 +113,88 @@ public class PrintJobHandler {
    * @param list The list to add the processed data to.
    * @param item The PrintItem containing column data.
    */
-  @RequiresApi(api = Build.VERSION_CODES.N)
-  private static void processColumnItem(List<byte[]> list, PrintItem item){
+  private static void processColumnItem(List<byte[]> list, PrintItem item) {
     Charset encodeCharset;
+    ByteArrayOutputStream buffer = new ByteArrayOutputStream();
 
-    if (TextProcessor.columnsContainChineseCharacters(item.getColumns())) {
-      encodeCharset = Charset.forName("GBK");
-      DataForSendToPrinterPos80.setCharsetName("GBK");
-      list.add(DataForSendToPrinterPos80.selectChineseCharModel());
-     list.add(DataForSendToPrinterPos80.setChineseCharLeftAndRightSpace(0, 0));
-    } else {
-      encodeCharset = Charset.forName("CP437");
-      DataForSendToPrinterPos80.setCharsetName("CP437");
-      list.add(DataForSendToPrinterPos80.CancelChineseCharModel());
-      list.add(DataForSendToPrinterPos80.selectCharacterCodePage(0));
-    }
+    try {
+      // Set initial charset and model
+      if (TextProcessor.columnsContainChineseCharacters(item.getColumns())) {
+        encodeCharset = Charset.forName("GBK");
+        DataForSendToPrinterPos80.setCharsetName("GBK");
+        buffer.write(DataForSendToPrinterPos80.selectChineseCharModel());
+        buffer.write(DataForSendToPrinterPos80.setChineseCharLeftAndRightSpace(0, 0));
+      } else {
+        encodeCharset = Charset.forName("CP437");
+        DataForSendToPrinterPos80.setCharsetName("CP437");
+        buffer.write(DataForSendToPrinterPos80.CancelChineseCharModel());
+        buffer.write(DataForSendToPrinterPos80.selectCharacterCodePage(0));
+      }
 
-    if (item.getColumns() != null) {
-      List<ColumnItem> columns = item.getColumns();
+      if (item.getColumns() != null) {
+        List<ColumnItem> columns = item.getColumns();
 
-      int maxLines = 0;
-      for (ColumnItem col : columns) {
-        if (col.getLines() != null) {
-          maxLines = Math.max(maxLines, col.getLines().size());
+        // Find max lines
+        int maxLines = 0;
+        for (ColumnItem col : columns) {
+          if (col.getLines() != null) {
+            maxLines = Math.max(maxLines, col.getLines().size());
+          }
         }
-      }
 
-      // Apply bold to the entire line if any column is bold
-      if (item.isBold()) {
-        list.add(DataForSendToPrinterPos80.selectOrCancelBoldModel(1)); // Enable bold
-      }
-
-      for (int lineIndex = 0; lineIndex < maxLines; lineIndex++) {
+        // Process each line
+        for (int lineIndex = 0; lineIndex < maxLines; lineIndex++) {
           StringBuilder lineBuilder = new StringBuilder();
 
+          // Build the line
+          for (ColumnItem column : columns) {
+            String line = "";
+            if (column.getLines() != null && lineIndex < column.getLines().size()) {
+              line = column.getLines().get(lineIndex);
+            }
 
-        for (ColumnItem column : columns) {
-          String line = "";
-          if (column.getLines() != null && lineIndex < column.getLines().size()) {
-            line = column.getLines().get(lineIndex);
+            if (line == null) {
+              line = "";
+            }
+
+            TextAlignment alignment = column.getAlignment() != null ?
+              column.getAlignment() : TextAlignment.LEFT;
+            String formattedText = TextProcessor.padText(line, column.getWidth(), alignment);
+
+            lineBuilder.append(formattedText);
           }
 
-          if (line == null) {
-            line = "";
+          // Write alignment
+          buffer.write(DataForSendToPrinterPos80.selectAlignment(0));
+
+
+
+          // If bold is needed, enable it once at the start
+          if (item.isBold()) {
+            // Try using a different emphasis command
+            buffer.write(new byte[]{0x1B, 0x21, 0x08}); // ESC ! 8 - Enable emphasis
           }
 
-          TextAlignment alignment = column.getAlignment() != null ? column.getAlignment() : TextAlignment.LEFT;
-          String formattedText = TextProcessor.padText(line, column.getWidth(), alignment);
+          // Write the line
+          buffer.write(lineBuilder.toString().getBytes(encodeCharset));
 
-          lineBuilder.append(formattedText);
+          // If bold was enabled, disable it at the end
+          if (item.isBold()) {
+            buffer.write(new byte[]{0x1B, 0x21, 0x00}); // ESC ! 0 - Reset to normal
+          }
+
+          // Line feed
+          buffer.write(DataForSendToPrinterPos80.printAndFeedLine());
         }
-
-
-        // Left align the whole line
-        list.add(DataForSendToPrinterPos80.selectAlignment(0));
-
-        list.add(lineBuilder.toString().getBytes(encodeCharset));
-        list.add(DataForSendToPrinterPos80.printAndFeedLine());
-
       }
-      if (item.isBold()) {
-        list.add(DataForSendToPrinterPos80.selectOrCancelBoldModel(0)); // Disable bold
-      }
+
+      // Send all data at once
+      list.add(buffer.toByteArray());
+
+    } catch (IOException e) {
+      e.printStackTrace();
     }
   }
-
   /**
    * Processes an image print item.
    *
@@ -304,12 +330,12 @@ public class PrintJobHandler {
     // Set alignment
     list.add(DataForSendToPrinterPos80.selectAlignment(item.getAlignmentAsInt()));
 
-    // Set bold if needed
+
+    // If bold is needed, enable it once at the start
     if (item.isBold()) {
-      list.add(DataForSendToPrinterPos80.selectOrCancelBoldModel(1));
-    } else {
-      list.add(DataForSendToPrinterPos80.selectOrCancelBoldModel(0));
-    }
+      // Try using a different emphasis command
+      buffer.write(new byte[]{0x1B, 0x21, 0x08}); // ESC ! 8 - Enable emphasis
+    }    
 
     int printerLineWidth = calculatePrinterWidth(item.getFontSize());
     List<String> lines = TextProcessor.splitTextIntoLines(item.getText(), printerLineWidth, item.getWordWrap());
@@ -322,7 +348,7 @@ public class PrintJobHandler {
     }
 
     if (item.isBold()) {
-      list.add(DataForSendToPrinterPos80.selectOrCancelBoldModel(0));
+      buffer.write(new byte[]{0x1B, 0x21, 0x00}); // ESC ! 8 - Enable emphasis
     }
   }
 
