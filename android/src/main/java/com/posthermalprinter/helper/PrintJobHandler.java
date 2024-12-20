@@ -48,6 +48,7 @@ public class PrintJobHandler {
       0x1D, 0x21, 0x00 // Normal character size
     };
     list.add(init);
+
     for (PrintItem item : job.getJobContent()) {
       list.addAll(processItem(item));
     }
