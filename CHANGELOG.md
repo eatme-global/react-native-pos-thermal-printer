@@ -1,3 +1,10 @@
+## [0.8.5-beta.9](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.8.5-beta.8...v0.8.5-beta.9) (2024-12-23)
+
+
+### Bug Fixes
+
+* even emmit condition changes for a failed print and pre print ([ee4c969](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/ee4c969d83fbb77368dd26da36ed1a393d519809))
+
 ## [0.8.5-beta.8](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.8.5-beta.7...v0.8.5-beta.8) (2024-12-23)
 
 
