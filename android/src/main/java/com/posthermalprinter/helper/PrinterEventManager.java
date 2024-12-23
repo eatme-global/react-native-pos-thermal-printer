@@ -68,4 +68,10 @@ public class PrinterEventManager {
       .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
       .emit("PrinterUnreachable", params);
   }
+
+  public void sendPrePrintEvent() {
+    reactContext
+      .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+      .emit("PrePrintCheck", null);
+  }
 }

@@ -123,6 +123,10 @@ import java.util.concurrent.TimeUnit;
    */
   @RequiresApi(api = Build.VERSION_CODES.N)
   public Boolean addPrintJob(PrinterJob job) {
+
+    // add print job
+    eventManager.sendPrePrintEvent();
+
     try {
       printQueue.add(job);
       Log.i("addPrintJob", "Job added ");
@@ -204,7 +208,6 @@ import java.util.concurrent.TimeUnit;
             printResult.complete(true);
           } else {
             Log.d("printToPrinter", "print un-successful");
-            eventManager.sendPrinterUnreachableEvent(job.getTargetPrinterIp());
             printResult.complete(false);
           }
         } finally {
