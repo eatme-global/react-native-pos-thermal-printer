@@ -4,7 +4,6 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.os.Build;
-import android.util.Log;
 
 import androidx.annotation.RequiresApi;
 import com.facebook.react.bridge.ReadableArray;
@@ -37,17 +36,10 @@ public class PrintJobHandler {
    * @return A List of byte arrays representing the processed print job.
    */
   @RequiresApi(api = Build.VERSION_CODES.N)
-  public static List<byte[]> processDataBeforeSend(PrinterJob job) {
+  public static List<byte[]> processDataBeforeSend(PrinterJob job) throws IOException {
     List<byte[]> list = new ArrayList<>();
 
-    byte[] init = {
-      0x1B, 0x40,      // Initialize printer (ESC @)
-      0x1B, 0x21, 0x00,// Normal text mode
-      0x1B, 0x61, 0x00,// Left alignment
-      0x1B, 0x74, 0x00,// Select character code table (PC437: USA, Standard Europe)
-      0x1D, 0x21, 0x00 // Normal character size
-    };
-    list.add(init);
+    list.add(DataForSendToPrinterPos80.initializePrinter());
 
     for (PrintItem item : job.getJobContent()) {
       list.addAll(processItem(item));
@@ -63,7 +55,7 @@ public class PrintJobHandler {
    * @return A List of byte arrays representing the processed print item.
    */
   @RequiresApi(api = Build.VERSION_CODES.N)
-  private static List<byte[]> processItem(PrintItem item) {
+  private static List<byte[]> processItem(PrintItem item) throws IOException {
     List<byte[]> list = new ArrayList<>();
     // Add font size selection
     list.add(TextProcessor.selectFontSize(item.getFontSize()));
@@ -315,43 +307,47 @@ public class PrintJobHandler {
    * @param item The PrintItem containing text data.
    */
   @RequiresApi(api = Build.VERSION_CODES.N)
-  private static void addTextToPrintList(List<byte[]> list, PrintItem item)  {
+  private static void addTextToPrintList(List<byte[]> list, PrintItem item) throws IOException {
     Charset encodeCharset = Charset.forName("CP437");
+    ByteArrayOutputStream buffer = new ByteArrayOutputStream();
 
-    if(TextProcessor.containsChineseCharacter(item.getText())){
-      // [This will enable chinese character prints]
-      encodeCharset = Charset.forName("GBK");
-      list.add(DataForSendToPrinterPos80.selectChineseCharModel());
-      list.add(DataForSendToPrinterPos80.setChineseCharLeftAndRightSpace(0, 0));
+    // Add font size first (important!)
+    buffer.write(TextProcessor.selectFontSize(item.getFontSize()));
 
+    if (TextProcessor.containsChineseCharacter(item.getText())) {
+        encodeCharset = Charset.forName("GBK");
+        buffer.write(DataForSendToPrinterPos80.selectChineseCharModel());
+        buffer.write(DataForSendToPrinterPos80.setChineseCharLeftAndRightSpace(0, 0));
     } else {
-      list.add(DataForSendToPrinterPos80.CancelChineseCharModel());
+        buffer.write(DataForSendToPrinterPos80.CancelChineseCharModel());
     }
 
     // Set alignment
-    list.add(DataForSendToPrinterPos80.selectAlignment(item.getAlignmentAsInt()));
+    buffer.write(DataForSendToPrinterPos80.selectAlignment(item.getAlignmentAsInt()));
 
-
-    // If bold is needed, enable it once at the start
+    // Set bold using the original command
     if (item.isBold()) {
-      // Try using a different emphasis command
-      list.add(new byte[]{0x1B, 0x21, 0x08}); // ESC ! 8 - Enable emphasis
+        buffer.write(DataForSendToPrinterPos80.selectOrCancelBoldModel(1));
+    } else {
+        buffer.write(DataForSendToPrinterPos80.selectOrCancelBoldModel(0));
     }
 
     int printerLineWidth = calculatePrinterWidth(item.getFontSize());
     List<String> lines = TextProcessor.splitTextIntoLines(item.getText(), printerLineWidth, item.getWordWrap());
 
     for (String line : lines) {
-      // Add text to print
-      byte[] textBytes = line.getBytes(encodeCharset);
-      list.add(textBytes);
-      list.add(DataForSendToPrinterPos80.printAndFeedLine());
+        buffer.write(line.getBytes(encodeCharset));
+        buffer.write(DataForSendToPrinterPos80.printAndFeedLine());
     }
 
     if (item.isBold()) {
-      list.add(new byte[]{0x1B, 0x21, 0x00}); // ESC ! 8 - Enable emphasis
+        buffer.write(DataForSendToPrinterPos80.selectOrCancelBoldModel(0));
     }
-  }
+    // Add final line feed
+    buffer.write(DataForSendToPrinterPos80.printAndFeedLine());
+
+    list.add(buffer.toByteArray());
+}
 
   /**
    * Calculates the printer width based on the font size.
