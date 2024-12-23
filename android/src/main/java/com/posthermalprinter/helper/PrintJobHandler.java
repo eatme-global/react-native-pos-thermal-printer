@@ -343,8 +343,6 @@ public class PrintJobHandler {
     if (item.isBold()) {
         buffer.write(DataForSendToPrinterPos80.selectOrCancelBoldModel(0));
     }
-    // Add final line feed
-    buffer.write(DataForSendToPrinterPos80.printAndFeedLine());
 
     list.add(buffer.toByteArray());
 }
