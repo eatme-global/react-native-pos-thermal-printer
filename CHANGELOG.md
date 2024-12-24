@@ -1,3 +1,10 @@
+## [0.8.5-beta.11](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.8.5-beta.10...v0.8.5-beta.11) (2024-12-24)
+
+
+### Bug Fixes
+
+* extra line print when feed ([7c7358a](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/7c7358ae3c73f7ddc179c9020a10ad8bedd1239d))
+
 ## [0.8.5-beta.10](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.8.5-beta.9...v0.8.5-beta.10) (2024-12-24)
 
 
