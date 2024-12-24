@@ -1,3 +1,10 @@
+## [0.8.5-beta.10](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.8.5-beta.9...v0.8.5-beta.10) (2024-12-24)
+
+
+### Bug Fixes
+
+* ios paper feed before cut imbalance fixes ([39efaac](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/39efaac5b05f62072cb00ecfce80d3609dda03c1))
+
 ## [0.8.5-beta.9](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.8.5-beta.8...v0.8.5-beta.9) (2024-12-23)
 
 
