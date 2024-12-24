@@ -77,7 +77,7 @@ public class PrintJobHandler {
         list.add(DataForSendToPrinterPos80.openCashdrawer());
         break;
       case FEED:
-        list.add(DataForSendToPrinterPos80.printAndFeedForward(item.getLines()));
+        list.add(DataForSendToPrinterPos80.printAndFeedForward(item.getLines() - 1));
         break;
       case CUT:
         list.add(DataForSendToPrinterPos80.selectCutPagerModerAndCutPager(0x42, 0x66));
@@ -177,8 +177,7 @@ public class PrintJobHandler {
           }
 
           // Line feed
-          buffer.write(DataForSendToPrinterPos80.printAndFeedLine());
-        }
+          buffer.write(DataForSendToPrinterPos80.printAndFeed(0));        }
       }
 
       // Send all data at once
