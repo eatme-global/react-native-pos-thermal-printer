@@ -1,3 +1,10 @@
+## [0.8.5-beta.12](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.8.5-beta.11...v0.8.5-beta.12) (2024-12-27)
+
+
+### Bug Fixes
+
+* android event emmiter fixes ([7f680e7](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/7f680e7113b3364248038128bf817c06c113d57e))
+
 ## [0.8.5-beta.11](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.8.5-beta.10...v0.8.5-beta.11) (2024-12-24)
 
 
