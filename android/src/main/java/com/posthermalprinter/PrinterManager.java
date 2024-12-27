@@ -29,7 +29,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Manages printer operations including adding, removing printers, and handling print jobs.
  */
-  public class PrinterManager {
+public class PrinterManager {
 
   private static final String TAG = "PrinterManager";
   private final List<String> printerPool;
@@ -198,29 +198,18 @@ import java.util.concurrent.TimeUnit;
       printer = new POSPrinter(job.getTargetPrinterIp());
       var processedJob = PrintJobHandler.processDataBeforeSend(job);
 
-      // Create final reference for the printer to use in lambda
-      final POSPrinter finalPrinter = printer;
-
       printer.printData(processedJob, success -> {
-        try {
-          if (success) {
-            Log.d("printToPrinter", "print successful");
-            printResult.complete(true);
-          } else {
-            Log.d("printToPrinter", "print un-successful");
-            printResult.complete(false);
-          }
-        } finally {
-          // Ensure printer is always destroyed
-          finalPrinter.destroy();
+        if (success) {
+          Log.d("printToPrinter", "print successful");
+          printResult.complete(true);
+        } else {
+          Log.d("printToPrinter", "print un-successful");
+          printResult.complete(false);
         }
       });
     } catch (Exception e) {
       Log.e("printToPrinter", "Error setting up print job", e);
-      if (printer != null) {
-        printer.destroy();
-      }
-      printResult.completeExceptionally(e);
+      printResult.complete(false);
     }
 
     return printResult;
