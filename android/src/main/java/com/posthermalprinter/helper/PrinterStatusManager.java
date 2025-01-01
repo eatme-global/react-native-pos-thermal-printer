@@ -7,6 +7,7 @@ import androidx.annotation.RequiresApi;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 import net.posprinter.posprinterface.IMyBinder;
 import net.posprinter.utils.PosPrinterDev;
@@ -28,7 +29,7 @@ public class PrinterStatusManager {
    * @return A List of PrinterStatus objects representing the status of each printer in the pool.
    *         Returns an empty list if the binder is null or if no printers are found.
    */
-  public CompletableFuture<List<PrinterStatus>> getPrinterPoolStatus(IMyBinder binder, List<String> printerPool) {
+  public CompletableFuture<List<PrinterStatus>> getPrinterPoolStatus(IMyBinder binder, List<String> printerPool) throws ExecutionException, InterruptedException {
     if (binder == null) {
       return CompletableFuture.completedFuture(new ArrayList<>());
     }

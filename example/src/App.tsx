@@ -2,7 +2,6 @@
 import {
   Alert,
   Button,
-  Platform,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -36,8 +35,8 @@ import {
 import type {
   IPPrinter,
   ParsedPendingJob,
-  PrintJobRow,
   PrinterStatus,
+  PrintJobRow,
 } from "react-native-pos-thermal-printer";
 
 import { useCallback, useState } from "react";
@@ -83,38 +82,61 @@ const PrinterContent: React.FC = () => {
   const handlePrintTest = (ip: string) => {
     const result: PrintJobRow[] = [
       {
-        type: PrintJobRowType.TEXT,
-        text: "String with ƒäñçÿ çhåråctérs, ä, ö, ü, and ß",
-        bold: PrintFontWeight.BOLD,
+        type: PrintJobRowType.IMAGE,
+        url: "https://i.pinimg.com/736x/fa/66/73/fa66736df84509ac13e05c9372131550.jpg",
+        width: 100,
         alignment: PrintAlignment.CENTER,
-        fontSize: PrintFontSize.NORMAL,
-        wrapWords: false,
       },
       {
         type: PrintJobRowType.TEXT,
-        text: "String with ƒäñçÿ çhåråctérs, German uses the same ä, ö, ü, and ß",
-        bold: PrintFontWeight.BOLD,
-        alignment: PrintAlignment.CENTER,
-        fontSize: PrintFontSize.NORMAL,
-        wrapWords: false,
-      },
-      { type: PrintJobRowType.FEED, lines: 1 },
-      {
-        type: PrintJobRowType.COLUMN,
+        text: "Table 4",
         bold: PrintFontWeight.NORMAL,
-        fontSize: PrintFontSize.NORMAL,
-        columns: [
-          {
-            text: "123456789|123456789|",
-            width: 20,
-            alignment: PrintAlignment.LEFT,
-          },
-          { text: "", width: 2, alignment: PrintAlignment.LEFT },
-          { text: "Qty", width: 5, alignment: PrintAlignment.CENTER },
-          { text: "", width: 2, alignment: PrintAlignment.LEFT },
-          { text: "Price", width: 19, alignment: PrintAlignment.RIGHT },
-        ],
+        alignment: PrintAlignment.CENTER,
+        fontSize: PrintFontSize.BIG,
+        wrapWords: false,
       },
+      {
+        type: PrintJobRowType.TEXT,
+        text: "Dine-in",
+        bold: PrintFontWeight.NORMAL,
+        alignment: PrintAlignment.CENTER,
+        fontSize: PrintFontSize.BIG,
+        wrapWords: false,
+      },
+      {
+        type: PrintJobRowType.TEXT,
+        text: "------------------------",
+        bold: PrintFontWeight.BOLD,
+        alignment: PrintAlignment.CENTER,
+        fontSize: PrintFontSize.WIDE,
+        wrapWords: false,
+      },
+      {
+        type: PrintJobRowType.TEXT,
+        text: "String with ƒäñçÿ ",
+        bold: PrintFontWeight.NORMAL,
+        alignment: PrintAlignment.CENTER,
+        fontSize: PrintFontSize.WIDE,
+        wrapWords: false,
+      },
+      {
+        type: PrintJobRowType.TEXT,
+        text: "String with ƒäñçÿ ",
+        bold: PrintFontWeight.NORMAL,
+        alignment: PrintAlignment.CENTER,
+        fontSize: PrintFontSize.WIDE,
+        wrapWords: false,
+      },
+      {
+        type: PrintJobRowType.TEXT,
+        text: "String with ƒäñçÿ ",
+        bold: PrintFontWeight.NORMAL,
+        alignment: PrintAlignment.CENTER,
+        fontSize: PrintFontSize.WIDE,
+        wrapWords: false,
+      },
+
+      { type: PrintJobRowType.FEED, lines: 2 },
       {
         type: PrintJobRowType.COLUMN,
         bold: true,
@@ -128,34 +150,67 @@ const PrinterContent: React.FC = () => {
         ],
       },
       // {
-      //   type: PrintJobRowType.IMAGE,
-      //   url: 'https://i.pinimg.com/736x/fa/66/73/fa66736df84509ac13e05c9372131550.jpg',
-      //   width: 100,
-      //   alignment: PrintAlignment.LEFT,
+      //   type: PrintJobRowType.COLUMN,
+      //   bold: true,
+      //   fontSize: PrintFontSize.NORMAL,
+      //   columns: [
+      //     { text: "TRY", width: 20, alignment: PrintAlignment.LEFT },
+      //     { text: "", width: 2, alignment: PrintAlignment.LEFT },
+      //     { text: "Qty", width: 5, alignment: PrintAlignment.CENTER },
+      //     { text: "", width: 2, alignment: PrintAlignment.LEFT },
+      //     { text: "Price", width: 19, alignment: PrintAlignment.RIGHT },
+      //   ],
       // },
+      // { type: PrintJobRowType.FEED, lines: 1 },
+      // {
+      //   type: PrintJobRowType.TEXT,
+      //   text: "String with ƒäñçÿ ",
+      //   bold: PrintFontWeight.NORMAL,
+      //   alignment: PrintAlignment.CENTER,
+      //   fontSize: PrintFontSize.WIDE,
+      //   wrapWords: false,
+      // },
+      // {
+      //   type: PrintJobRowType.TEXT,
+      //   text: "------------------------",
+      //   bold: PrintFontWeight.NORMAL,
+      //   alignment: PrintAlignment.CENTER,
+      //   fontSize: PrintFontSize.WIDE,
+      //   wrapWords: false,
+      // },
+
       {
         type: PrintJobRowType.CASHBOX,
       },
-      // {
-      //   type: PrintJobRowType.IMAGE,
-      //   width: 50,
-      //   url: 'https://png.pngtree.com/png-clipart/20190921/original/pngtree-beautiful-black-and-white-butterfly-png-image_4699516.jpg',
-      //   alignment: PrintAlignment.CENTER,
-      //   printerWidth: 190.0,
-      // },
+      {
+        type: PrintJobRowType.IMAGE,
+        width: 50,
+        url: "https://png.pngtree.com/png-clipart/20190921/original/pngtree-beautiful-black-and-white-butterfly-png-image_4699516.jpg",
+        alignment: PrintAlignment.CENTER,
+        printerWidth: 190.0,
+      },
+      {
+        type: PrintJobRowType.IMAGE,
+        width: 50,
+        url: "https://logos-world.net/wp-content/uploads/2020/04/Adidas-Logo-1950-1971.png",
+        alignment: PrintAlignment.CENTER,
+        printerWidth: 190.0,
+      },
       // {
       //   type: PrintJobRowType.QRCODE,
-      //   text: 'https://upload.wikimedia.org/wikipedia/commons/2/24/Adidas_logo.png',
+      //   text: "https://upload.wikimedia.org/wikipedia/commons/2/24/Adidas_logo.png",
       //   alignment: PrintAlignment.RIGHT,
       // },
-      {
-        type: PrintJobRowType.FEED,
-        lines: Platform.OS === "ios" ? 5 : 0,
-      },
+      // {
+      //   type: PrintJobRowType.FEED,
+      //   lines: Platform.OS === "ios" ? 5 : 0,
+      // },
       { type: PrintJobRowType.CUT },
     ];
 
+    // for (let i = 0; i < 6; i++) {
     printText(ip, result, { type: "Receipt", category: "Drinks" });
+    // }
   };
 
   const addNewPrinterToPool = async (ip: string) => {
@@ -263,6 +318,13 @@ const PrinterContent: React.FC = () => {
               title="Add Printer"
               onPress={() => addNewPrinterToPool(ip)}
             />
+
+            <View style={{ marginTop: 10 }}>
+              <Button
+                title="Initialize Internal Printer"
+                onPress={() => addNewPrinterToPool("INTERNAL")}
+              />
+            </View>
             <View style={styles.printerPoolStatusContainer}>
               <Text style={styles.printerPoolHeading}>
                 Printer Pool Status: {}
