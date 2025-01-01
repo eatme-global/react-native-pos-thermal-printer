@@ -38,6 +38,7 @@ export const EventServiceProvider: React.FC<EventServiceProviderProps> = ({
 
     const handlePrinterUnreachable = async (event: { printerIp: string }) => {
       try {
+        console.log("executing: ", event.printerIp);
         await onReconnect?.(event.printerIp);
       } catch (error) {
         console.error("Failed to reconnect printer:", error);

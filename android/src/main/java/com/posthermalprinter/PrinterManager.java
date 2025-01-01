@@ -9,15 +9,18 @@ import androidx.annotation.RequiresApi;
 import com.posthermalprinter.helper.*;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.WritableArray;
+import com.posthermalprinter.imin.IminPrinterModule;
+import com.posthermalprinter.util.PrintItem;
 import com.posthermalprinter.util.PrinterJob;
 import com.posthermalprinter.util.PrinterStatus;
 
 import net.posprinter.posprinterface.IMyBinder;
-import net.posprinter.posprinterface.ProcessData;
 import net.posprinter.posprinterface.TaskCallback;
-import net.posprinter.utils.PosPrinterDev;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -69,27 +72,41 @@ public class PrinterManager {
    * @return A CompletableFuture that resolves to true if the printer was added successfully, false otherwise
    */
   @RequiresApi(api = Build.VERSION_CODES.N)
-  public CompletableFuture<Boolean> addPrinterAsync(String printerIp) {
+  public CompletableFuture<Boolean> addPrinterAsync(String printerIp) throws ExecutionException, InterruptedException {
     CompletableFuture<Boolean> result = new CompletableFuture<>();
 
-    addNewPrinter(printerIp)
-      .thenAccept(added -> {
-        if (added) {
-          if(!printerPool.contains(printerIp)){
-            printerPool.add(printerIp);
+    if(!Objects.equals(printerIp, "INTERNAL")){
+      addNewPrinter(printerIp)
+        .thenAccept(added -> {
+          if (added) {
+            if(!printerPool.contains(printerIp)){
+              printerPool.add(printerIp);
+            }
+            Log.i(TAG, "Added Printer Successfully: " + printerIp);
+            result.complete(true);
+          } else {
+            Log.e(TAG, "Failed to Add Printer: " + printerIp);
+            result.complete(false);
           }
-          Log.i(TAG, "Added Printer Successfully: " + printerIp);
-          result.complete(true);
-        } else {
-          Log.e(TAG, "Failed to Add Printer: " + printerIp);
+        })
+        .exceptionally(ex -> {
+          Log.e(TAG, "Exception during printer addition: " + ex.getMessage());
           result.complete(false);
+          return null;
+        });
+    }else {
+      IminPrinterModule iMinPrinterModule = PosThermalPrinterModule.Companion.getIMinPrinterModule();
+      if(iMinPrinterModule != null) {
+        Boolean iMinResult = iMinPrinterModule.initPrinter();
+        if(!printerPool.contains("INTERNAL")){
+          printerPool.add("INTERNAL");
         }
-      })
-      .exceptionally(ex -> {
-        Log.e(TAG, "Exception during printer addition: " + ex.getMessage());
-        result.complete(false);
-        return null;
-      });
+        result.complete(iMinResult);
+      }
+    }
+
+    Log.e("addPrinterAsync", printerPool.toString());
+
 
     return result;
   }
@@ -192,11 +209,42 @@ public class PrinterManager {
   @RequiresApi(api = Build.VERSION_CODES.N)
   public CompletableFuture<Boolean> printToPrinter(PrinterJob job) {
     CompletableFuture<Boolean> printResult = new CompletableFuture<>();
+
+    if (job.getTargetPrinterIp().contentEquals("INTERNAL")) {
+      IminPrinterModule iminPrinterModule = PosThermalPrinterModule.Companion.getIMinPrinterModule();
+      if (iminPrinterModule != null) {
+        try {
+          List<List<PrintItem>> jobContent = Collections.singletonList(job.getJobContent());
+          for (List<PrintItem> printItems : jobContent) {
+            List<List<PrintItem>> separatedItems = separatePrintItemsAroundImages(printItems);
+
+            for (List<PrintItem> items : separatedItems) {
+              List<byte[]> commands = PrintJobHandler.processDataBeforeSend(items, job.getTargetPrinterIp());
+              for(byte[] item :  commands) {
+                iminPrinterModule.sendRawData(item);
+
+                if (items.get(0).getType() == PrintItem.Type.IMAGE){
+                  Thread.sleep(1000);
+                } else {
+                  Thread.sleep(5);
+                }
+              }
+            }
+          }
+          printResult.complete(true);
+        } catch (IOException | InterruptedException e) {
+          printResult.completeExceptionally(e);
+        }
+      }
+      return printResult;
+    }
+
+
     POSPrinter printer = null;
 
     try {
       printer = new POSPrinter(job.getTargetPrinterIp());
-      var processedJob = PrintJobHandler.processDataBeforeSend(job);
+      var processedJob = PrintJobHandler.processDataBeforeSend(job.getJobContent(), job.getTargetPrinterIp());
 
       printer.printData(processedJob, success -> {
         if (success) {
@@ -215,6 +263,38 @@ public class PrinterManager {
     return printResult;
   }
 
+  /**
+   * Separates print items into groups: before image, image, and after image
+   * @param printItems List of print items to process
+   * @return List of separated print item groups
+   */
+  private List<List<PrintItem>> separatePrintItemsAroundImages(List<PrintItem> printItems) {
+    List<List<PrintItem>> result = new ArrayList<>();
+    List<PrintItem> currentGroup = new ArrayList<>();
+
+    for (int i = 0; i < printItems.size(); i++) {
+      PrintItem item = printItems.get(i);
+
+      if (item.getType() == PrintItem.Type.IMAGE) {
+        // If we have items before the image, add them as a group
+        if (!currentGroup.isEmpty()) {
+          result.add(new ArrayList<>(currentGroup));
+          currentGroup = new ArrayList<>(); // Create new list instead of clear()
+        }
+        // Add the image as its own group
+        result.add(Collections.singletonList(item));
+      } else {
+        currentGroup.add(item);
+
+        // Only add the current group if this is the last item
+        if (i == printItems.size() - 1) {
+          result.add(currentGroup);
+        }
+      }
+    }
+
+    return result;
+  }
 
   private void safeDisconnect(IMyBinder binder) {
     try {
@@ -304,6 +384,7 @@ public class PrinterManager {
 
   @RequiresApi(api = Build.VERSION_CODES.N)
   public CompletableFuture<Boolean> checkPrinterStatus(String printerIp) {
+    //    Don't have this method at the moment ***
     CompletableFuture<Boolean> additionResult = new CompletableFuture<>();
     additionResult.complete(true);
     return additionResult;

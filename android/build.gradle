@@ -129,6 +129,8 @@ dependencies {
   implementation "com.facebook.react:react-native:+"
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
   implementation files('libs/PosPrinterSDK.jar')
+  implementation files('libs/IminLibs1.0.15.jar')
+  implementation files('libs/iminPrinterSDK.jar')
 
   // Test dependencies
   testImplementation 'junit:junit:4.13.2'
@@ -161,7 +163,7 @@ kover {
             }
         }
     }
-    
+
     xmlReport {
         reportFile.set(layout.buildDirectory.file("reports/kover/report.xml"))
     }

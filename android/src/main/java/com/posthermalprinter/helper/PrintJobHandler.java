@@ -32,17 +32,17 @@ public class PrintJobHandler {
   /**
    * Processes a PrinterJob and converts it into a list of byte arrays ready for sending to the printer.
    *
-   * @param job The PrinterJob to process.
+
    * @return A List of byte arrays representing the processed print job.
    */
   @RequiresApi(api = Build.VERSION_CODES.N)
-  public static List<byte[]> processDataBeforeSend(PrinterJob job) throws IOException {
+  public static List<byte[]> processDataBeforeSend(List<PrintItem> items, String printerIp) throws IOException {
     List<byte[]> list = new ArrayList<>();
 
     list.add(DataForSendToPrinterPos80.initializePrinter());
 
-    for (PrintItem item : job.getJobContent()) {
-      list.addAll(processItem(item));
+    for (PrintItem item : items) {
+      list.addAll(processItem(item, Objects.equals(printerIp, "INTERNAL")));
     }
 
     return list;
@@ -55,7 +55,7 @@ public class PrintJobHandler {
    * @return A List of byte arrays representing the processed print item.
    */
   @RequiresApi(api = Build.VERSION_CODES.N)
-  private static List<byte[]> processItem(PrintItem item) throws IOException {
+  private static List<byte[]> processItem(PrintItem item, Boolean internal) throws IOException {
     List<byte[]> list = new ArrayList<>();
     // Add font size selection
     list.add(TextProcessor.selectFontSize(item.getFontSize()));
@@ -80,7 +80,13 @@ public class PrintJobHandler {
         list.add(DataForSendToPrinterPos80.printAndFeedForward(item.getLines() - 1));
         break;
       case CUT:
-        list.add(DataForSendToPrinterPos80.selectCutPagerModerAndCutPager(0x42, 0x66));
+        if(!internal){
+          list.add(DataForSendToPrinterPos80.selectCutPagerModerAndCutPager(0x42, 0x66));
+        } else {
+          list.add(DataForSendToPrinterPos80.selectCutPagerModerAndCutPager(0x42, 0x02));  // 3 lines
+
+        }
+
         break;
     }
 
