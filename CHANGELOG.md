@@ -1,3 +1,10 @@
+# [0.9.0-beta.1](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.8.5-beta.12...v0.9.0-beta.1) (2025-01-01)
+
+
+### Features
+
+* imin printer print integration ([1f4c464](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/1f4c46401787175defb1415aefdead84f1aae47a))
+
 ## [0.8.5-beta.12](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.8.5-beta.11...v0.8.5-beta.12) (2024-12-27)
 
 
