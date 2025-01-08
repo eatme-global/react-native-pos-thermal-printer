@@ -6,21 +6,25 @@ import android.util.Log;
 
 import androidx.annotation.RequiresApi;
 
+import com.facebook.react.bridge.ReadableMap;
 import com.posthermalprinter.helper.*;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.WritableArray;
+import com.posthermalprinter.imin.IminPrinterModule;
+import com.posthermalprinter.util.PrintItem;
 import com.posthermalprinter.util.PrinterJob;
 import com.posthermalprinter.util.PrinterStatus;
 
 import net.posprinter.posprinterface.IMyBinder;
-import net.posprinter.posprinterface.ProcessData;
 import net.posprinter.posprinterface.TaskCallback;
-import net.posprinter.utils.PosPrinterDev;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
+import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -29,7 +33,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Manages printer operations including adding, removing printers, and handling print jobs.
  */
-  public class PrinterManager {
+public class PrinterManager {
 
   private static final String TAG = "PrinterManager";
   private final List<String> printerPool;
@@ -62,93 +66,6 @@ import java.util.concurrent.TimeUnit;
   }
 
 
-  @RequiresApi(api = Build.VERSION_CODES.N)
-  private CompletableFuture<Boolean> removePrinterIfExists(String printerIp) {
-    CompletableFuture<Boolean> removalResult = new CompletableFuture<>();
-    IMyBinder binder = PosThermalPrinterModule.Companion.getBinder();
-
-    ArrayList<PosPrinterDev.PrinterInfo> list = binder.GetPrinterInfoList();
-    if (list == null || list.isEmpty()) {
-      return CompletableFuture.completedFuture(true);
-    }
-
-    PosPrinterDev.PrinterInfo existingPrinter = list.stream()
-      .filter(p -> p.portInfo != null && p.portInfo.equals(printerIp))
-      .findFirst()
-      .orElse(null);
-
-    if (existingPrinter == null) {
-      return CompletableFuture.completedFuture(true);
-    }
-
-    PrinterUtils.removePrinter(binder, existingPrinter.printerName, new TaskCallback() {
-      @Override
-      public void OnSucceed() {
-        eventManager.resetPrinterUnreachableStatus(printerIp);
-        Log.i(TAG, "Removed Existing Printer Successfully: " + printerIp);
-        printerPool.remove(printerIp);
-        removalResult.complete(true);
-      }
-
-      @Override
-      public void OnFailed() {
-        Log.e(TAG, "Failed to Remove Existing Printer: " + printerIp);
-        removalResult.complete(false);
-      }
-    });
-
-    return removalResult;
-  }
-
-  private void removePrinter(PosPrinterDev.PrinterInfo printer, int listSize, CompletableFuture<Boolean> result) {
-    IMyBinder binder = PosThermalPrinterModule.Companion.getBinder();
-
-    PrinterUtils.removePrinter(binder, printer.printerName, new TaskCallback() {
-      @RequiresApi(api = Build.VERSION_CODES.N)
-      @Override
-      public void OnSucceed() {
-        Log.i(TAG, "Removed Existing Printer Successfully: " + printer.portInfo);
-        eventManager.resetPrinterUnreachableStatus(printer.portInfo);
-        printerPool.remove(printer.portInfo);
-        result.complete(true);
-
-        if (listSize == 1) {
-          Log.i(TAG, "Shutdown Printer (No Printers Available)");
-          shutdown();
-        }
-      }
-
-      @RequiresApi(api = Build.VERSION_CODES.N)
-      @Override
-      public void OnFailed() {
-        Log.e(TAG, "Failed to Remove Existing Printer: " + printer.portInfo);
-        result.complete(false);
-      }
-    });
-  }
-
-
-  @RequiresApi(api = Build.VERSION_CODES.N)
-  private CompletableFuture<Boolean> addNewPrinter(String printerIp) {
-    CompletableFuture<Boolean> additionResult = new CompletableFuture<>();
-
-    IMyBinder binder = PosThermalPrinterModule.Companion.getBinder();
-
-    PrinterUtils.addPrinter(binder, printerIp, new TaskCallback() {
-      @Override
-      public void OnSucceed() {
-        additionResult.complete(true);
-      }
-
-      @Override
-      public void OnFailed() {
-        additionResult.complete(false);
-      }
-    });
-
-    return additionResult;
-  }
-
   /**
    * Asynchronously adds a printer to the printer pool.
    *
@@ -156,35 +73,44 @@ import java.util.concurrent.TimeUnit;
    * @return A CompletableFuture that resolves to true if the printer was added successfully, false otherwise
    */
   @RequiresApi(api = Build.VERSION_CODES.N)
-  public CompletableFuture<Boolean> addPrinterAsync(String printerIp) {
-    if (!PrinterUtils.isPrinterReachable(printerIp)) {
-      Log.i(TAG, "Printer IP is not reachable: " + printerIp);
-      return CompletableFuture.completedFuture(false);
-    }
-
+  public CompletableFuture<Boolean> addPrinterAsync(String printerIp, String type) throws ExecutionException, InterruptedException {
     CompletableFuture<Boolean> result = new CompletableFuture<>();
 
-    removePrinterIfExists(printerIp)
-      .thenCompose(removed -> addNewPrinter(printerIp))
-      .thenAccept(added -> {
-        if (added) {
-          printerPool.add(printerIp);
-          eventManager.resetPrinterUnreachableStatus(printerIp);
-          Log.i(TAG, "Added Printer Successfully: " + printerIp);
-          result.complete(true);
-        } else {
-          Log.e(TAG, "Failed to Add Printer: " + printerIp);
+
+    if(!Objects.equals(type, "INTERNAL")){
+      addNewPrinter(printerIp)
+        .thenAccept(added -> {
+          if (added) {
+            if(!printerPool.contains(printerIp)){
+              printerPool.add(printerIp);
+            }
+            Log.i(TAG, "Added Printer Successfully: " + printerIp);
+            result.complete(true);
+          } else {
+            Log.e(TAG, "Failed to Add Printer: " + printerIp);
+            result.complete(false);
+          }
+        })
+        .exceptionally(ex -> {
+          Log.e(TAG, "Exception during printer addition: " + ex.getMessage());
           result.complete(false);
+          return null;
+        });
+    }else {
+      IminPrinterModule iMinPrinterModule = PosThermalPrinterModule.Companion.getIMinPrinterModule();
+      if(iMinPrinterModule != null) {
+        Boolean iMinResult = iMinPrinterModule.initPrinter();
+        if(!printerPool.contains("INTERNAL")){
+          printerPool.add("INTERNAL");
         }
-      })
-      .exceptionally(ex -> {
-        Log.e(TAG, "Exception during printer addition: " + ex.getMessage());
-        result.complete(false);
-        return null;
-      });
+        result.complete(iMinResult);
+      }
+    }
+
 
     return result;
   }
+
 
   /**
    * Asynchronously removes a printer from the printer pool.
@@ -193,36 +119,22 @@ import java.util.concurrent.TimeUnit;
    * @return A CompletableFuture that resolves to true if the printer was removed successfully, false otherwise
    */
   @RequiresApi(api = Build.VERSION_CODES.N)
-  public CompletableFuture<Boolean> removePrinterAsync(String printerIp) {
-    IMyBinder binder = PosThermalPrinterModule.Companion.getBinder();
-
-    if (binder == null) {
-      Log.e(TAG, "Binder is null");
-      return CompletableFuture.completedFuture(false);
-    }
-
-    ArrayList<PosPrinterDev.PrinterInfo> printerList = binder.GetPrinterInfoList();
-    if (printerList == null || printerList.isEmpty()) {
-      Log.i(TAG, "No printers in the list");
-      return CompletableFuture.completedFuture(false);
-    }
-
+  public CompletableFuture<Boolean> removePrinterAsync(String printerIp, String type) {
     CompletableFuture<Boolean> result = new CompletableFuture<>();
 
-    Optional<PosPrinterDev.PrinterInfo> printerToRemove = printerList.stream()
-      .filter(printer -> printer.portInfo != null && printer.portInfo.equals(printerIp))
-      .findFirst();
-
-    if (printerToRemove.isPresent()) {
-      removePrinter(printerToRemove.get(), printerList.size(), result);
+    if(printerPool.contains(printerIp)){
+      result.complete(true);
+      if(type.equals("INTERNAL")){
+        printerPool.remove("INTERNAL");
+      } else {
+        printerPool.remove(printerIp);
+      }
     } else {
-      Log.e(TAG, "Printer not found: " + printerIp);
       result.complete(false);
     }
 
     return result;
   }
-
 
   /**
    * Adds a print job to the print queue.
@@ -232,6 +144,10 @@ import java.util.concurrent.TimeUnit;
    */
   @RequiresApi(api = Build.VERSION_CODES.N)
   public Boolean addPrintJob(PrinterJob job) {
+
+    // add print job
+    eventManager.sendPrePrintEvent();
+
     try {
       printQueue.add(job);
       Log.i("addPrintJob", "Job added ");
@@ -251,10 +167,12 @@ import java.util.concurrent.TimeUnit;
    * @param newPrinterIp The IP of the new printer
    */
   @RequiresApi(api = Build.VERSION_CODES.N)
-  public void changePendingPrintJobsPrinter(String oldPrinterIp, String newPrinterIp){
-    IMyBinder binder = PosThermalPrinterModule.Companion.getBinder();
-    queueProcessor.changePendingPrintJobsPrinter(oldPrinterIp, newPrinterIp, binder);
+  public void changePendingPrintJobsPrinter(ReadableMap oldPrinterIp, ReadableMap newPrinterIp){
+//    Don't have this method at the moment ***
+//    IMyBinder binder = PosThermalPrinterModule.Companion.getBinder();
+//    queueProcessor.changePendingPrintJobsPrinter(oldPrinterIp, newPrinterIp, binder);
   }
+
 
   /**
    * Retries a pending print job using a new printer.
@@ -277,23 +195,14 @@ import java.util.concurrent.TimeUnit;
    * @RequiresApi(api = Build.VERSION_CODES.N) This method requires Android N (API 24) or higher.
    */
   @RequiresApi(api = Build.VERSION_CODES.N)
-  public void retryPendingJobFromNewPrinter(String jobId, String printerIp){
-    IMyBinder binder = PosThermalPrinterModule.Companion.getBinder();
-    queueProcessor.changePendingPrintJobToPrinter(jobId, printerIp, binder);
+  public void retryPendingJobFromNewPrinter(String jobId, String printerIp, String type){
+//    Don't have this method at the moment ***
+//    IMyBinder binder = PosThermalPrinterModule.Companion.getBinder();
+//    queueProcessor.changePendingPrintJobToPrinter(jobId, printerIp, binder);
   }
 
 
 
-  /**
-   * Retrieves the status of all printers in the printer pool.
-   *
-   * @return A list of PrinterStatus objects representing the status of each printer
-   */
-  @RequiresApi(api = Build.VERSION_CODES.N)
-  public List<PrinterStatus> getPrinterPoolStatus() {
-    IMyBinder binder = PosThermalPrinterModule.Companion.getBinder();
-    return statusManager.getPrinterPoolStatus(binder);
-  }
 
   /**
    * Sends a print job directly to a printer.
@@ -303,38 +212,112 @@ import java.util.concurrent.TimeUnit;
    */
   @RequiresApi(api = Build.VERSION_CODES.N)
   public CompletableFuture<Boolean> printToPrinter(PrinterJob job) {
-    IMyBinder binder = PosThermalPrinterModule.Companion.getBinder();
-
     CompletableFuture<Boolean> printResult = new CompletableFuture<>();
 
-    if (PrinterUtils.isPrinterReachable(job.getTargetPrinterIp())) {
-      if (binder != null) {
-        binder.SendDataToPrinter(job.getPrinterName(), new TaskCallback() {
-          @Override
-          public void OnSucceed() {
-            Log.i("Print Job", "Print Job Success");
-            printResult.complete(true);
-          }
+    if (job.getTargetPrinterIp().contentEquals("INTERNAL")) {
+      IminPrinterModule iminPrinterModule = PosThermalPrinterModule.Companion.getIMinPrinterModule();
+      if (iminPrinterModule != null) {
+        try {
+          List<List<PrintItem>> jobContent = Collections.singletonList(job.getJobContent());
+          for (List<PrintItem> printItems : jobContent) {
+            List<List<PrintItem>> separatedItems = separatePrintItemsAroundImages(printItems);
 
-          @Override
-          public void OnFailed() {
-            Log.e("Print Job", "Print Job Failed");
-            printResult.complete(false);
+            for (List<PrintItem> items : separatedItems) {
+              List<byte[]> commands = PrintJobHandler.processDataBeforeSend(items, job.getTargetPrinterIp());
+              for(byte[] item :  commands) {
+                iminPrinterModule.sendRawData(item);
+
+                if (items.get(0).getType() == PrintItem.Type.IMAGE){
+                  Thread.sleep(1000);
+                } else {
+                  Thread.sleep(5);
+                }
+              }
+            }
           }
-        }, new ProcessData() {
-          @Override
-          public List<byte[]> processDataBeforeSend() {
-            return PrintJobHandler.processDataBeforeSend(job);
-          }
-        });
+          printResult.complete(true);
+        } catch (IOException | InterruptedException e) {
+          printResult.completeExceptionally(e);
+        }
       }
-    } else {
-      Log.i("printToPrinter", "Printer IP is not reachable");
+      return printResult;
+    }
+
+
+    POSPrinter printer = null;
+
+    try {
+      printer = new POSPrinter(job.getTargetPrinterIp());
+      var processedJob = PrintJobHandler.processDataBeforeSend(job.getJobContent(), job.getTargetPrinterIp());
+
+      printer.printData(processedJob, success -> {
+        if (success) {
+          Log.d("printToPrinter", "print successful");
+          printResult.complete(true);
+        } else {
+          Log.d("printToPrinter", "print un-successful");
+          printResult.complete(false);
+        }
+      });
+    } catch (Exception e) {
+      Log.e("printToPrinter", "Error setting up print job", e);
       printResult.complete(false);
     }
 
     return printResult;
   }
+
+  /**
+   * Separates print items into groups: before image, image, and after image
+   * @param printItems List of print items to process
+   * @return List of separated print item groups
+   */
+  private List<List<PrintItem>> separatePrintItemsAroundImages(List<PrintItem> printItems) {
+    List<List<PrintItem>> result = new ArrayList<>();
+    List<PrintItem> currentGroup = new ArrayList<>();
+
+    for (int i = 0; i < printItems.size(); i++) {
+      PrintItem item = printItems.get(i);
+
+      if (item.getType() == PrintItem.Type.IMAGE) {
+        // If we have items before the image, add them as a group
+        if (!currentGroup.isEmpty()) {
+          result.add(new ArrayList<>(currentGroup));
+          currentGroup = new ArrayList<>(); // Create new list instead of clear()
+        }
+        // Add the image as its own group
+        result.add(Collections.singletonList(item));
+      } else {
+        currentGroup.add(item);
+
+        // Only add the current group if this is the last item
+        if (i == printItems.size() - 1) {
+          result.add(currentGroup);
+        }
+      }
+    }
+
+    return result;
+  }
+
+  private void safeDisconnect(IMyBinder binder) {
+    try {
+      binder.DisconnectCurrentPort(new TaskCallback() {
+        @Override
+        public void OnSucceed() {
+          Log.d("safeDisconnect", "Disconnected successfully");
+        }
+
+        @Override
+        public void OnFailed() {
+          Log.e("safeDisconnect", "Disconnect failed");
+        }
+      });
+    } catch (Exception e) {
+      Log.e("safeDisconnect", "Error during disconnect", e);
+    }
+  }
+
 
   /**
    * Retrieves all pending print jobs.
@@ -343,6 +326,7 @@ import java.util.concurrent.TimeUnit;
    */
   @RequiresApi(api = Build.VERSION_CODES.N)
   public WritableArray getPendingJobs() {
+//    Don't have this method at the moment ***, Will return an empty array
     IMyBinder binder = PosThermalPrinterModule.Companion.getBinder();
     return queueProcessor.getPendingJobsForJS(binder);
   }
@@ -355,9 +339,61 @@ import java.util.concurrent.TimeUnit;
    */
   @RequiresApi(api = Build.VERSION_CODES.N)
   public Boolean deletePendingJobs(String jobId)  {
-    IMyBinder binder = PosThermalPrinterModule.Companion.getBinder();
-    return queueProcessor.deleteJobById(jobId,binder);
+//    Don't have this method at the moment ***
+//    IMyBinder binder = PosThermalPrinterModule.Companion.getBinder();
+//    return queueProcessor.deleteJobById(jobId,binder);
+    return true;
   }
+
+
+  /**
+   * Retrieves the status of all printers in the printer pool.
+   *
+   * @return A list of PrinterStatus objects representing the status of each printer
+   */
+  @RequiresApi(api = Build.VERSION_CODES.N)
+  public List<PrinterStatus> getPrinterPoolStatus() throws ExecutionException, InterruptedException {
+    IMyBinder binder = PosThermalPrinterModule.Companion.getBinder();
+    return statusManager.getPrinterPoolStatus(binder, printerPool).get();
+  }
+
+
+
+  @RequiresApi(api = Build.VERSION_CODES.N)
+  private CompletableFuture<Boolean> addNewPrinter(String printerIp) {
+    CompletableFuture<Boolean> additionResult = new CompletableFuture<>();
+
+    IMyBinder binder = PosThermalPrinterModule.Companion.getBinder();
+    if(binder != null){
+      PrinterUtils.addPrinter(binder, printerIp, new TaskCallback() {
+        @Override
+        public void OnSucceed() {
+          safeDisconnect(binder);
+          additionResult.complete(true);
+          Log.i("addNewPrinter", "connected");
+        }
+
+        @Override
+        public void OnFailed() {
+          additionResult.complete(false);
+          safeDisconnect(binder);
+        }
+      });
+    } else {
+      additionResult.complete(false);
+    }
+
+    return additionResult;
+  }
+
+  @RequiresApi(api = Build.VERSION_CODES.N)
+  public CompletableFuture<Boolean> checkPrinterStatus(String printerIp) {
+    //    Don't have this method at the moment ***
+    CompletableFuture<Boolean> additionResult = new CompletableFuture<>();
+    additionResult.complete(true);
+    return additionResult;
+  }
+
 
   /**
    * Shuts down the print executor service.

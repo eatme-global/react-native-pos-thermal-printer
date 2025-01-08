@@ -25,6 +25,10 @@ public class PrintItem {
   private int widthPercentage;
   private boolean wordWrap;
 
+  private float printerWidth;
+
+  private boolean fullWidth;
+
   /**
    * Constructs a new PrintItem with specified properties.
    *
@@ -148,6 +152,15 @@ public class PrintItem {
   public int getWidthPercentage() {
     return widthPercentage;
   }
+
+
+  public boolean isFullWidth() { return fullWidth; }
+
+  public float getPrinterWidth() { return printerWidth; }
+
+  public void setPrinterWidth(float printerWidth) { this.printerWidth = printerWidth; }
+
+  public void setFullWidth(boolean fullWidth) { this.fullWidth = fullWidth; }
 
   /**
    * Sets the bitmap image for image type print items.

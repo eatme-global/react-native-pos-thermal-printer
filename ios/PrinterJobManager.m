@@ -274,12 +274,18 @@
                 }
                 
                 NSMutableData *dataM = [NSMutableData dataWithData:[PosCommand initializePrinter]];
-                
-                for (PrintItem *item in job.jobContent) {
-                    [self configureFontSize:item.fontSize forData:dataM];
-                    [self processItemType:item withData:dataM wifiManager:wifiManager];
-                }
-                
+              
+              
+              NSInteger currentIndex = 0;
+              NSInteger totalItems = [job.jobContent count];
+
+              for (PrintItem *item in job.jobContent) {
+                  [self configureFontSize:item.fontSize forData:dataM];
+                [self processItemType:item withData:dataM wifiManager:wifiManager lastItem:currentIndex == totalItems - 1];
+               
+              }
+              
+                              
                 [wifiManager POSWriteCommandWithData:dataM];
                 
                 [self handlePrintCompletion:job wifiManager:wifiManager completion:^(BOOL success) {
@@ -325,7 +331,7 @@
     }
 }
 
-- (void)processItemType:(PrintItem *)item withData:(NSMutableData *)dataM wifiManager:(POSWIFIManager *)wifiManager {
+- (void)processItemType:(PrintItem *)item withData:(NSMutableData *)dataM wifiManager:(POSWIFIManager *)wifiManager lastItem:(Boolean)lastItem {
     switch (item.type) {
         case PrintItemTypeText:
             [self addTextToPrintData:dataM item:item];
@@ -355,6 +361,7 @@
             break;
             
         case PrintItemTypeCut:
+            [dataM appendData:[PosCommand printAndFeedForwardWhitN:5]];
             [dataM appendData:[PosCommand selectCutPageModelAndCutpage:0]];
             break;
             

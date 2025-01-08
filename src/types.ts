@@ -3,8 +3,14 @@ export enum PRINTER_WIDTH {
   MM58 = "58mm",
 }
 
-export interface IPPrinter {
+export interface IPosPrinter {
   ip: string;
+  type: PosPrinterType;
+}
+
+export enum PosPrinterType {
+  INTERNAL = "INTERNAL",
+  NETWORK = "NETWORK",
 }
 
 export interface PrinterStatus {

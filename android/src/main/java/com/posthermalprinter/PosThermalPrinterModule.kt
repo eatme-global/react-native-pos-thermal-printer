@@ -12,7 +12,9 @@ import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
+import com.posthermalprinter.imin.IminPrinterModule
 import net.posprinter.posprinterface.IMyBinder
+import okhttp3.internal.wait
 
 
 class PosThermalPrinterModule(private val reactContext: ReactApplicationContext) :
@@ -53,6 +55,7 @@ class PosThermalPrinterModule(private val reactContext: ReactApplicationContext)
         promise.resolve(false)
         null
       }
+    iMinPrinterModule = IminPrinterModule(reactContext);
   }
 
   /**
@@ -94,9 +97,11 @@ class PosThermalPrinterModule(private val reactContext: ReactApplicationContext)
     printerConfig: ReadableMap,
     promise: Promise
   ) {
+
     val ip = printerConfig.getString("ip") ?: ""
+    val type = printerConfig.getString("type") ?: "NETWORK"
     try {
-      val result = printerManager?.addPrinterAsync(ip)?.get();
+      val result = printerManager?.addPrinterAsync(ip, type)?.get();
       if (result == true) {
         promise.resolve(true)
       } else {
@@ -115,9 +120,14 @@ class PosThermalPrinterModule(private val reactContext: ReactApplicationContext)
    */
   @RequiresApi(Build.VERSION_CODES.N)
   @ReactMethod
-  fun removePrinterFromPool(ip: String, promise: Promise) {
+  fun removePrinterFromPool(printerConfig: ReadableMap, promise: Promise) {
+
+    val ip = printerConfig.getString("ip") ?: ""
+    val type = printerConfig.getString("type") ?: "NETWORK"
+
+
     try {
-      val result = printerManager?.removePrinterAsync(ip)?.get();
+      val result = printerManager?.removePrinterAsync(ip, type)?.get();
       if (result == true) {
         promise.resolve(true)
       } else {
@@ -136,11 +146,15 @@ class PosThermalPrinterModule(private val reactContext: ReactApplicationContext)
    */
   @RequiresApi(Build.VERSION_CODES.N)
   @ReactMethod
-  fun retryPrinterConnection(ip: String, promise: Promise) {
+  fun retryPrinterConnection(printerConfig: ReadableMap, promise: Promise) {
+
+    val ip = printerConfig.getString("ip") ?: ""
+    val type = printerConfig.getString("type") ?: "NETWORK"
+
     if (printerManager != null) {
-      val result = printerManager?.addPrinterAsync(ip)?.get();
+      val result = printerManager?.addPrinterAsync(ip, type)?.get();
       if(result == true){
-        printerManager?.changePendingPrintJobsPrinter(ip, ip);
+        printerManager?.changePendingPrintJobsPrinter(printerConfig, printerConfig);
       }
       promise.resolve(result)
     } else {
@@ -200,9 +214,14 @@ class PosThermalPrinterModule(private val reactContext: ReactApplicationContext)
    */
   @RequiresApi(Build.VERSION_CODES.N)
   @ReactMethod
-  fun retryPendingJobFromNewPrinter(jobId: String, ip: String, promise: Promise) {
+  fun retryPendingJobFromNewPrinter(jobId: String, printerConfig: ReadableMap, promise: Promise) {
+
+    val ip = printerConfig.getString("ip") ?: ""
+    val type = printerConfig.getString("type") ?: "NETWORK"
+
+
     if (printerManager != null) {
-      printerManager?.retryPendingJobFromNewPrinter(jobId, ip);
+      printerManager?.retryPendingJobFromNewPrinter(jobId, ip, type);
       promise.resolve(true)
     } else {
       promise.resolve(false)
@@ -223,11 +242,17 @@ class PosThermalPrinterModule(private val reactContext: ReactApplicationContext)
    */
   @RequiresApi(Build.VERSION_CODES.O)
   @ReactMethod
-  fun setPrintJobs(ip: String, content: ReadableArray, metadata:String, promise: Promise) {
+  fun setPrintJobs(printerConfig: ReadableMap, content: ReadableArray, metadata:String, promise: Promise) {
+
+    val ip = printerConfig.getString("ip") ?: ""
+    val type = printerConfig.getString("type") ?: "NETWORK"
+
     try {
-      val job = PrintJobHandler.createPrintJob(ip, content, metadata)
-      val result = printerManager?.addPrintJob(job)
-      promise.resolve(result)
+      if(ip.isNotEmpty()){
+        val job = PrintJobHandler.createPrintJob(ip, type, content, metadata)
+        val result = printerManager?.addPrintJob(job)
+        promise.resolve(result)
+      }
     } catch (e: Exception) {
       promise.reject("PRINT_JOB_ERROR", "Failed to set print jobs: ${e.message}")
     }
@@ -242,10 +267,48 @@ class PosThermalPrinterModule(private val reactContext: ReactApplicationContext)
    */
   @RequiresApi(Build.VERSION_CODES.N)
   @ReactMethod
-  fun printFromNewPrinter(oldPrinterIp: String, newPrinterIp: String, promise: Promise) {
-    printerManager?.changePendingPrintJobsPrinter(oldPrinterIp, newPrinterIp);
+  fun printFromNewPrinter(oldPrinterConfig: ReadableMap, newPrinterConfig: ReadableMap, promise: Promise) {
+    printerManager?.changePendingPrintJobsPrinter(oldPrinterConfig, newPrinterConfig);
     promise.resolve(true);
   }
+
+
+  /**
+   * Transfers pending print jobs from one printer to another.
+   *
+   * @param printerIp The IP address of the printer.
+   * @param promise A promise to resolve with the result of the operation.
+   */
+  @RequiresApi(Build.VERSION_CODES.N)
+  @ReactMethod
+  fun checkPrinterStatus(printerConfig: ReadableMap, promise: Promise) {
+//    val status = printerManager?.checkPrinterStatus(printerIp);
+    promise.resolve(false);
+  }
+
+
+  @ReactMethod
+  fun retryPendingJobs(printerIp: String, promise: Promise) {
+    promise.resolve(true);
+  }
+
+  @ReactMethod
+  fun retryPendingJobsFromPrinter(printerConfig: ReadableMap, promise: Promise) {
+    promise.resolve(true);
+  }
+
+  @ReactMethod
+  fun getPrinterPendingJobDetails(printerConfig: ReadableMap, promise: Promise) {
+    promise.resolve(intArrayOf());
+  }
+
+  @ReactMethod
+  fun dismissPendingJobs(printerConfig: ReadableMap, promise: Promise) {
+    promise.resolve(intArrayOf());
+  }
+
+
+
 
   //endregion
 
@@ -263,6 +326,7 @@ class PosThermalPrinterModule(private val reactContext: ReactApplicationContext)
   companion object {
     const val NAME = "PosThermalPrinter"
     var binder: IMyBinder? = null
+    var iMinPrinterModule: IminPrinterModule? = null;
   }
 
 

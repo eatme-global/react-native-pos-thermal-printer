@@ -19,6 +19,7 @@ import {
   getPendingPrinterJobs,
   getPrinterPoolStatus,
   getPrinterStatus,
+  initializePrinterPool,
   PrintAlignment,
   PrintFontSize,
   PrintFontWeight,
@@ -26,16 +27,17 @@ import {
   printPendingJobsWithNewPrinter,
   printText,
   reconnectPrinter,
+  PosPrinterType,
   removePrinterFromPool,
   retryPendingJobFromNewPrinter,
   retryPendingJobsFromPrinter,
 } from "react-native-pos-thermal-printer";
 
-import type {
-  IPPrinter,
-  ParsedPendingJob,
-  PrintJobRow,
-  PrinterStatus,
+import {
+  type IPosPrinter,
+  type ParsedPendingJob,
+  type PrinterStatus,
+  type PrintJobRow,
 } from "react-native-pos-thermal-printer";
 
 import { useCallback, useState } from "react";
@@ -78,41 +80,65 @@ const PrinterContent: React.FC = () => {
 
   const [pendingJobs, setPendingJobs] = useState<ParsedPendingJob[]>([]);
 
-  const handlePrintTest = (ip: string) => {
+  const handlePrintTest = (ip: string, printerType: PosPrinterType) => {
     const result: PrintJobRow[] = [
-      // {
-      //   type: PrintJobRowType.TEXT,
-      //   text: 'String with ƒäñçÿ çhåråctérs, ä, ö, ü, and ß',
-      //   bold: PrintFontWeight.BOLD,
-      //   alignment: PrintAlignment.CENTER,
-      //   fontSize: PrintFontSize.NORMAL,
-      //   wrapWords: false,
-      // },
-      // {
-      //   type: PrintJobRowType.TEXT,
-      //   text: 'String with ƒäñçÿ çhåråctérs, German uses the same ä, ö, ü, and ß',
-      //   bold: PrintFontWeight.BOLD,
-      //   alignment: PrintAlignment.CENTER,
-      //   fontSize: PrintFontSize.NORMAL,
-      //   wrapWords: false,
-      // },
-      { type: PrintJobRowType.FEED, lines: 1 },
       {
-        type: PrintJobRowType.COLUMN,
-        bold: PrintFontWeight.NORMAL,
-        fontSize: PrintFontSize.NORMAL,
-        columns: [
-          {
-            text: "123456789|123456789|",
-            width: 20,
-            alignment: PrintAlignment.LEFT,
-          },
-          { text: "", width: 2, alignment: PrintAlignment.LEFT },
-          { text: "Qty", width: 5, alignment: PrintAlignment.CENTER },
-          { text: "", width: 2, alignment: PrintAlignment.LEFT },
-          { text: "Price", width: 19, alignment: PrintAlignment.RIGHT },
-        ],
+        type: PrintJobRowType.IMAGE,
+        url: "https://i.pinimg.com/736x/fa/66/73/fa66736df84509ac13e05c9372131550.jpg",
+        width: 100,
+        printerWidth: 190.0,
+        alignment: PrintAlignment.CENTER,
       },
+      {
+        type: PrintJobRowType.TEXT,
+        text: "Table 4",
+        bold: PrintFontWeight.NORMAL,
+        alignment: PrintAlignment.CENTER,
+        fontSize: PrintFontSize.BIG,
+        wrapWords: false,
+      },
+      {
+        type: PrintJobRowType.TEXT,
+        text: "Dine-in",
+        bold: PrintFontWeight.NORMAL,
+        alignment: PrintAlignment.CENTER,
+        fontSize: PrintFontSize.BIG,
+        wrapWords: false,
+      },
+      {
+        type: PrintJobRowType.TEXT,
+        text: "------------------------",
+        bold: PrintFontWeight.BOLD,
+        alignment: PrintAlignment.CENTER,
+        fontSize: PrintFontSize.WIDE,
+        wrapWords: false,
+      },
+      {
+        type: PrintJobRowType.TEXT,
+        text: "String with ƒäñçÿ ",
+        bold: PrintFontWeight.NORMAL,
+        alignment: PrintAlignment.CENTER,
+        fontSize: PrintFontSize.WIDE,
+        wrapWords: false,
+      },
+      {
+        type: PrintJobRowType.TEXT,
+        text: "String with ƒäñçÿ ",
+        bold: PrintFontWeight.NORMAL,
+        alignment: PrintAlignment.CENTER,
+        fontSize: PrintFontSize.WIDE,
+        wrapWords: false,
+      },
+      {
+        type: PrintJobRowType.TEXT,
+        text: "String with ƒäñçÿ ",
+        bold: PrintFontWeight.NORMAL,
+        alignment: PrintAlignment.CENTER,
+        fontSize: PrintFontSize.WIDE,
+        wrapWords: false,
+      },
+
+      { type: PrintJobRowType.FEED, lines: 2 },
       {
         type: PrintJobRowType.COLUMN,
         bold: true,
@@ -126,49 +152,98 @@ const PrinterContent: React.FC = () => {
         ],
       },
       // {
-      //   type: PrintJobRowType.IMAGE,
-      //   url: 'https://i.pinimg.com/736x/fa/66/73/fa66736df84509ac13e05c9372131550.jpg',
-      //   width: 100,
-      //   alignment: PrintAlignment.LEFT,
+      //   type: PrintJobRowType.COLUMN,
+      //   bold: true,
+      //   fontSize: PrintFontSize.NORMAL,
+      //   columns: [
+      //     { text: "TRY", width: 20, alignment: PrintAlignment.LEFT },
+      //     { text: "", width: 2, alignment: PrintAlignment.LEFT },
+      //     { text: "Qty", width: 5, alignment: PrintAlignment.CENTER },
+      //     { text: "", width: 2, alignment: PrintAlignment.LEFT },
+      //     { text: "Price", width: 19, alignment: PrintAlignment.RIGHT },
+      //   ],
       // },
+      // { type: PrintJobRowType.FEED, lines: 1 },
+      // {
+      //   type: PrintJobRowType.TEXT,
+      //   text: "String with ƒäñçÿ ",
+      //   bold: PrintFontWeight.NORMAL,
+      //   alignment: PrintAlignment.CENTER,
+      //   fontSize: PrintFontSize.WIDE,
+      //   wrapWords: false,
+      // },
+      // {
+      //   type: PrintJobRowType.TEXT,
+      //   text: "------------------------",
+      //   bold: PrintFontWeight.NORMAL,
+      //   alignment: PrintAlignment.CENTER,
+      //   fontSize: PrintFontSize.WIDE,
+      //   wrapWords: false,
+      // },
+
       {
         type: PrintJobRowType.CASHBOX,
       },
-      // {
-      //   type: PrintJobRowType.IMAGE,
-      //   width: 50,
-      //   url: 'https://png.pngtree.com/png-clipart/20190921/original/pngtree-beautiful-black-and-white-butterfly-png-image_4699516.jpg',
-      //   alignment: PrintAlignment.CENTER,
-      //   printerWidth: 190.0,
-      // },
+      {
+        type: PrintJobRowType.IMAGE,
+        width: 100,
+        url: "https://png.pngtree.com/png-clipart/20190921/original/pngtree-beautiful-black-and-white-butterfly-png-image_4699516.jpg",
+        alignment: PrintAlignment.CENTER,
+        printerWidth: 190.0,
+      },
+      {
+        type: PrintJobRowType.IMAGE,
+        width: 100,
+        url: "https://logos-world.net/wp-content/uploads/2020/04/Adidas-Logo-1950-1971.png",
+        alignment: PrintAlignment.CENTER,
+        printerWidth: 190.0,
+      },
       // {
       //   type: PrintJobRowType.QRCODE,
-      //   text: 'https://upload.wikimedia.org/wikipedia/commons/2/24/Adidas_logo.png',
+      //   text: "https://upload.wikimedia.org/wikipedia/commons/2/24/Adidas_logo.png",
       //   alignment: PrintAlignment.RIGHT,
       // },
-      {
-        type: PrintJobRowType.FEED,
-        lines: 5,
-      },
+      // {
+      //   type: PrintJobRowType.FEED,
+      //   lines: Platform.OS === "ios" ? 5 : 0,
+      // },
       { type: PrintJobRowType.CUT },
     ];
 
-    printText(ip, result, { type: "Receipt", category: "Drinks" });
+    // for (let i = 0; i < 6; i++) {
+    const printer: IPosPrinter = {
+      ip: ip,
+      type: printerType,
+    };
+    printText(printer, result, { type: "Receipt", category: "Drinks" });
+    // }
   };
 
-  const addNewPrinterToPool = async (ip: string) => {
-    const printer: IPPrinter = {
+  const addNewPrinterToPool = async (
+    ip: string,
+    printerType: PosPrinterType,
+  ) => {
+    const printer: IPosPrinter = {
       ip: ip,
+      type: printerType,
     };
 
     const status = await addPrinterToPool(printer);
+    console.log("addPrinterToPoolStatus: ", status);
     if (status) {
       handlePrinterPoolStatus();
     }
   };
 
-  const handleReConnectPrinter = async (ip: string) => {
-    const status = await reconnectPrinter(ip);
+  const handleReConnectPrinter = async (
+    ip: string,
+    printerType: PosPrinterType,
+  ) => {
+    const printer: IPosPrinter = {
+      ip: ip,
+      type: printerType,
+    };
+    const status = await reconnectPrinter(printer);
     if (status) {
       handlePrinterPoolStatus();
     }
@@ -179,8 +254,15 @@ const PrinterContent: React.FC = () => {
     setPrinterPoolStatus(status);
   };
 
-  const handleRemovePrinter = async (ip: string) => {
-    const status = await removePrinterFromPool(ip);
+  const handleRemovePrinter = async (
+    ip: string,
+    printerType: PosPrinterType,
+  ) => {
+    const printer: IPosPrinter = {
+      ip: ip,
+      type: printerType,
+    };
+    const status = await removePrinterFromPool(printer);
     if (status) {
       handlePrinterPoolStatus();
     }
@@ -198,38 +280,69 @@ const PrinterContent: React.FC = () => {
   // setPendingJobs(result);
   // };
 
-  const fetchPrinterPendingJobs = async (ip: string) => {
-    const result = await getPendingPrinterJobs(ip);
+  const fetchPrinterPendingJobs = async (ip: string, type: PosPrinterType) => {
+    const printer: IPosPrinter = {
+      ip,
+      type,
+    };
+    const result = await getPendingPrinterJobs(printer);
     setPendingJobs(result);
   };
 
-  const deletePendingJobs = async (ip: string) => {
-    const result = await deletePrinterPendingJobs(ip);
+  const deletePendingJobs = async (
+    ip: string,
+    type: PosPrinterType.NETWORK,
+  ) => {
+    const printer: IPosPrinter = {
+      ip,
+      type,
+    };
+    const result = await deletePrinterPendingJobs(printer);
     if (result) {
       setPendingJobs([]);
     }
   };
 
-  const retryPendingPrinterJobs = async (ip: string) => {
-    const result = await retryPendingJobsFromPrinter(ip);
+  const retryPendingPrinterJobs = async (
+    ip: string,
+    printerType: PosPrinterType,
+  ) => {
+    const printer: IPosPrinter = {
+      ip: ip,
+      type: printerType,
+    };
+    const result = await retryPendingJobsFromPrinter(printer);
     if (result) {
       // fetchPendingJobs();
-      fetchPrinterPendingJobs(ip);
+      fetchPrinterPendingJobs(ip, printerType);
     }
   };
 
   const handlePendingJobPrintFromNewPrinter = async (jobId: string) => {
-    const newPrinterIp = printerIPs[jobId];
-    if (newPrinterIp) {
-      const status = await retryPendingJobFromNewPrinter(jobId, newPrinterIp);
-      if (status) {
-        // fetchPendingJobs();
-      }
+    const printer: IPosPrinter = {
+      ip: printerIPs[jobId] || "",
+      type:
+        printerIPs[jobId] !== ""
+          ? PosPrinterType.NETWORK
+          : PosPrinterType.INTERNAL,
+    };
+    // if (newPrinterIp) {
+    const status = await retryPendingJobFromNewPrinter(jobId, printer);
+    if (status) {
+      // fetchPendingJobs();
     }
+    // }
   };
 
-  const getPrinterStatusPrinter = async (ip: string) => {
-    await getPrinterStatus(ip);
+  const getPrinterStatusPrinter = async (
+    ip: string,
+    printerType: PosPrinterType,
+  ) => {
+    const printer: IPosPrinter = {
+      ip: ip,
+      type: printerType,
+    };
+    await getPrinterStatus(printer);
   };
 
   const [ipOld, setOldIp] = useState<string>("");
@@ -245,6 +358,10 @@ const PrinterContent: React.FC = () => {
     >
       <SafeAreaView>
         <ScrollView style={{}}>
+          <Button
+            title="Initialize Printer"
+            onPress={() => initializePrinterPool()}
+          />
           <View style={styles.container}>
             <TextInput
               style={styles.textInput}
@@ -254,10 +371,19 @@ const PrinterContent: React.FC = () => {
 
             <Button
               title="Add Printer"
-              onPress={() => addNewPrinterToPool(ip)}
+              onPress={() => addNewPrinterToPool(ip, PosPrinterType.NETWORK)}
             />
+
+            <View style={{ marginTop: 10 }}>
+              <Button
+                title="Initialize Internal Printer"
+                onPress={() => addNewPrinterToPool("", PosPrinterType.INTERNAL)}
+              />
+            </View>
             <View style={styles.printerPoolStatusContainer}>
-              <Text style={styles.printerPoolHeading}>Printer Pool Status</Text>
+              <Text style={styles.printerPoolHeading}>
+                Printer Pool Status: {}
+              </Text>
 
               <Button
                 title="Get Printer Pool Status"
@@ -290,7 +416,12 @@ const PrinterContent: React.FC = () => {
                       <View style={{ marginTop: 10, flexDirection: "column" }}>
                         <TouchableOpacity
                           onPress={() =>
-                            handlePrintTest(printerStatus.printerIp)
+                            handlePrintTest(
+                              printerStatus.printerIp,
+                              ip === PosPrinterType.INTERNAL
+                                ? PosPrinterType.INTERNAL
+                                : PosPrinterType.NETWORK,
+                            )
                           }
                           style={{
                             backgroundColor: "gray",
@@ -305,7 +436,12 @@ const PrinterContent: React.FC = () => {
 
                         <TouchableOpacity
                           onPress={() =>
-                            handleRemovePrinter(printerStatus.printerIp)
+                            handleRemovePrinter(
+                              printerStatus.printerIp,
+                              ip === PosPrinterType.INTERNAL
+                                ? PosPrinterType.INTERNAL
+                                : PosPrinterType.NETWORK,
+                            )
                           }
                           style={{
                             backgroundColor: "red",
@@ -321,7 +457,12 @@ const PrinterContent: React.FC = () => {
                         {!printerStatus.isReachable && (
                           <TouchableOpacity
                             onPress={() =>
-                              handleReConnectPrinter(printerStatus.printerIp)
+                              handleReConnectPrinter(
+                                printerStatus.printerIp,
+                                ip === PosPrinterType.INTERNAL
+                                  ? PosPrinterType.INTERNAL
+                                  : PosPrinterType.NETWORK,
+                              )
                             }
                             style={{
                               backgroundColor: "orange",
@@ -338,7 +479,12 @@ const PrinterContent: React.FC = () => {
                         )}
                         <TouchableOpacity
                           onPress={() =>
-                            getPrinterStatusPrinter(printerStatus.printerIp)
+                            getPrinterStatusPrinter(
+                              printerStatus.printerIp,
+                              ip === PosPrinterType.INTERNAL
+                                ? PosPrinterType.INTERNAL
+                                : PosPrinterType.NETWORK,
+                            )
                           }
                           style={{
                             backgroundColor: "orange",
@@ -381,7 +527,12 @@ const PrinterContent: React.FC = () => {
 
               <Button
                 title="Print Pending Jobs with New Printer"
-                onPress={() => printPendingJobsWithNewPrinter(ipOld, ipNew)}
+                onPress={() =>
+                  printPendingJobsWithNewPrinter(
+                    { ip: ipOld, type: PosPrinterType.NETWORK },
+                    { ip: ipNew, type: PosPrinterType.NETWORK },
+                  )
+                }
               />
               <View
                 style={{
@@ -394,12 +545,19 @@ const PrinterContent: React.FC = () => {
 
               <Button
                 title="delete pending Jobs 127"
-                onPress={() => deletePendingJobs("192.168.8.127")}
+                onPress={() =>
+                  deletePendingJobs("192.168.8.127", PosPrinterType.NETWORK)
+                }
               />
               {pendingJobs.length > 0 ? (
                 <Button
                   title="retry Pending Jobs 127"
-                  onPress={() => retryPendingPrinterJobs("192.168.8.127")}
+                  onPress={() =>
+                    retryPendingPrinterJobs(
+                      "192.168.8.127",
+                      PosPrinterType.NETWORK,
+                    )
+                  }
                 />
               ) : (
                 <View />
@@ -474,7 +632,9 @@ const PrinterContent: React.FC = () => {
             </View>
             <Button
               title="Get Pending Jobs 127"
-              onPress={() => fetchPrinterPendingJobs("192.168.8.127")}
+              onPress={() =>
+                fetchPrinterPendingJobs("192.168.8.127", PosPrinterType.NETWORK)
+              }
             />
           </View>
         </ScrollView>

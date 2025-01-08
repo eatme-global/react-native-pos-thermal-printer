@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { NativeEventEmitter, NativeModules, Platform } from "react-native";
 import { initializePrinterPool } from "./printerModule";
 
@@ -22,20 +22,23 @@ export const EventServiceProvider: React.FC<EventServiceProviderProps> = ({
   onReconnect,
   onBeforePrint,
 }) => {
-  useEffect(() => {
-    let isSubscribed = true;
+  const isInitialized = useRef<boolean>(false);
 
+  useEffect(() => {
     const initializePrinters = async () => {
-      try {
-        await initializePrinterPool();
-      } catch (error) {
-        console.error("Failed to initialize printer pool:", error);
+      if (!isInitialized.current) {
+        try {
+          await initializePrinterPool();
+          isInitialized.current = true;
+        } catch (error) {
+          console.error("Failed to initialize printer pool:", error);
+        }
       }
     };
 
     const handlePrinterUnreachable = async (event: { printerIp: string }) => {
-      if (!isSubscribed) return;
       try {
+        console.log("executing: ", event.printerIp);
         await onReconnect?.(event.printerIp);
       } catch (error) {
         console.error("Failed to reconnect printer:", error);
@@ -43,7 +46,6 @@ export const EventServiceProvider: React.FC<EventServiceProviderProps> = ({
     };
 
     const handlePrePrint = () => {
-      if (!isSubscribed) return;
       onBeforePrint?.();
     };
 
@@ -63,7 +65,6 @@ export const EventServiceProvider: React.FC<EventServiceProviderProps> = ({
 
     // Cleanup function
     return () => {
-      isSubscribed = false;
       unreachableSubscription.remove();
       prePrintSubscription.remove();
     };

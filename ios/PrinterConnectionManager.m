@@ -86,7 +86,8 @@
     }];
 }
 
-- (void)removePrinterFromPool:(NSString *)printerIp completion:(void (^)(BOOL success))completion {
+- (void)removePrinterFromPool:(NSDictionary *)config completion:(void (^)(BOOL success))completion {
+    NSString *printerIp = config[@"ip"];
     [self.printerConfigs removeObjectForKey:printerIp];
     [self.printerPool removeObject:printerIp];
     [self resetPrinterUnreachableStatus:printerIp];

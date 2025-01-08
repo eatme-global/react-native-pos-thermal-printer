@@ -1,10 +1,10 @@
-name: Release
+name: Build Deploy
 on:
-  push:
-    branches:
-      - main
-      - qa
-
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -14,22 +14,13 @@ jobs:
       pull-requests: write
       packages: write
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           token: ${{ secrets.PAT_TOKEN }}
 
-      - name: Setup
-        uses: ./.github/actions/setup
-
-      - name: Lint files
-        run: yarn lint
-
-      - name: Typecheck files
-        run: yarn typecheck
-
-      - name: Test
-        run: yarn test
+      - name: Install packages
+        run: yarn
 
       - name: Build package
         run: yarn prepare

@@ -40,8 +40,7 @@ public class PrinterUtils {
    * @param callback  A TaskCallback to handle the result of the add operation.
    */
   public static void addPrinter(IMyBinder binder, String printerIp, TaskCallback callback) {
-    PosPrinterDev.PrinterInfo printer = new PosPrinterDev.PrinterInfo("PrinterName_" + printerIp, PosPrinterDev.PortType.Ethernet, printerIp);
-    binder.AddPrinter(printer, callback);
+    binder.ConnectNetPort(printerIp, 9100, callback);
   }
 
   /**

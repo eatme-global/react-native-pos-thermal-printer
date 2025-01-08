@@ -1,12 +1,18 @@
 package com.posthermalprinter.helper;
 
 import android.os.Build;
+import android.util.Log;
+
 import androidx.annotation.RequiresApi;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 import net.posprinter.posprinterface.IMyBinder;
 import net.posprinter.utils.PosPrinterDev;
+
+import com.posthermalprinter.PrinterManager;
 import com.posthermalprinter.util.PrinterStatus;
 
 /**
@@ -23,21 +29,26 @@ public class PrinterStatusManager {
    * @return A List of PrinterStatus objects representing the status of each printer in the pool.
    *         Returns an empty list if the binder is null or if no printers are found.
    */
-  public List<PrinterStatus> getPrinterPoolStatus(IMyBinder binder) {
+  public CompletableFuture<List<PrinterStatus>> getPrinterPoolStatus(IMyBinder binder, List<String> printerPool) throws ExecutionException, InterruptedException {
     if (binder == null) {
-      return new ArrayList<>();
+      return CompletableFuture.completedFuture(new ArrayList<>());
     }
 
-    ArrayList<PosPrinterDev.PrinterInfo> printerList = binder.GetPrinterInfoList();
-    List<PrinterStatus> statusList = new ArrayList<>();
+    PrinterConnectionChecker checker = new PrinterConnectionChecker(binder, printerPool);
 
-    if (printerList != null) {
-      for (PosPrinterDev.PrinterInfo printerInfo : printerList) {
-        statusList.add(createPrinterStatus(printerInfo));
-      }
-    }
-
-    return statusList;
+    return checker.checkConnections()
+      .thenApply(results -> {
+        List<PrinterStatus> statusList = new ArrayList<>();
+        for (PrinterConnectionChecker.PrinterConnectionResult result : results) {
+          PrinterStatus status = new PrinterStatus(
+            result.printerIp,
+            result.isConnectable,
+            result.printerIp
+          );
+          statusList.add(status);
+        }
+        return statusList;
+      });
   }
 
   /**
