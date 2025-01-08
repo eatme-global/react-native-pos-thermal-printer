@@ -42,8 +42,53 @@ yarn add react-native-esc-pos-printer
 
 ### iOS Setup
 
+1. Run pod install:
+
 ```bash
 cd ios && pod install
+```
+
+2. Add required frameworks in Xcode:
+
+- CoreBluetooth.framework
+- SystemConfiguration.framework
+- CFNetwork.framework
+
+To add frameworks in Xcode:
+
+1. Open your project in Xcode
+2. Select your target
+3. Select "Build Phases"
+4. Expand "Link Binary With Libraries"
+5. Click the + button
+6. Search and select each required framework
+
+### Android Setup
+
+Add the following to your `AndroidManifest.xml`:
+
+1. Add service:
+
+```xml
+<service android:name="net.posprinter.service.PosprinterService" />
+```
+
+2. Add required permissions:
+
+```xml
+<uses-feature android:required="true" android:name="android.hardware.usb.host" />
+<uses-permission android:name="android.hardware.usb.UsbAccessory" />
+<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+<uses-permission android:name="android.permission.BLUETOOTH"/>
+<uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
+<uses-permission android:name="android.permission.INTERNET"/>
+<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+<uses-permission android:name="android.permission.CHANGE_NETWORK_STATE"/>
+<uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+<uses-permission android:name="android.permission.CHANGE_WIFI_STATE"/>
+<uses-permission android:name="android.permission.VIBRATE"/>
+<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
 ```
 
 ## Basic Usage
@@ -60,7 +105,7 @@ import {
 // Define your printer
 const printer: IPosPrinter = {
   ip: "192.168.1.100",
-  type: "NETWORK",
+  type: PosPrinterType.NETWORK,
 };
 
 // Print a simple receipt
@@ -114,7 +159,7 @@ await initializePrinterPool();
 // Add printer to pool
 await addPrinterToPool({
   ip: "192.168.1.100",
-  type: "NETWORK",
+  type: PosPrinterType.NETWORK,
 });
 
 // Get printer pool status
