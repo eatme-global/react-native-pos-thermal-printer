@@ -1,3 +1,30 @@
+# [0.9.0](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.8.4...v0.9.0) (2025-01-08)
+
+
+### Bug Fixes
+
+* add timeout between same printer prints ([a611623](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/a61162318ab59894b1a356fdf26e21921a91bdf0))
+* added printer type to the print methods ([fa5a28f](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/fa5a28f415ca75b35b7be06e97d3717cfe8a4fa1))
+* android event emmiter fixes ([7f680e7](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/7f680e7113b3364248038128bf817c06c113d57e))
+* even emmit condition changes for a failed print and pre print ([ee4c969](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/ee4c969d83fbb77368dd26da36ed1a393d519809))
+* extra line print when feed ([7c7358a](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/7c7358ae3c73f7ddc179c9020a10ad8bedd1239d))
+* improved print speed ([23937a3](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/23937a35a42c8417ec0249772014bc0e7aadcd51))
+* improved print speed ([dfe8b30](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/dfe8b304bc7db01c51e5a3c9e162cd90662b249f))
+* ios paper feed before cut imbalance fixes ([39efaac](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/39efaac5b05f62072cb00ecfce80d3609dda03c1))
+* print functionality changes and code refactor ([3bc2ab5](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/3bc2ab5c3e624ff5c94b6db748ea0be06bd53f2a))
+* printer jam fixes when handling multiple prints android ([954b35e](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/954b35ef38018624014dfed4076d55395c918b4b))
+* printer jam fixes when handling multiple prints android ([10c37af](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/10c37af78e397a636f2457f69c0bb5c200f729bc))
+* printer jam fixes when handling multiple prints android ([9b25e29](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/9b25e29b68290c8af56fa4c069681b53b4269045))
+* printer pool automatic thread pool shutdown fix ([e2dd949](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/e2dd94918e6fc23067159823dc18fcc2a2f6d013))
+* restrict image height constrains and code improvements ([c6980b7](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/c6980b780f89131becdd4c846713833a8b2c1ee2))
+* text print row process logic changes ([5c71117](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/5c711170358630ccb8bba60157ee4c0ab93b7f01))
+* text print row process logic changes ([9580507](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/9580507d66f1aa9f7ad5d8c1bb50358521c53656))
+
+
+### Features
+
+* imin printer print integration ([1f4c464](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/1f4c46401787175defb1415aefdead84f1aae47a))
+
 # [0.9.0-beta.2](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.9.0-beta.1...v0.9.0-beta.2) (2025-01-08)
 
 
