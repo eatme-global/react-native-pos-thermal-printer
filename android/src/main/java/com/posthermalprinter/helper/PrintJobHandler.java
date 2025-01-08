@@ -375,9 +375,13 @@ public class PrintJobHandler {
    * @throws IOException If there's an error processing the content.
    */
   @RequiresApi(api = Build.VERSION_CODES.O)
-  public static PrinterJob createPrintJob(String ip, ReadableArray content, String metadata) throws IOException {
+  public static PrinterJob createPrintJob(String ip, String type, ReadableArray content, String metadata) throws IOException {
     List<PrintItem> printItems = createPrintItems(content);
     String jobId = generateUniqueJobId();
+
+    if(type.equals("INTERNAL")){
+      return new PrinterJob(printItems, "INTERNAL", "PrinterName_" + "INTERNAL", metadata, jobId);
+    }
 
     return new PrinterJob(printItems, ip, "PrinterName_" + ip, metadata, jobId);
   }
