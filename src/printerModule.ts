@@ -2,7 +2,7 @@ import { NativeModules } from "react-native";
 import { LINKING_ERROR } from "./constants";
 import {
   PrintJobRowType,
-  type IPPrinter,
+  type IPosPrinter,
   type ParsedPendingJob,
   type PrinterStatus,
   type PrintJobMetadata,
@@ -25,13 +25,13 @@ export const EscPosPrinter = NativeModules.PosThermalPrinter
  *
  * Attempts to reconnect to a printer by IP address.
  *
- * @param {string} ip - The IP address of the printer to reconnect.
+ * @param {IPosPrinter} printer - The IP address of the printer to reconnect.
  * @returns {Promise<boolean>} - A promise that resolves to a boolean indicating whether the reconnection was successful.
  */
 
-export async function reconnectPrinter(ip: string): Promise<boolean> {
+export async function reconnectPrinter(printer: IPosPrinter): Promise<boolean> {
   try {
-    const result = await EscPosPrinter.retryPrinterConnection(ip);
+    const result = await EscPosPrinter.retryPrinterConnection(printer);
     return result;
   } catch (error) {
     console.error("Error retrying printer connection: ", error);
@@ -42,18 +42,22 @@ export async function reconnectPrinter(ip: string): Promise<boolean> {
 /**
  * Sends a print job containing text, columns, and images to a printer by IP address.
  *
- * @param {string} ip - The IP address of the printer.
+ * @param {IPosPrinter} printer - The IP address of the printer.
  * @param {PrintJobRow[]} payload - The PrintJob payload (text, columns, images, etc.) to be printed.
  * @param {object} metadata - User-defined metadata for the print job.
  * @returns {Promise<void>} - A promise that resolves when the print job is successfully sent.
  */
 export async function printText(
-  ip: string,
+  printer: IPosPrinter,
   payload: PrintJobRow[],
   metadata: PrintJobMetadata,
 ): Promise<void> {
   try {
-    await EscPosPrinter.setPrintJobs(ip, payload, JSON.stringify(metadata));
+    await EscPosPrinter.setPrintJobs(
+      printer,
+      payload,
+      JSON.stringify(metadata),
+    );
   } catch (error) {
     console.error("Error printing text:", error);
   }
@@ -62,16 +66,16 @@ export async function printText(
 /**
  * Sends a cash drawer open print job to a printer by IP address.
  *
- * @param {string} ip - The IP address of the printer.
+ * @param {IPosPrinter} printer - The IP address of the printer.
  * @returns {Promise<void>} - A promise that resolves when the print job is successfully sent.
  */
-export async function openCashBox(ip: string): Promise<void> {
+export async function openCashBox(printer: IPosPrinter): Promise<void> {
   try {
     const metadata: PrintJobMetadata = {
       type: "Open Cashbox",
     };
     await EscPosPrinter.setPrintJobs(
-      ip,
+      printer,
       [{ type: PrintJobRowType.CASHBOX }],
       JSON.stringify(metadata),
     );
@@ -83,16 +87,16 @@ export async function openCashBox(ip: string): Promise<void> {
 /**
  * Prints pending jobs from an old printer to a new printer.
  *
- * @param {string} oldPrinterIp - The IP address of the old printer.
- * @param {string} newPrinterIp - The IP address of the new printer.
+ * @param {IPosPrinter} oldPrinter - The IP address of the old printer.
+ * @param {IPosPrinter} newPrinter - The IP address of the new printer.
  * @returns {Promise<any>} - A promise that resolves when the jobs are successfully printed on the new printer.
  */
 export async function printPendingJobsWithNewPrinter(
-  oldPrinterIp: string,
-  newPrinterIp: string,
+  oldPrinter: IPosPrinter,
+  newPrinter: IPosPrinter,
 ): Promise<any> {
   try {
-    return await EscPosPrinter.printFromNewPrinter(oldPrinterIp, newPrinterIp);
+    return await EscPosPrinter.printFromNewPrinter(oldPrinter, newPrinter);
   } catch (error) {
     console.error("Error printing pending jobs with new printer:", error);
     return false;
@@ -102,10 +106,10 @@ export async function printPendingJobsWithNewPrinter(
 /**
  * Adds a printer to the printer pool.
  *
- * @param {IPPrinter} printer - The printer object containing its IP and other details.
+ * @param {IPosPrinter} printer - The printer object containing its IP and other details.
  * @returns {Promise<any>} - A promise that resolves when the printer is added to the pool.
  */
-export async function addPrinterToPool(printer: IPPrinter): Promise<any> {
+export async function addPrinterToPool(printer: IPosPrinter): Promise<any> {
   try {
     const result = await EscPosPrinter.addPrinterToPool(printer);
     return result;
@@ -118,12 +122,14 @@ export async function addPrinterToPool(printer: IPPrinter): Promise<any> {
 /**
  * Removes a printer from the printer pool by IP address.
  *
- * @param {string} ip - The IP address of the printer to remove from the pool.
+ * @param {IPosPrinter} printer - The IP address of the printer to remove from the pool.
  * @returns {Promise<any>} - A promise that resolves when the printer is removed.
  */
-export async function removePrinterFromPool(ip: string): Promise<any> {
+export async function removePrinterFromPool(
+  printer: IPosPrinter,
+): Promise<any> {
   try {
-    return await EscPosPrinter.removePrinterFromPool(ip);
+    return await EscPosPrinter.removePrinterFromPool(printer);
   } catch (error) {
     console.error("Error removing printer from pool:", error);
     return false;
@@ -204,17 +210,17 @@ export async function deletePendingJob(jobId: string): Promise<boolean> {
  * @async
  * @function retryPendingJobFromNewPrinter
  * @param {string} jobId - The unique identifier of the pending print job to retry.
- * @param {string} printerIp - The IP address of the new printer to use for the retry attempt.
+ * @param {IPosPrinter} printer - The IP address of the new printer to use for the retry attempt.
  * @returns {Promise<boolean>} A promise that resolves to true if the retry was successful, false otherwise.
  *
  * @throws {Error} If there's an error during the retry process, it will be caught and logged, and the function will return false.
  */
 export async function retryPendingJobFromNewPrinter(
   jobId: string,
-  printerIp: string,
+  printer: IPosPrinter,
 ): Promise<boolean> {
   try {
-    return await EscPosPrinter.retryPendingJobFromNewPrinter(jobId, printerIp);
+    return await EscPosPrinter.retryPendingJobFromNewPrinter(jobId, printer);
   } catch (error) {
     console.error("Error retrying pending job from new printer:", error);
     return false;
@@ -243,7 +249,7 @@ export async function initializePrinterPool(): Promise<boolean> {
  *
  * @async
  * @function getPendingPrinterJobs
- * @param {string} printerIp - The IP address of the printer to get pending jobs from.
+ * @param {IPosPrinter} printer - The IP address of the printer to get pending jobs from.
  * @returns {Promise<ParsedPendingJob[]>} A promise that resolves to an array of parsed pending jobs.
  * If no jobs are found or an error occurs, returns an empty array.
  *
@@ -251,11 +257,11 @@ export async function initializePrinterPool(): Promise<boolean> {
  * and the function will return an empty array.
  */
 export async function getPendingPrinterJobs(
-  printerIp: string,
+  printer: IPosPrinter,
 ): Promise<ParsedPendingJob[]> {
   try {
     const rawPendingJobs: RawPendingJob[] =
-      await EscPosPrinter.getPrinterPendingJobDetails(printerIp);
+      await EscPosPrinter.getPrinterPendingJobDetails(printer);
 
     if (rawPendingJobs && rawPendingJobs.length > 0) {
       return rawPendingJobs.map((job) => ({
@@ -279,7 +285,7 @@ export async function getPendingPrinterJobs(
  *
  * @async
  * @function deletePrinterPendingJobs
- * @param {string} printerIp - The IP address of the printer whose jobs should be deleted.
+ * @param {IPosPrinter} printer - The IP address of the printer whose jobs should be deleted.
  * @returns {Promise<boolean>} A promise that resolves to true if all jobs were successfully deleted,
  * false if the operation failed.
  *
@@ -287,10 +293,10 @@ export async function getPendingPrinterJobs(
  * and the function will return false.
  */
 export async function deletePrinterPendingJobs(
-  printerIp: string,
+  printer: IPosPrinter,
 ): Promise<boolean> {
   try {
-    return await EscPosPrinter.dismissPendingJobs(printerIp);
+    return await EscPosPrinter.dismissPendingJobs(printer);
   } catch (error) {
     console.error("Error deleting pending job:", error);
     return false;
@@ -306,7 +312,7 @@ export async function deletePrinterPendingJobs(
  *
  * @async
  * @function retryPendingJobsFromPrinter
- * @param {string} printerIp - The IP address of the printer whose jobs should be retried.
+ * @param {IPosPrinter} printer - The IP address of the printer whose jobs should be retried.
  * @returns {Promise<boolean>} A promise that resolves to true if the retry operation was successful,
  * false if the operation failed.
  *
@@ -314,19 +320,19 @@ export async function deletePrinterPendingJobs(
  * and the function will return false.
  */
 export async function retryPendingJobsFromPrinter(
-  printerIp: string,
+  printer: IPosPrinter,
 ): Promise<boolean> {
   try {
-    return await EscPosPrinter.retryPendingJobsFromPrinter(printerIp);
+    return await EscPosPrinter.retryPendingJobsFromPrinter(printer);
   } catch (error) {
     console.error("Error deleting pending job:", error);
     return false;
   }
 }
 
-export async function getPrinterStatus(printerIp: string): Promise<void> {
+export async function getPrinterStatus(printer: IPosPrinter): Promise<void> {
   try {
-    return await EscPosPrinter.checkPrinterStatus(printerIp);
+    return await EscPosPrinter.checkPrinterStatus(printer);
   } catch (error) {
     console.error("Error fetching printer status:", error);
   }

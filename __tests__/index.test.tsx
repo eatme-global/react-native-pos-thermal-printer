@@ -17,10 +17,11 @@ import {
   getPrinterStatus,
 } from "../src/printerModule";
 import {
+  PosPrinterType,
   PrintAlignment,
   PrintFontSize,
   PrintJobRowType,
-  type IPPrinter,
+  type IPosPrinter,
   type PrintJobMetadata,
   type PrintJobRow,
 } from "../src/types";
@@ -94,10 +95,15 @@ describe("printText", () => {
       orderId: "12345",
     };
 
-    await printText(testIp, testPayload, testMetadata);
+    const printer: IPosPrinter = {
+      ip: testIp,
+      type: PosPrinterType.NETWORK,
+    };
+
+    await printText(printer, testPayload, testMetadata);
 
     expect(NativeModules.PosThermalPrinter.setPrintJobs).toHaveBeenCalledWith(
-      testIp,
+      printer,
       testPayload,
       JSON.stringify(testMetadata),
     );
@@ -125,7 +131,12 @@ describe("printText", () => {
       orderId: "12345",
     };
 
-    await printText(testIp, testPayload, testMetadata);
+    const printer: IPosPrinter = {
+      ip: testIp,
+      type: PosPrinterType.NETWORK,
+    };
+
+    await printText(printer, testPayload, testMetadata);
     expect(consoleSpy).toHaveBeenCalled();
     consoleSpy.mockRestore();
   });
@@ -133,10 +144,15 @@ describe("printText", () => {
 
 describe("openCashBox", () => {
   it("should send correct cash drawer open command", async () => {
-    await openCashBox(testIp);
+    const printer: IPosPrinter = {
+      ip: testIp,
+      type: PosPrinterType.NETWORK,
+    };
+
+    await openCashBox(printer);
 
     expect(NativeModules.PosThermalPrinter.setPrintJobs).toHaveBeenCalledWith(
-      testIp,
+      printer,
       [{ type: PrintJobRowType.CASHBOX }],
       JSON.stringify({ type: "Open Cashbox" }),
     );
@@ -148,7 +164,12 @@ describe("openCashBox", () => {
       new Error("Cash drawer error"),
     );
 
-    await openCashBox(testIp);
+    const printer: IPosPrinter = {
+      ip: testIp,
+      type: PosPrinterType.NETWORK,
+    };
+
+    await openCashBox(printer);
 
     expect(consoleSpy).toHaveBeenCalled();
     consoleSpy.mockRestore();
@@ -160,7 +181,13 @@ describe("reconnectPrinter", () => {
     NativeModules.PosThermalPrinter.retryPrinterConnection.mockResolvedValue(
       true,
     );
-    const result = await reconnectPrinter(testIp);
+
+    const printer: IPosPrinter = {
+      ip: testIp,
+      type: PosPrinterType.NETWORK,
+    };
+
+    const result = await reconnectPrinter(printer);
     expect(result).toBe(true);
   });
 
@@ -170,7 +197,13 @@ describe("reconnectPrinter", () => {
     NativeModules.PosThermalPrinter.retryPrinterConnection.mockRejectedValue(
       false,
     );
-    const result = await reconnectPrinter(testIp);
+
+    const printer: IPosPrinter = {
+      ip: testIp,
+      type: PosPrinterType.NETWORK,
+    };
+
+    const result = await reconnectPrinter(printer);
     expect(result).toBe(false);
     expect(consoleSpy).toHaveBeenCalled();
     consoleSpy.mockRestore();
@@ -270,7 +303,11 @@ describe("getPendingJobs", () => {
 
 describe("addPrinterToPool", () => {
   it("should add printer to pool successfully", async () => {
-    const printer: IPPrinter = { ip: testIp };
+    const printer: IPosPrinter = {
+      ip: testIp,
+      type: PosPrinterType.NETWORK,
+    };
+
     NativeModules.PosThermalPrinter.addPrinterToPool.mockResolvedValue(true);
 
     const result = await addPrinterToPool(printer);
@@ -282,7 +319,11 @@ describe("addPrinterToPool", () => {
 
   it("should handle errors when adding printer", async () => {
     const consoleSpy = jest.spyOn(console, "error").mockImplementation();
-    const printer: IPPrinter = { ip: testIp };
+    const printer: IPosPrinter = {
+      ip: testIp,
+      type: PosPrinterType.NETWORK,
+    };
+
     NativeModules.PosThermalPrinter.addPrinterToPool.mockRejectedValue(
       new Error("Add printer error"),
     );
@@ -328,12 +369,17 @@ describe("removePrinterFromPool", () => {
       true,
     );
 
-    const result = await removePrinterFromPool(testIp);
+    const printer: IPosPrinter = {
+      ip: testIp,
+      type: PosPrinterType.NETWORK,
+    };
+
+    const result = await removePrinterFromPool(printer);
 
     expect(result).toBe(true);
     expect(
       NativeModules.PosThermalPrinter.removePrinterFromPool,
-    ).toHaveBeenCalledWith(testIp);
+    ).toHaveBeenCalledWith(printer);
   });
 
   it("should handle errors when removing printer", async () => {
@@ -343,7 +389,12 @@ describe("removePrinterFromPool", () => {
       new Error("Remove error"),
     );
 
-    const result = await removePrinterFromPool(testIp);
+    const printer: IPosPrinter = {
+      ip: testIp,
+      type: PosPrinterType.NETWORK,
+    };
+
+    const result = await removePrinterFromPool(printer);
 
     expect(consoleSpy).toHaveBeenCalled();
     expect(result).toBeFalsy();
@@ -355,12 +406,22 @@ describe("printPendingJobsWithNewPrinter", () => {
   it("should print pending jobs with new printer successfully", async () => {
     NativeModules.PosThermalPrinter.printFromNewPrinter.mockResolvedValue(true);
 
-    const result = await printPendingJobsWithNewPrinter(testIp, testIp);
+    const oldPrinter: IPosPrinter = {
+      ip: testIp,
+      type: PosPrinterType.NETWORK,
+    };
+
+    const newPrinter: IPosPrinter = {
+      ip: testIp,
+      type: PosPrinterType.NETWORK,
+    };
+
+    const result = await printPendingJobsWithNewPrinter(oldPrinter, newPrinter);
 
     expect(result).toBe(true);
     expect(
       NativeModules.PosThermalPrinter.printFromNewPrinter,
-    ).toHaveBeenCalledWith(testIp, testIp);
+    ).toHaveBeenCalledWith(oldPrinter, newPrinter);
   });
 
   it("should handle errors when printing with new printer", async () => {
@@ -369,7 +430,17 @@ describe("printPendingJobsWithNewPrinter", () => {
       new Error("Print error"),
     );
 
-    const result = await printPendingJobsWithNewPrinter(testIp, testIp);
+    const oldPrinter: IPosPrinter = {
+      ip: testIp,
+      type: PosPrinterType.NETWORK,
+    };
+
+    const newPrinter: IPosPrinter = {
+      ip: testIp,
+      type: PosPrinterType.NETWORK,
+    };
+
+    const result = await printPendingJobsWithNewPrinter(oldPrinter, newPrinter);
 
     expect(result).toBe(false);
     expect(consoleSpy).toHaveBeenCalled();
@@ -390,7 +461,12 @@ describe("printPendingJobsWithNewPrinter", () => {
       mockRawJobs,
     );
 
-    const jobs = await getPendingPrinterJobs(testIp);
+    const printer: IPosPrinter = {
+      ip: testIp,
+      type: PosPrinterType.NETWORK,
+    };
+
+    const jobs = await getPendingPrinterJobs(printer);
 
     expect(jobs).toEqual([]);
     expect(consoleSpy).toHaveBeenCalled();
@@ -402,7 +478,12 @@ describe("printPendingJobsWithNewPrinter", () => {
       null,
     );
 
-    const jobs = await getPendingPrinterJobs(testIp);
+    const printer: IPosPrinter = {
+      ip: testIp,
+      type: PosPrinterType.NETWORK,
+    };
+
+    const jobs = await getPendingPrinterJobs(printer);
 
     expect(jobs).toEqual([]);
   });
@@ -444,12 +525,17 @@ describe("retryPendingJobFromNewPrinter", () => {
       true,
     );
 
-    const result = await retryPendingJobFromNewPrinter(testJobId, testIp);
+    const printer: IPosPrinter = {
+      ip: testIp,
+      type: PosPrinterType.NETWORK,
+    };
+
+    const result = await retryPendingJobFromNewPrinter(testJobId, printer);
 
     expect(result).toBe(true);
     expect(
       NativeModules.PosThermalPrinter.retryPendingJobFromNewPrinter,
-    ).toHaveBeenCalledWith(testJobId, testIp);
+    ).toHaveBeenCalledWith(testJobId, printer);
   });
 
   it("should handle errors when retrying from new printer", async () => {
@@ -458,7 +544,12 @@ describe("retryPendingJobFromNewPrinter", () => {
       new Error("Retry error"),
     );
 
-    const result = await retryPendingJobFromNewPrinter(testJobId, testIp);
+    const printer: IPosPrinter = {
+      ip: testIp,
+      type: PosPrinterType.NETWORK,
+    };
+
+    const result = await retryPendingJobFromNewPrinter(testJobId, printer);
 
     expect(result).toBe(false);
     expect(consoleSpy).toHaveBeenCalled();
@@ -471,7 +562,10 @@ describe("getPendingPrinterJobs", () => {
     const mockRawJobs = [
       {
         jobId: "1",
-        printerIp: testIp,
+        printer: {
+          ip: testIp,
+          type: PosPrinterType.NETWORK,
+        },
         printerName: "Test Printer",
         metadata: JSON.stringify({ type: "Receipt", orderId: "12345" }),
       },
@@ -480,7 +574,12 @@ describe("getPendingPrinterJobs", () => {
       mockRawJobs,
     );
 
-    const jobs = await getPendingPrinterJobs(testIp);
+    const printer: IPosPrinter = {
+      ip: testIp,
+      type: PosPrinterType.NETWORK,
+    };
+
+    const jobs = await getPendingPrinterJobs(printer);
 
     expect(jobs).toHaveLength(1);
     expect(jobs[0]?.metadata).toEqual({ type: "Receipt", orderId: "12345" });
@@ -492,7 +591,12 @@ describe("getPendingPrinterJobs", () => {
       new Error("Get jobs error"),
     );
 
-    const jobs = await getPendingPrinterJobs(testIp);
+    const printer: IPosPrinter = {
+      ip: testIp,
+      type: PosPrinterType.NETWORK,
+    };
+
+    const jobs = await getPendingPrinterJobs(printer);
 
     expect(jobs).toEqual([]);
     expect(consoleSpy).toHaveBeenCalled();
@@ -504,12 +608,17 @@ describe("deletePrinterPendingJobs", () => {
   it("should delete printer pending jobs successfully", async () => {
     NativeModules.PosThermalPrinter.dismissPendingJobs.mockResolvedValue(true);
 
-    const result = await deletePrinterPendingJobs(testIp);
+    const printer: IPosPrinter = {
+      ip: testIp,
+      type: PosPrinterType.NETWORK,
+    };
+
+    const result = await deletePrinterPendingJobs(printer);
 
     expect(result).toBe(true);
     expect(
       NativeModules.PosThermalPrinter.dismissPendingJobs,
-    ).toHaveBeenCalledWith(testIp);
+    ).toHaveBeenCalledWith(printer);
   });
 
   it("should handle errors when deleting printer pending jobs", async () => {
@@ -518,7 +627,12 @@ describe("deletePrinterPendingJobs", () => {
       new Error("Delete error"),
     );
 
-    const result = await deletePrinterPendingJobs(testIp);
+    const printer: IPosPrinter = {
+      ip: testIp,
+      type: PosPrinterType.NETWORK,
+    };
+
+    const result = await deletePrinterPendingJobs(printer);
 
     expect(result).toBe(false);
     expect(consoleSpy).toHaveBeenCalled();
@@ -532,12 +646,17 @@ describe("retryPendingJobsFromPrinter", () => {
       true,
     );
 
-    const result = await retryPendingJobsFromPrinter(testIp);
+    const printer: IPosPrinter = {
+      ip: testIp,
+      type: PosPrinterType.NETWORK,
+    };
+
+    const result = await retryPendingJobsFromPrinter(printer);
 
     expect(result).toBe(true);
     expect(
       NativeModules.PosThermalPrinter.retryPendingJobsFromPrinter,
-    ).toHaveBeenCalledWith(testIp);
+    ).toHaveBeenCalledWith(printer);
   });
 
   it("should handle errors when retrying pending jobs", async () => {
@@ -546,7 +665,12 @@ describe("retryPendingJobsFromPrinter", () => {
       new Error("Retry error"),
     );
 
-    const result = await retryPendingJobsFromPrinter(testIp);
+    const printer: IPosPrinter = {
+      ip: testIp,
+      type: PosPrinterType.NETWORK,
+    };
+
+    const result = await retryPendingJobsFromPrinter(printer);
 
     expect(result).toBe(false);
     expect(consoleSpy).toHaveBeenCalled();
@@ -561,12 +685,17 @@ describe("getPrinterStatus", () => {
       mockStatus,
     );
 
-    const result = await getPrinterStatus(testIp);
+    const printer: IPosPrinter = {
+      ip: testIp,
+      type: PosPrinterType.NETWORK,
+    };
+
+    const result = await getPrinterStatus(printer);
 
     expect(result).toEqual(mockStatus);
     expect(
       NativeModules.PosThermalPrinter.checkPrinterStatus,
-    ).toHaveBeenCalledWith(testIp);
+    ).toHaveBeenCalledWith(printer);
   });
 
   it("should handle errors when getting printer status", async () => {
@@ -575,7 +704,12 @@ describe("getPrinterStatus", () => {
       new Error("Status error"),
     );
 
-    await getPrinterStatus(testIp);
+    const printer: IPosPrinter = {
+      ip: testIp,
+      type: PosPrinterType.NETWORK,
+    };
+
+    await getPrinterStatus(printer);
 
     expect(consoleSpy).toHaveBeenCalled();
     consoleSpy.mockRestore();

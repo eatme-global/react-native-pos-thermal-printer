@@ -6,6 +6,7 @@ import android.util.Log;
 
 import androidx.annotation.RequiresApi;
 
+import com.facebook.react.bridge.ReadableMap;
 import com.posthermalprinter.helper.*;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.WritableArray;
@@ -72,10 +73,11 @@ public class PrinterManager {
    * @return A CompletableFuture that resolves to true if the printer was added successfully, false otherwise
    */
   @RequiresApi(api = Build.VERSION_CODES.N)
-  public CompletableFuture<Boolean> addPrinterAsync(String printerIp) throws ExecutionException, InterruptedException {
+  public CompletableFuture<Boolean> addPrinterAsync(String printerIp, String type) throws ExecutionException, InterruptedException {
     CompletableFuture<Boolean> result = new CompletableFuture<>();
 
-    if(!Objects.equals(printerIp, "INTERNAL")){
+
+    if(!Objects.equals(type, "INTERNAL")){
       addNewPrinter(printerIp)
         .thenAccept(added -> {
           if (added) {
@@ -105,8 +107,6 @@ public class PrinterManager {
       }
     }
 
-    Log.e("addPrinterAsync", printerPool.toString());
-
 
     return result;
   }
@@ -119,12 +119,16 @@ public class PrinterManager {
    * @return A CompletableFuture that resolves to true if the printer was removed successfully, false otherwise
    */
   @RequiresApi(api = Build.VERSION_CODES.N)
-  public CompletableFuture<Boolean> removePrinterAsync(String printerIp) {
+  public CompletableFuture<Boolean> removePrinterAsync(String printerIp, String type) {
     CompletableFuture<Boolean> result = new CompletableFuture<>();
 
     if(printerPool.contains(printerIp)){
       result.complete(true);
-      printerPool.remove(printerIp);
+      if(type.equals("INTERNAL")){
+        printerPool.remove("INTERNAL");
+      } else {
+        printerPool.remove(printerIp);
+      }
     } else {
       result.complete(false);
     }
@@ -163,7 +167,7 @@ public class PrinterManager {
    * @param newPrinterIp The IP of the new printer
    */
   @RequiresApi(api = Build.VERSION_CODES.N)
-  public void changePendingPrintJobsPrinter(String oldPrinterIp, String newPrinterIp){
+  public void changePendingPrintJobsPrinter(ReadableMap oldPrinterIp, ReadableMap newPrinterIp){
 //    Don't have this method at the moment ***
 //    IMyBinder binder = PosThermalPrinterModule.Companion.getBinder();
 //    queueProcessor.changePendingPrintJobsPrinter(oldPrinterIp, newPrinterIp, binder);
@@ -191,7 +195,7 @@ public class PrinterManager {
    * @RequiresApi(api = Build.VERSION_CODES.N) This method requires Android N (API 24) or higher.
    */
   @RequiresApi(api = Build.VERSION_CODES.N)
-  public void retryPendingJobFromNewPrinter(String jobId, String printerIp){
+  public void retryPendingJobFromNewPrinter(String jobId, String printerIp, String type){
 //    Don't have this method at the moment ***
 //    IMyBinder binder = PosThermalPrinterModule.Companion.getBinder();
 //    queueProcessor.changePendingPrintJobToPrinter(jobId, printerIp, binder);
