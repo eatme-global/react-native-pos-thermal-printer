@@ -102,6 +102,15 @@ import {
   PrintFontSize,
 } from "react-native-esc-pos-printer";
 
+// Initialize printer pool
+await initializePrinterPool();
+
+// Add printer to pool
+await addPrinterToPool({
+  ip: "192.168.1.100",
+  type: PosPrinterType.NETWORK,
+});
+
 // Define your printer
 const printer: IPosPrinter = {
   ip: "192.168.1.100",
@@ -190,6 +199,43 @@ const App = () => {
       {/* Your app content */}
     </EventServiceProvider>
   );
+};
+```
+
+### Font Size Specifications
+
+| Font Size | Characters Per Row | Width Multiplier | Height Multiplier |
+| --------- | ------------------ | ---------------- | ----------------- |
+| NORMAL    | 48                 | 1x               | 1x                |
+| TALL      | 48                 | 1x               | 2x                |
+| WIDE      | 24                 | 2x               | 1x                |
+| BIG       | 24                 | 2x               | 2x                |
+
+> Note: When calculating column widths, ensure the total width matches the character limit for your chosen font size. Incorrect width calculations may result in misaligned text or truncation.
+
+Example width calculations:
+
+```typescript
+// For NORMAL/TALL font (48 characters total)
+const normalColumnJob = {
+  type: PrintJobRowType.COLUMN,
+  fontSize: PrintFontSize.NORMAL,
+  columns: [
+    { text: "Item", width: 24 }, // 24 characters
+    { text: "Qty", width: 8 }, // 8 characters
+    { text: "Price", width: 16 }, // 16 characters
+  ], // Total: 48 characters
+};
+
+// For WIDE/BIG font (24 characters total)
+const wideColumnJob = {
+  type: PrintJobRowType.COLUMN,
+  fontSize: PrintFontSize.WIDE,
+  columns: [
+    { text: "Item", width: 12 }, // 12 characters
+    { text: "Qty", width: 4 }, // 4 characters
+    { text: "Price", width: 8 }, // 8 characters
+  ], // Total: 24 characters
 };
 ```
 
@@ -305,7 +351,7 @@ const printReceipt = async () => {
     {
       type: PrintJobRowType.IMAGE,
       url: "file:///path/to/logo.png",
-      width: 200,
+      width: 80,
       alignment: PrintAlignment.CENTER,
     },
     {
@@ -317,9 +363,9 @@ const printReceipt = async () => {
       bold: false,
       fontSize: PrintFontSize.NORMAL,
       columns: [
-        { text: "Product", width: 2, alignment: PrintAlignment.LEFT },
-        { text: "Qty", width: 1, alignment: PrintAlignment.CENTER },
-        { text: "Price", width: 1, alignment: PrintAlignment.RIGHT },
+        { text: "Product", width: 15, alignment: PrintAlignment.LEFT },
+        { text: "Qty", width: 5, alignment: PrintAlignment.CENTER },
+        { text: "Price", width: 28, alignment: PrintAlignment.RIGHT },
       ],
     },
     {
@@ -327,9 +373,9 @@ const printReceipt = async () => {
       bold: false,
       fontSize: PrintFontSize.NORMAL,
       columns: [
-        { text: "Coffee", width: 2, alignment: PrintAlignment.LEFT },
-        { text: "2", width: 1, alignment: PrintAlignment.CENTER },
-        { text: "$6.00", width: 1, alignment: PrintAlignment.RIGHT },
+        { text: "Coffee", width: 15, alignment: PrintAlignment.LEFT },
+        { text: "2", width: 5, alignment: PrintAlignment.CENTER },
+        { text: "$6.00", width: 28, alignment: PrintAlignment.RIGHT },
       ],
     },
     {
