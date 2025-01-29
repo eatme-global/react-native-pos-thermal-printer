@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
@@ -43,13 +44,19 @@ public class PrintQueueProcessor {
 
   private String lastPrinterIp = null;
 
+  private final Object printLock = new Object();
 
 
 
 
-  public PrintQueueProcessor(BlockingQueue<PrinterJob> printQueue, List<String> printerPool, PrinterManager printerManager, PrinterEventManager eventManager) {
+
+
+  public PrintQueueProcessor(BlockingQueue<PrinterJob> printQueue,
+                             List<String> printerPool,
+                             PrinterManager printerManager,
+                             PrinterEventManager eventManager) {
     this.printQueue = printQueue;
-    this.printerPool = printerPool;
+    this.printerPool = new CopyOnWriteArrayList<>(printerPool);
     this.printerManager = printerManager;
     this.eventManager = eventManager;
     this.printExecutor = Executors.newFixedThreadPool(3);
@@ -57,61 +64,88 @@ public class PrintQueueProcessor {
   }
 
 
+
+
   private void startQueueProcessor() {
-    printExecutor.execute(new Runnable() {
-      @Override
-      public void run() {
-        while (isRunning) {
-          try {
-            if(printQueue.isEmpty()){
+    CompletableFuture.runAsync(() -> {
+      while (isRunning) {
+        try {
+          synchronized (printLock) {
+            if (printQueue.isEmpty()) {
               lastPrinterIp = null;
+              printLock.wait(1000); // Wait with timeout
+              continue;
             }
-            // Take will block until a job is available
-            PrinterJob job = printQueue.take();
-            if (job != null) {
-              String currentPrinterIp = job.getTargetPrinterIp();
-
-              // If this job is for the same printer as the last one, add delay
-              if (lastPrinterIp != null && lastPrinterIp.equals(currentPrinterIp)) {
-                try {
-                  Thread.sleep(1000);
-                } catch (InterruptedException ie) {
-                  Thread.currentThread().interrupt();
-                  break;
-                }
-              }
-
-              try {
-                processJob(job);
-                lastPrinterIp = currentPrinterIp;
-
-                // Add metadata-based delay
-                try {
-                  JSONObject jsonObject = new JSONObject(job.getMetadata());
-                  long timeout = timeoutForType(jsonObject.getString("type"));
-                  Thread.sleep(timeout);
-                } catch (JSONException je) {
-                  // If metadata parsing fails, use default delay
-                  Thread.sleep(500);
-                }
-              } catch (JSONException e) {
-                Log.e(TAG, "Error processing job: " + e.getMessage());
-              }
-            }
-          } catch (InterruptedException e) {
-            Log.e(TAG, "Queue processor interrupted: " + e.getMessage());
-            if (!isRunning) {
-              break;
-            }
-          } catch (Exception e) {
-            Log.e(TAG, "Unexpected error in queue processor: " + e.getMessage());
-
           }
+
+          PrinterJob job = printQueue.poll(500, TimeUnit.MILLISECONDS);
+          if (job == null) continue;
+
+          String currentPrinterIp = job.getTargetPrinterIp();
+          if (lastPrinterIp != null && lastPrinterIp.equals(currentPrinterIp)) {
+            Thread.sleep(1000);
+          }
+
+          processJobWithRetry(job);
+          lastPrinterIp = currentPrinterIp;
+
+        } catch (InterruptedException e) {
+          Log.e(TAG, "Queue processor interrupted", e);
+          Thread.currentThread().interrupt();
+          break;
+        } catch (Exception e) {
+          Log.e(TAG, "Unexpected error in queue processor", e);
         }
       }
-    });
+    }, printExecutor);
   }
 
+
+  private void processJobWithRetry(PrinterJob job) {
+    int maxRetries = 3;
+    int retryCount = 0;
+
+    while (retryCount < maxRetries) {
+      try {
+        CompletableFuture<Boolean> printFuture = printerManager.printToPrinter(job);
+        Boolean result = printFuture.get(500, TimeUnit.MILLISECONDS);
+
+        if (Boolean.TRUE.equals(result)) {
+          applyPostPrintDelay(job);
+          return;
+        }
+
+        retryCount++;
+        if (retryCount < maxRetries) {
+          Thread.sleep(1000 * retryCount); // Exponential backoff
+        }
+
+      } catch (Exception e) {
+        Log.e(TAG, "Print attempt " + (retryCount + 1) + " failed", e);
+        retryCount++;
+        if (retryCount >= maxRetries) {
+          eventManager.sendPrinterUnreachableEvent(job.getTargetPrinterIp());
+        }
+      }
+    }
+  }
+
+
+
+  private void applyPostPrintDelay(PrinterJob job) {
+    try {
+      JSONObject metadata = new JSONObject(job.getMetadata());
+      long timeout = timeoutForType(metadata.optString("type"));
+      Thread.sleep(timeout);
+    } catch (Exception e) {
+      Log.e(TAG, "Error applying post-print delay", e);
+      try {
+        Thread.sleep(500); // Default delay
+      } catch (InterruptedException ie) {
+        Thread.currentThread().interrupt();
+      }
+    }
+  }
 
   /**
    * Processes the print queue by submitting print jobs to the print executor.
