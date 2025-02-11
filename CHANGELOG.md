@@ -1,3 +1,10 @@
+# [0.9.0-beta.4](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.9.0-beta.3...v0.9.0-beta.4) (2025-02-11)
+
+
+### Bug Fixes
+
+* removePrinterFromPool printer destructuring data type fixes ([502e5d3](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/502e5d369a26c2bf83ef0f6a430f496b252bf550))
+
 # [0.9.0-beta.3](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.9.0-beta.2...v0.9.0-beta.3) (2025-01-29)
 
 
