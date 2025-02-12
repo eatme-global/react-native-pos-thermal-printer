@@ -1,3 +1,10 @@
+# [0.9.0-beta.5](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.9.0-beta.4...v0.9.0-beta.5) (2025-02-12)
+
+
+### Bug Fixes
+
+* ip check for printJobs removed on android platform ([ab7f80e](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/ab7f80e06e4a7ee69c2edb923e5efa46196f8fb2))
+
 # [0.9.0-beta.4](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.9.0-beta.3...v0.9.0-beta.4) (2025-02-11)
 
 
