@@ -248,11 +248,9 @@ class PosThermalPrinterModule(private val reactContext: ReactApplicationContext)
     val type = printerConfig.getString("type") ?: "NETWORK"
 
     try {
-      if(ip.isNotEmpty()){
-        val job = PrintJobHandler.createPrintJob(ip, type, content, metadata)
-        val result = printerManager?.addPrintJob(job)
-        promise.resolve(result)
-      }
+      val job = PrintJobHandler.createPrintJob(ip, type, content, metadata)
+      val result = printerManager?.addPrintJob(job)
+      promise.resolve(result)
     } catch (e: Exception) {
       promise.reject("PRINT_JOB_ERROR", "Failed to set print jobs: ${e.message}")
     }
