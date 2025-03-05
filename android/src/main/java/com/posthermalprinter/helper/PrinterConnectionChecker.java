@@ -5,6 +5,8 @@ import android.os.IBinder;
 import com.posthermalprinter.PosThermalPrinterModule;
 //import com.posthermalprinter.imin.IminPrinterModule;
 
+// Placeholder comment to give a releases
+
 import net.posprinter.posprinterface.IMyBinder;
 import net.posprinter.posprinterface.TaskCallback;
 
