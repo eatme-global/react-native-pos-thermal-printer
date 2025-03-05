@@ -3,7 +3,7 @@ import android.annotation.SuppressLint;
 import android.os.IBinder;
 
 import com.posthermalprinter.PosThermalPrinterModule;
-import com.posthermalprinter.imin.IminPrinterModule;
+//import com.posthermalprinter.imin.IminPrinterModule;
 
 import net.posprinter.posprinterface.IMyBinder;
 import net.posprinter.posprinterface.TaskCallback;
@@ -50,7 +50,7 @@ public class PrinterConnectionChecker {
       return CompletableFuture.completedFuture(results);
     }
 
-    IminPrinterModule iMinPrinterModule = PosThermalPrinterModule.Companion.getIMinPrinterModule();
+//    IminPrinterModule iMinPrinterModule = PosThermalPrinterModule.Companion.getIMinPrinterModule();
 
     String currentPrinterIp = printerIps.get(index);
     CompletableFuture<Boolean> connectionTest = new CompletableFuture<>();
@@ -83,12 +83,12 @@ public class PrinterConnectionChecker {
         }
       });
     } else {
-      if(iMinPrinterModule != null){
-        Boolean result = iMinPrinterModule.initPrinter();
-        results.add(new PrinterConnectionResult(currentPrinterIp, result));
-
-        connectionTest.complete(result);
-      }
+//      if(iMinPrinterModule != null){
+//        Boolean result = iMinPrinterModule.initPrinter();
+//        results.add(new PrinterConnectionResult(currentPrinterIp, result));
+//
+//        connectionTest.complete(result);
+//      }
     }
 
     return connectionTest
