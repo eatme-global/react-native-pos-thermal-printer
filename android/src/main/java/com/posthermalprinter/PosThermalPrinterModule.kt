@@ -12,7 +12,7 @@ import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
-import com.posthermalprinter.imin.IminPrinterModule
+//import com.posthermalprinter.imin.IminPrinterModule
 import net.posprinter.posprinterface.IMyBinder
 import okhttp3.internal.wait
 
@@ -55,7 +55,7 @@ class PosThermalPrinterModule(private val reactContext: ReactApplicationContext)
         promise.resolve(false)
         null
       }
-    iMinPrinterModule = IminPrinterModule(reactContext);
+//    iMinPrinterModule = IminPrinterModule(reactContext);
   }
 
   /**
@@ -324,7 +324,7 @@ class PosThermalPrinterModule(private val reactContext: ReactApplicationContext)
   companion object {
     const val NAME = "PosThermalPrinter"
     var binder: IMyBinder? = null
-    var iMinPrinterModule: IminPrinterModule? = null;
+//    var iMinPrinterModule: IminPrinterModule? = null;
   }
 
 
