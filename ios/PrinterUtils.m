@@ -296,7 +296,7 @@
            // Check if it's extended Latin character
            BOOL isExtendedLatin = (charCode >= 0x00C0 && charCode <= 0x00FF);
            
-           if (isEnglishOrNumber || isAllowedSpecial || isChineseChar || isLatinChar || isExtendedLatin) {
+           if (isEnglishOrNumber || isAllowedSpecial || !isChineseChar || isLatinChar || isExtendedLatin) {
                [result appendString:currentChar];
            }
            // No else clause - unsupported characters are simply skipped
