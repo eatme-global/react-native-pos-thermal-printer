@@ -10,7 +10,7 @@ import com.facebook.react.bridge.ReadableMap;
 import com.posthermalprinter.helper.*;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.WritableArray;
-import com.posthermalprinter.imin.IminPrinterModule;
+//import com.posthermalprinter.imin.IminPrinterModule;
 import com.posthermalprinter.util.PrintItem;
 import com.posthermalprinter.util.PrinterJob;
 import com.posthermalprinter.util.PrinterStatus;
@@ -97,14 +97,14 @@ public class PrinterManager {
           return null;
         });
     }else {
-      IminPrinterModule iMinPrinterModule = PosThermalPrinterModule.Companion.getIMinPrinterModule();
-      if(iMinPrinterModule != null) {
-        Boolean iMinResult = iMinPrinterModule.initPrinter();
-        if(!printerPool.contains("INTERNAL")){
-          printerPool.add("INTERNAL");
-        }
-        result.complete(iMinResult);
-      }
+//      IminPrinterModule iMinPrinterModule = PosThermalPrinterModule.Companion.getIMinPrinterModule();
+//      if(iMinPrinterModule != null) {
+//        Boolean iMinResult = iMinPrinterModule.initPrinter();
+//        if(!printerPool.contains("INTERNAL")){
+//          printerPool.add("INTERNAL");
+//        }
+//        result.complete(iMinResult);
+//      }
     }
 
 
@@ -214,34 +214,34 @@ public class PrinterManager {
   public CompletableFuture<Boolean> printToPrinter(PrinterJob job) {
     CompletableFuture<Boolean> printResult = new CompletableFuture<>();
 
-    if (job.getTargetPrinterIp().contentEquals("INTERNAL")) {
-      IminPrinterModule iminPrinterModule = PosThermalPrinterModule.Companion.getIMinPrinterModule();
-      if (iminPrinterModule != null) {
-        try {
-          List<List<PrintItem>> jobContent = Collections.singletonList(job.getJobContent());
-          for (List<PrintItem> printItems : jobContent) {
-            List<List<PrintItem>> separatedItems = separatePrintItemsAroundImages(printItems);
-
-            for (List<PrintItem> items : separatedItems) {
-              List<byte[]> commands = PrintJobHandler.processDataBeforeSend(items, job.getTargetPrinterIp());
-              for(byte[] item :  commands) {
-                iminPrinterModule.sendRawData(item);
-
-                if (items.get(0).getType() == PrintItem.Type.IMAGE){
-                  Thread.sleep(1000);
-                } else {
-                  Thread.sleep(5);
-                }
-              }
-            }
-          }
-          printResult.complete(true);
-        } catch (IOException | InterruptedException e) {
-          printResult.completeExceptionally(e);
-        }
-      }
-      return printResult;
-    }
+//    if (job.getTargetPrinterIp().contentEquals("INTERNAL")) {
+//      IminPrinterModule iminPrinterModule = PosThermalPrinterModule.Companion.getIMinPrinterModule();
+//      if (iminPrinterModule != null) {
+//        try {
+//          List<List<PrintItem>> jobContent = Collections.singletonList(job.getJobContent());
+//          for (List<PrintItem> printItems : jobContent) {
+//            List<List<PrintItem>> separatedItems = separatePrintItemsAroundImages(printItems);
+//
+//            for (List<PrintItem> items : separatedItems) {
+//              List<byte[]> commands = PrintJobHandler.processDataBeforeSend(items, job.getTargetPrinterIp());
+//              for(byte[] item :  commands) {
+//                iminPrinterModule.sendRawData(item);
+//
+//                if (items.get(0).getType() == PrintItem.Type.IMAGE){
+//                  Thread.sleep(1000);
+//                } else {
+//                  Thread.sleep(5);
+//                }
+//              }
+//            }
+//          }
+//          printResult.complete(true);
+//        } catch (IOException | InterruptedException e) {
+//          printResult.completeExceptionally(e);
+//        }
+//      }
+//      return printResult;
+//    }
 
 
     POSPrinter printer = null;

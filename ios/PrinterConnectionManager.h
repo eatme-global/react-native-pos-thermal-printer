@@ -40,10 +40,10 @@
 
 /**
  * @brief Removes a printer from the printer pool.
- * @param printerIp The IP address of the printer to remove.
+ * @param config The object containing IP address of the printer to remove.
  * @param completion A block to be called when the removal is complete. The block takes a BOOL parameter indicating success.
  */
-- (void)removePrinterFromPool:(NSString *)printerIp completion:(void (^)(BOOL success))completion;
+- (void)removePrinterFromPool:(NSDictionary *)config completion:(void (^)(BOOL success))completion;
 
 /**
  * @brief Retrieves the status of all printers in the pool.

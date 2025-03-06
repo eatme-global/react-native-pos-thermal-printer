@@ -245,11 +245,13 @@ RCT_EXPORT_METHOD(addPrinterToPool:(NSDictionary *)config
  * @param resolve A block to call with the result of the operation.
  * @param reject A block to call if an error occurs.
  */
-RCT_EXPORT_METHOD(checkPrinterStatus:(NSString *)printerIp
+RCT_EXPORT_METHOD(checkPrinterStatus:(NSDictionary *)config
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
    
+  NSString *printerIp = config[@"ip"];
+  
   // Initialize the printer controller
   PrinterController *printer = [[PrinterController alloc] initWithIP:printerIp port:9100];
 
@@ -279,11 +281,11 @@ RCT_EXPORT_METHOD(checkPrinterStatus:(NSString *)printerIp
  * @param resolve A block to call with the result of the operation.
  * @param reject A block to call if an error occurs.
  */
-RCT_EXPORT_METHOD(removePrinterFromPool:(NSString *)printerIp
+RCT_EXPORT_METHOD(removePrinterFromPool:(NSDictionary *)config
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-  [self.printerConnectionManager removePrinterFromPool:printerIp completion:^(BOOL success) {
+  [self.printerConnectionManager removePrinterFromPool:config completion:^(BOOL success) {
     resolve(@(success));
   }];
 }
