@@ -1,3 +1,10 @@
+# [0.9.0-beta.8](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.9.0-beta.7...v0.9.0-beta.8) (2025-03-06)
+
+
+### Bug Fixes
+
+* omited chinese characters on ios ([b76925f](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/b76925ff2f09bb2798ffbdab052c1e5e93059528))
+
 # [0.9.0-beta.7](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.9.0-beta.6...v0.9.0-beta.7) (2025-03-05)
 
 
