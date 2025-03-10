@@ -186,6 +186,7 @@ NSString * const PrinterControllerErrorDomain = @"com.yourcompany.printercontrol
 
 - (void)checkPrinterStatusWithCompletion:(void(^)(BOOL isOffline, PrinterStatus *status, NSError *error))completion {
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+      @autoreleasepool {
         __block NSError *error = nil;
         __block BOOL isOffline = YES;  // Default to offline
         
@@ -193,6 +194,7 @@ NSString * const PrinterControllerErrorDomain = @"com.yourcompany.printercontrol
         
         // Create a separate queue for the status check
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
+          @autoreleasepool {
             if ([self connectToPrinter]) {
                 isOffline = [self isPrinterOffline];
             } else {
@@ -201,23 +203,27 @@ NSString * const PrinterControllerErrorDomain = @"com.yourcompany.printercontrol
                                       userInfo:@{NSLocalizedDescriptionKey: @"Failed to connect to printer"}];
             }
             dispatch_semaphore_signal(semaphore);
+          }
         });
         
         // Wait for 0.5 seconds
         dispatch_time_t timeout = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1 * NSEC_PER_SEC));
         if (dispatch_semaphore_wait(semaphore, timeout) != 0) {
+          @autoreleasepool {
             // Timeout occurred
             isOffline = YES;
             error = [NSError errorWithDomain:PrinterControllerErrorDomain
                                       code:PrinterControllerErrorTimeout
                                   userInfo:@{NSLocalizedDescriptionKey: @"Printer status check timed out"}];
             [self disconnectPrinter];
+          }
         }
         
         // Return result on main thread
         dispatch_async(dispatch_get_main_queue(), ^{
             completion(isOffline, self.status, error);
         });
+      }
     });
 }
 

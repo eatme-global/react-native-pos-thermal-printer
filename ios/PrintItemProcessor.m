@@ -5,7 +5,7 @@
 
 @implementation PrintItemProcessor
 
-+ (PrintItem *)createPrintItemFromDictionary:(NSDictionary *)itemDict {
++ (PrintItem *)sa:(NSDictionary *)itemDict {
     NSString *type = itemDict[@"type"];
     
     if ([type isEqualToString:@"IMAGE"]) {
@@ -16,6 +16,8 @@
 }
 
 + (PrintItem *)createImagePrintItem:(NSDictionary *)item {
+  @autoreleasepool {
+    
     NSString *imageUrl = item[@"url"] ?: @"";
     
     NSInteger maxWidth = 280;
@@ -23,37 +25,39 @@
     NSInteger minWidth = 0;
     NSInteger imageWidth = 280;
     NSInteger maxHeight = 130;
-       
+    
     NSInteger width = [item[@"width"] integerValue] ?: defaultWidth;
     BOOL fullWidth = [item[@"fullWidth"] boolValue];
     CGFloat printerWidth = [item[@"printerWidth"] floatValue] ?: 290.0;
-
-
+    
+    
     if (fullWidth) {
-       imageWidth = maxWidth;
+      imageWidth = maxWidth;
     }else {
-        // Ensure width is within 0-100 range
-        width = MAX(minWidth, MIN(width, defaultWidth));
-        imageWidth = MAX(minWidth, MIN(width, defaultWidth));
+      // Ensure width is within 0-100 range
+      width = MAX(minWidth, MIN(width, defaultWidth));
+      imageWidth = MAX(minWidth, MIN(width, defaultWidth));
     }
+    
+      NSURL *url = [NSURL URLWithString:imageUrl];
+      NSData *imageData = [NSData dataWithContentsOfURL:url];
 
-    NSURL *url = [NSURL URLWithString:imageUrl];
-    NSData *imageData = [NSData dataWithContentsOfURL:url];
+
     
     if (imageData == nil) {
-        NSLog(@"Failed to download image from URL: %@", imageUrl);
-        return nil;
+      NSLog(@"Failed to download image from URL: %@", imageUrl);
+      return nil;
     }
     
     
     UIImage *image = [UIImage imageWithData:imageData];
     UIImage *resizedImage = [PrinterUtils resizeImage:image
-                                                maxWidth:imageWidth
-                                               maxHeight:maxHeight];
+                                             maxWidth:imageWidth
+                                            maxHeight:maxHeight];
     
     if (resizedImage == nil) {
-        NSLog(@"Failed to resize image from URL: %@", imageUrl);
-        return nil;
+      NSLog(@"Failed to resize image from URL: %@", imageUrl);
+      return nil;
     }
     
     BOOL fontWeight = [item[@"bold"] boolValue];
@@ -76,6 +80,7 @@
     
     [printItem setBitmap:alignedImage];
     return printItem;
+  }
 }
 
 + (PrintItem *)createNonImagePrintItem:(NSDictionary *)item {
