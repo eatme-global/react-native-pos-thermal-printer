@@ -18,6 +18,7 @@
 
 // Modified resize function to handle both width and height constraints
 + (UIImage *)resizeImage:(UIImage *)image maxWidth:(CGFloat)maxWidth maxHeight:(CGFloat)maxHeight {
+  @autoreleasepool {
     if (image == nil) {
         return nil;
     }
@@ -43,9 +44,11 @@
     UIGraphicsEndImageContext();
     
     return resizedImage;
+  }
 }
 
 + (UIImage *)alignImage:(UIImage *)originalImage alignment:(TextAlignment)alignment printerWidth:(CGFloat)printerWidth {
+  @autoreleasepool {
     CGSize printerSize = CGSizeMake(printerWidth, originalImage.size.height);
     
     UIGraphicsBeginImageContextWithOptions(printerSize, YES, 0.0);
@@ -75,57 +78,63 @@
     UIGraphicsEndImageContext();
     
     return alignedImage;
+  }
 }
 
 + (NSArray<NSString *> *)splitTextIntoLines:(NSString *)text width:(NSInteger)width wrapWords:(BOOL)wrapWords {
-    if (wrapWords) {
+    @autoreleasepool {
+      
+      if (wrapWords) {
         return [self splitTextIntoLinesWithWordWrap:text width:width];
-    } else {
+      } else {
         return [self splitTextIntoLinesWithoutWordWrap:text width:width];
+      }
     }
 }
 
 + (NSArray<NSString *> *)splitTextIntoLinesWithWordWrap:(NSString *)text width:(NSInteger)width {
-    NSMutableArray<NSString *> *lines = [NSMutableArray array];
-    NSArray<NSString *> *words = [text componentsSeparatedByCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
-    NSMutableString *currentLine = [NSMutableString string];
-    NSInteger currentLineWidth = 0;
+    @autoreleasepool {
+      NSMutableArray<NSString *> *lines = [NSMutableArray array];
+      NSArray<NSString *> *words = [text componentsSeparatedByCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+      NSMutableString *currentLine = [NSMutableString string];
+      NSInteger currentLineWidth = 0;
 
-    for (NSString *word in words) {
-        NSInteger wordWidth = [self getVisualWidth:word];
+      for (NSString *word in words) {
+          NSInteger wordWidth = [self getVisualWidth:word];
 
-        if (wordWidth > width) {
-            if (currentLineWidth > 0) {
-                [lines addObject:[currentLine stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]]];
-                currentLine = [NSMutableString string];
-                currentLineWidth = 0;
-            }
+          if (wordWidth > width) {
+              if (currentLineWidth > 0) {
+                  [lines addObject:[currentLine stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]]];
+                  currentLine = [NSMutableString string];
+                  currentLineWidth = 0;
+              }
 
-            NSString *remainingWord = word;
-            while (remainingWord.length > 0) {
-                NSString *chunk = [self takeChunkOfVisualWidth:remainingWord maxWidth:width];
-                [lines addObject:chunk];
-                remainingWord = [remainingWord substringFromIndex:chunk.length];
-            }
-        } else if (currentLineWidth + wordWidth + (currentLineWidth > 0 ? 1 : 0) <= width) {
-            if (currentLineWidth > 0) {
-                [currentLine appendString:@" "];
-                currentLineWidth++;
-            }
-            [currentLine appendString:word];
-            currentLineWidth += wordWidth;
-        } else {
-            [lines addObject:[currentLine stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]]];
-            currentLine = [NSMutableString stringWithString:word];
-            currentLineWidth = wordWidth;
-        }
+              NSString *remainingWord = word;
+              while (remainingWord.length > 0) {
+                  NSString *chunk = [self takeChunkOfVisualWidth:remainingWord maxWidth:width];
+                  [lines addObject:chunk];
+                  remainingWord = [remainingWord substringFromIndex:chunk.length];
+              }
+          } else if (currentLineWidth + wordWidth + (currentLineWidth > 0 ? 1 : 0) <= width) {
+              if (currentLineWidth > 0) {
+                  [currentLine appendString:@" "];
+                  currentLineWidth++;
+              }
+              [currentLine appendString:word];
+              currentLineWidth += wordWidth;
+          } else {
+              [lines addObject:[currentLine stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]]];
+              currentLine = [NSMutableString stringWithString:word];
+              currentLineWidth = wordWidth;
+          }
+      }
+
+      if (currentLine.length > 0) {
+          [lines addObject:[currentLine stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]]];
+      }
+
+      return lines;
     }
-
-    if (currentLine.length > 0) {
-        [lines addObject:[currentLine stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]]];
-    }
-
-    return lines;
 }
 
 //+ (NSArray<NSString *> *)splitTextIntoLinesWithoutWordWrap:(NSString *)text width:(NSInteger)width {
@@ -139,29 +148,31 @@
 
 
 + (NSArray<NSString *> *)splitTextIntoLinesWithoutWordWrap:(NSString *)text width:(NSInteger)width {
-    NSMutableArray<NSString *> *lines = [NSMutableArray array];
-    NSMutableString *currentLine = [NSMutableString string];
-    NSInteger currentLineWidth = 0;
+    @autoreleasepool {
+      NSMutableArray<NSString *> *lines = [NSMutableArray array];
+      NSMutableString *currentLine = [NSMutableString string];
+      NSInteger currentLineWidth = 0;
 
-    for (NSUInteger i = 0; i < text.length; i++) {
-        unichar character = [text characterAtIndex:i];
-        NSInteger charWidth = [self isHanCharacter:character] ? 2 : 1;
+      for (NSUInteger i = 0; i < text.length; i++) {
+          unichar character = [text characterAtIndex:i];
+          NSInteger charWidth = [self isHanCharacter:character] ? 2 : 1;
 
-        if (currentLineWidth + charWidth > width) {
-            [lines addObject:[currentLine copy]];
-            [currentLine setString:@""];
-            currentLineWidth = 0;
-        }
+          if (currentLineWidth + charWidth > width) {
+              [lines addObject:[currentLine copy]];
+              [currentLine setString:@""];
+              currentLineWidth = 0;
+          }
 
-        [currentLine appendString:[NSString stringWithCharacters:&character length:1]];
-        currentLineWidth += charWidth;
+          [currentLine appendString:[NSString stringWithCharacters:&character length:1]];
+          currentLineWidth += charWidth;
+      }
+
+      if (currentLine.length > 0) {
+          [lines addObject:[currentLine copy]];
+      }
+
+      return lines;
     }
-
-    if (currentLine.length > 0) {
-        [lines addObject:[currentLine copy]];
-    }
-
-    return lines;
 }
 
 + (NSString *)takeChunkOfVisualWidth:(NSString *)str maxWidth:(NSInteger)maxWidth {
@@ -264,44 +275,46 @@
 
 
 + (NSString *)sanitizeStringForPrinter:(NSString *)inputString {
-    if (!inputString) {
-           return @"";
-       }
-       
-       NSMutableString *result = [NSMutableString string];
-       
-       // Define allowed special characters
-       NSString *allowedSpecialChars = @"!@#$%^&*()_+-=[]\\{}|;':\",./<>?`~ ";
-       
-       // Define German and Latin special characters
-       NSString *allowedLatinChars = @"äöüßÄÖÜáéíóúýÁÉÍÓÚÝàèìòùÀÈÌÒÙãõñÃÕÑâêîôûÂÊÎÔÛëïüÿËÏÜŸçÇƒ";
-       
-       // Process each character
-       for (NSUInteger i = 0; i < inputString.length; i++) {
-           NSString *currentChar = [inputString substringWithRange:NSMakeRange(i, 1)];
-           unichar charCode = [currentChar characterAtIndex:0];
-           
-           // Check if it's English alphabet or number (ASCII range)
-           BOOL isEnglishOrNumber = (charCode >= 32 && charCode <= 126);
-           
-           // Check if it's an allowed special character
-           BOOL isAllowedSpecial = [allowedSpecialChars containsString:currentChar];
-           
-           // Check if it's a German/Latin character
-           BOOL isLatinChar = [allowedLatinChars containsString:currentChar];
-           
-           // Check if it's Chinese character (CJK Unified Ideographs range)
-           BOOL isChineseChar = (charCode >= 0x4E00 && charCode <= 0x9FFF);
-           
-           // Check if it's extended Latin character
-           BOOL isExtendedLatin = (charCode >= 0x00C0 && charCode <= 0x00FF);
-           if (isEnglishOrNumber || isAllowedSpecial || isLatinChar || isExtendedLatin) {
-               [result appendString:currentChar];
-           }
-           // No else clause - unsupported characters are simply skipped
-       }
-       
-       return result;
+    @autoreleasepool {
+      if (!inputString) {
+             return @"";
+         }
+         
+         NSMutableString *result = [NSMutableString string];
+         
+         // Define allowed special characters
+         NSString *allowedSpecialChars = @"!@#$%^&*()_+-=[]\\{}|;':\",./<>?`~ ";
+         
+         // Define German and Latin special characters
+         NSString *allowedLatinChars = @"äöüßÄÖÜáéíóúýÁÉÍÓÚÝàèìòùÀÈÌÒÙãõñÃÕÑâêîôûÂÊÎÔÛëïüÿËÏÜŸçÇƒ";
+         
+         // Process each character
+         for (NSUInteger i = 0; i < inputString.length; i++) {
+             NSString *currentChar = [inputString substringWithRange:NSMakeRange(i, 1)];
+             unichar charCode = [currentChar characterAtIndex:0];
+             
+             // Check if it's English alphabet or number (ASCII range)
+             BOOL isEnglishOrNumber = (charCode >= 32 && charCode <= 126);
+             
+             // Check if it's an allowed special character
+             BOOL isAllowedSpecial = [allowedSpecialChars containsString:currentChar];
+             
+             // Check if it's a German/Latin character
+             BOOL isLatinChar = [allowedLatinChars containsString:currentChar];
+             
+             // Check if it's Chinese character (CJK Unified Ideographs range)
+             BOOL isChineseChar = (charCode >= 0x4E00 && charCode <= 0x9FFF);
+             
+             // Check if it's extended Latin character
+             BOOL isExtendedLatin = (charCode >= 0x00C0 && charCode <= 0x00FF);
+             if (isEnglishOrNumber || isAllowedSpecial || isLatinChar || isExtendedLatin) {
+                 [result appendString:currentChar];
+             }
+             // No else clause - unsupported characters are simply skipped
+         }
+         
+        return [result copy];
+    }
 }
 
 

@@ -9,37 +9,40 @@
 
 
 + (NSArray<NSString *> *)splitTextIntoLines:(NSString *)text width:(NSInteger)width {
+  @autoreleasepool {
+    
     NSArray *words = [text componentsSeparatedByString:@" "];
     NSMutableArray *lines = [NSMutableArray array];
     NSMutableString *currentLine = [NSMutableString string];
-
+    
     for (NSString *word in words) {
-        if ([currentLine length] + [word length] + 1 <= width) {
-            if ([currentLine length] > 0) {
-                [currentLine appendString:@" "];
-            }
-            [currentLine appendString:word];
-        } else {
-            if ([currentLine length] > 0) {
-                [lines addObject:[currentLine copy]];
-                [currentLine setString:@""];
-            }
-            if ([word length] > width) {
-                // If a single word is longer than the width, split it
-                NSString *remaining = word;
-                while ([remaining length] > 0) {
-                    [lines addObject:[remaining substringToIndex:MIN(width, [remaining length])]];
-                    remaining = [remaining substringFromIndex:MIN(width, [remaining length])];
-                }
-            } else {
-                [currentLine appendString:word];
-            }
+      if ([currentLine length] + [word length] + 1 <= width) {
+        if ([currentLine length] > 0) {
+          [currentLine appendString:@" "];
         }
+        [currentLine appendString:word];
+      } else {
+        if ([currentLine length] > 0) {
+          [lines addObject:[currentLine copy]];
+          [currentLine setString:@""];
+        }
+        if ([word length] > width) {
+          // If a single word is longer than the width, split it
+          NSString *remaining = word;
+          while ([remaining length] > 0) {
+            [lines addObject:[remaining substringToIndex:MIN(width, [remaining length])]];
+            remaining = [remaining substringFromIndex:MIN(width, [remaining length])];
+          }
+        } else {
+          [currentLine appendString:word];
+        }
+      }
     }
     if ([currentLine length] > 0) {
-        [lines addObject:[currentLine copy]];
+      [lines addObject:[currentLine copy]];
     }
     return [lines copy];
+  }
 }
 
 + (TextAlignment)parseAlignment:(NSString *)alignment {
@@ -79,6 +82,7 @@
 
 + (void)fetchImageFromURL:(NSString *)urlString
                completion:(void (^)(NSData *imageData, NSError *error))completion {
+  @autoreleasepool {
     NSURL *url = [NSURL URLWithString:urlString];
     if (!url) {
         NSError *error = [NSError errorWithDomain:@"ImageFetcherErrorDomain"
@@ -91,6 +95,7 @@
     NSURLSession *session = [NSURLSession sharedSession];
     NSURLSessionDataTask *dataTask = [session dataTaskWithURL:url
                                             completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
+      @autoreleasepool {
         if (error) {
             dispatch_async(dispatch_get_main_queue(), ^{
                 completion(nil, error);
@@ -135,9 +140,13 @@
         dispatch_async(dispatch_get_main_queue(), ^{
             completion(pngData, nil);
         });
+      }
+       
     }];
 
     [dataTask resume];
+  }
+    
 }
 
 

@@ -136,6 +136,7 @@
 
 - (void)getPendingJobDetails:(void (^)(NSArray *pendingJobs))completion {
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+      @autoreleasepool {
         NSMutableArray *pendingJobsArray = [NSMutableArray array];
         
         self.isPaused = YES;
@@ -162,18 +163,20 @@
             
             completion(pendingJobsArray);
         });
+      }
     });
 }
 
 - (void) setPrintJobs:(NSString *)ip content:(NSArray *)content metadata:(NSString *)metadata completion:(void (^)(BOOL success))completion {
-    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+    @autoreleasepool {
+      dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
         NSMutableArray *printItems = [NSMutableArray array];
         
         for (NSDictionary *item in content) {
-            PrintItem *printItem = [PrintItemProcessor createPrintItemFromDictionary:item];
-            if (printItem) {
-                [printItems addObject:printItem];
-            }
+          PrintItem *printItem = [PrintItemProcessor createPrintItemFromDictionary:item];
+          if (printItem) {
+            [printItems addObject:printItem];
+          }
         }
         
         NSString *printerName = [NSString stringWithFormat:@"PrinterName_%@", ip];
@@ -182,7 +185,8 @@
         
         [self addPrintJob:job];
         completion(YES);
-    });
+      });
+    }
 }
 
 - (void)addPrintJob:(PrinterJob *)job {
@@ -206,7 +210,9 @@
 
 - (void)processPrintQueue {
     dispatch_async(self.printExecutor, ^{
-        [self processNextJob];
+        @autoreleasepool {
+            [self processNextJob];
+        }
     });
 }
 
@@ -252,6 +258,8 @@
 }
 
 - (void)printJob:(PrinterJob *)job completion:(void (^)(BOOL success))completion {
+  @autoreleasepool {
+    
     POSWIFIManager *wifiManager = [[POSWIFIManager alloc] init];
     
     // Add a job identifier to track unique jobs
@@ -260,47 +268,55 @@
     
     // Check printer status with retry mechanism
     [self checkPrinterStatus:job.targetPrinterIp completion:^(BOOL isOffline) {
+      @autoreleasepool {
+
         void (^connectAndPrint)(void) = ^{
-            // Add guard to ensure the job is still valid
-            if (self.currentJob != job) {
+          // Add guard to ensure the job is still valid
+          if (self.currentJob != job) {
+            completion(NO);
+            return;
+          }
+          
+          [wifiManager POSConnectWithHost:job.targetPrinterIp port:9100 completion:^(BOOL isConnect) {
+            @autoreleasepool {
+              
+              if (!isConnect) {
                 completion(NO);
                 return;
-            }
-            
-            [wifiManager POSConnectWithHost:job.targetPrinterIp port:9100 completion:^(BOOL isConnect) {
-                if (!isConnect) {
-                    completion(NO);
-                    return;
-                }
-                
-                NSMutableData *dataM = [NSMutableData dataWithData:[PosCommand initializePrinter]];
+              }
+              
+              NSMutableData *dataM = [NSMutableData dataWithData:[PosCommand initializePrinter]];
               
               
               NSInteger currentIndex = 0;
               NSInteger totalItems = [job.jobContent count];
-
+              
               for (PrintItem *item in job.jobContent) {
+                @autoreleasepool {
                   [self configureFontSize:item.fontSize forData:dataM];
-                [self processItemType:item withData:dataM wifiManager:wifiManager lastItem:currentIndex == totalItems - 1];
-               
+                  [self processItemType:item withData:dataM wifiManager:wifiManager lastItem:currentIndex == totalItems - 1];
+                }
               }
               
-                              
-                [wifiManager POSWriteCommandWithData:dataM];
-                
-                [self handlePrintCompletion:job wifiManager:wifiManager completion:^(BOOL success) {
-                    completion(success);
-                }];
-            }];
+              
+              [wifiManager POSWriteCommandWithData:dataM];
+              
+              [self handlePrintCompletion:job wifiManager:wifiManager completion:^(BOOL success) {
+                completion(success);
+              }];
+            }
+          }];
         };
         
         if (isOffline) {
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)),
-                          dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), connectAndPrint);
+          dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)),
+                         dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), connectAndPrint);
         } else {
-            connectAndPrint();
+          connectAndPrint();
         }
+      }
     }];
+  }
 }
 
 // New helper method for checking printer status
@@ -332,47 +348,51 @@
 }
 
 - (void)processItemType:(PrintItem *)item withData:(NSMutableData *)dataM wifiManager:(POSWIFIManager *)wifiManager lastItem:(Boolean)lastItem {
+  @autoreleasepool {
+    
     switch (item.type) {
-        case PrintItemTypeText:
-            [self addTextToPrintData:dataM item:item];
-            break;
-            
-        case PrintItemTypeFeed:
-            [dataM appendData:[PosCommand printAndFeedForwardWhitN:item.lines]];
-            break;
-            
-        case PrintItemTypeImage:
-            [dataM appendData:[PosCommand printAndFeedLine]];
-            [dataM appendData:[PosCommand printRasteBmpWithM:RasterNolmorWH
-                                                  andImage:item.bitmapImage
-                                                  andType:Dithering]];
-            break;
-            
-        case PrintItemTypeColumn:
-            [self addColumnToPrintData:dataM item:item];
-            break;
-            
-        case PrintItemTypeQRCode:
-            [self addQRCodeToPrintData:dataM item:item];
-            break;
-            
-        case PrintItemTypeCashBox:
-            [wifiManager POSWriteCommandWithData:[PosCommand openCashBoxRealTimeWithM:0 andT:2]];
-            break;
-            
-        case PrintItemTypeCut:
-            [dataM appendData:[PosCommand printAndFeedForwardWhitN:5]];
-            [dataM appendData:[PosCommand selectCutPageModelAndCutpage:0]];
-            break;
-            
-        default:
-            break;
+      case PrintItemTypeText:
+        [self addTextToPrintData:dataM item:item];
+        break;
+        
+      case PrintItemTypeFeed:
+        [dataM appendData:[PosCommand printAndFeedForwardWhitN:item.lines]];
+        break;
+        
+      case PrintItemTypeImage:
+        [dataM appendData:[PosCommand printAndFeedLine]];
+        [dataM appendData:[PosCommand printRasteBmpWithM:RasterNolmorWH
+                                                andImage:item.bitmapImage
+                                                 andType:Dithering]];
+        break;
+        
+      case PrintItemTypeColumn:
+        [self addColumnToPrintData:dataM item:item];
+        break;
+        
+      case PrintItemTypeQRCode:
+        [self addQRCodeToPrintData:dataM item:item];
+        break;
+        
+      case PrintItemTypeCashBox:
+        [wifiManager POSWriteCommandWithData:[PosCommand openCashBoxRealTimeWithM:0 andT:2]];
+        break;
+        
+      case PrintItemTypeCut:
+        [dataM appendData:[PosCommand printAndFeedForwardWhitN:5]];
+        [dataM appendData:[PosCommand selectCutPageModelAndCutpage:0]];
+        break;
+        
+      default:
+        break;
     }
+  }
 }
 
 - (void)handlePrintCompletion:(PrinterJob *)job
                  wifiManager:(POSWIFIManager *)wifiManager
                  completion:(void (^)(BOOL))completion {
+  @autoreleasepool {
     // Parse metadata
     NSError *jsonError;
     NSDictionary *metadata = [NSJSONSerialization JSONObjectWithData:[job.metadata dataUsingEncoding:NSUTF8StringEncoding]
@@ -392,54 +412,58 @@
     
     dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
     completion(YES);
+  }
 }
 
 
 - (void)addTextToPrintData:(NSMutableData *)dataM item:(PrintItem *)item {
+  @autoreleasepool {
+    
     NSStringEncoding encodeCharset;
     
     if ([PrinterUtils containsChineseCharacter:item.text]) {
-        encodeCharset = CFStringConvertEncodingToNSStringEncoding(kCFStringEncodingGB_18030_2000);
-        [dataM appendData:[PosCommand selectChineseCharacterModel]];
-        [dataM appendData:[PosCommand setChineseCharLeftAndRightSpaceWithN1:0 andN2:0]];
+      encodeCharset = CFStringConvertEncodingToNSStringEncoding(kCFStringEncodingGB_18030_2000);
+      [dataM appendData:[PosCommand selectChineseCharacterModel]];
+      [dataM appendData:[PosCommand setChineseCharLeftAndRightSpaceWithN1:0 andN2:0]];
     } else {
-        [dataM appendData:[PosCommand CancelChineseCharModel]];
-        encodeCharset = CFStringConvertEncodingToNSStringEncoding(kCFStringEncodingDOSLatinUS);
+      [dataM appendData:[PosCommand CancelChineseCharModel]];
+      encodeCharset = CFStringConvertEncodingToNSStringEncoding(kCFStringEncodingDOSLatinUS);
     }
-
+    
     [dataM appendData:[PosCommand selectAlignment:item.getAlignmentAsInt]];
-
+    
     if (item.bold) {
-        [dataM appendData:[PosCommand selectOrCancleBoldModel:1]];
+      [dataM appendData:[PosCommand selectOrCancleBoldModel:1]];
     }
-
+    
     NSInteger width = 48;
     
     if(item.fontSize == FontSizeBig || item.fontSize == FontSizeWide){
-        width = 24;
+      width = 24;
     }
-
+    
     NSString *itemString = [PrinterUtils sanitizeStringForPrinter:item.text];
     
     NSArray<NSString *> *lines = [PrinterUtils splitTextIntoLines:itemString width:width wrapWords:item.wrapWords];
     
-
+    
     for (NSString *line in lines) {
-       NSData *textData = [line dataUsingEncoding:encodeCharset];
-       [dataM appendData:textData];
-   
-       [dataM appendData:[PosCommand printAndFeedLine]];
+      NSData *textData = [line dataUsingEncoding:encodeCharset];
+      [dataM appendData:textData];
+      
+      [dataM appendData:[PosCommand printAndFeedLine]];
     }
-
+    
     
     if (item.bold) {
-        [dataM appendData:[PosCommand selectOrCancleBoldModel:0]];
+      [dataM appendData:[PosCommand selectOrCancleBoldModel:0]];
     }
-    
+  }
 }
 
 - (void)addColumnToPrintData:(NSMutableData *)dataM item:(PrintItem *)item {
-    if (item.columns) {
+    @autoreleasepool {
+       if (item.columns) {
         NSStringEncoding encodeCharset;
         
         if ([PrinterUtils columnsContainChineseCharacters:item.columns]) {
@@ -490,6 +514,7 @@
             [dataM appendData:[PosCommand selectOrCancleBoldModel:0]];
         }
     }
+  }
 }
 
 - (void)addQRCodeToPrintData:(NSMutableData *)dataM item:(PrintItem *)item {
