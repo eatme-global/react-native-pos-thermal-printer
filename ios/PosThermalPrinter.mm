@@ -115,7 +115,7 @@ RCT_EXPORT_METHOD(printFromNewPrinter:(NSDictionary *)oldPrinter
   
   NSString *oldPrinterIp = oldPrinter[@"ip"];
   NSString *newPrinterIp = newPrinter[@"ip"];
-
+  
   [self.printerJobManager updateJobsForPrinter:oldPrinterIp toNewIP:newPrinterIp completion:^(BOOL jobsUpdated) {
     resolve(@YES);
   }];
@@ -206,22 +206,24 @@ RCT_EXPORT_METHOD(setPrintJobs:(NSDictionary *)config
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
+  
   // Send pre-print event
   if (self.bridge) {
     [self sendEventWithName:@"PrePrintCheck" body:@""];
   }
-      
+  
   NSString *printerIp = config[@"ip"];
   
   
   // Add a small delay to allow the JS side to process
   dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)),
-  dispatch_get_main_queue(),
+                 dispatch_get_main_queue(),
                  ^{
     [self.printerJobManager setPrintJobs:printerIp content:content metadata:metadata completion:^(BOOL success) {
       resolve(@(success));
     }];
   });
+  
 }
 
 /**
@@ -249,12 +251,13 @@ RCT_EXPORT_METHOD(checkPrinterStatus:(NSDictionary *)config
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-   
+  
+  
   NSString *printerIp = config[@"ip"];
   
   // Initialize the printer controller
   PrinterController *printer = [[PrinterController alloc] initWithIP:printerIp port:9100];
-
+  
   // Asynchronous status check
   [printer checkPrinterStatusWithCompletion:^(BOOL isOffline,
                                               PrinterStatus *status,
@@ -263,16 +266,17 @@ RCT_EXPORT_METHOD(checkPrinterStatus:(NSDictionary *)config
       NSLog(@"Error: %@", error.localizedDescription);
       return;
     }
-        
+    
     if (isOffline) {
       NSLog(@"Printer is offline");
     } else {
       NSLog(@"Printer is online");
     }
   }];
-
+  
   // Clean up when done
   [printer disconnectPrinter];
+  
 }
 
 /**
@@ -325,7 +329,7 @@ RCT_EXPORT_METHOD(dismissPendingJobs:(NSDictionary *)config
   [self.printerConnectionManager retryPrinterConnection:printerIp completion:^(BOOL success) {
     if (success) {
       NSLog(@"Printer Connection is successful");
-                
+      
       [self.printerJobManager dismissPrinterJobs:printerIp completion:^(BOOL removed) {
         resolve(@(removed));
       }];
@@ -345,11 +349,11 @@ RCT_EXPORT_METHOD(retryPendingJobsFromPrinter:(NSDictionary *)config
   [self.printerConnectionManager retryPrinterConnection:printerIp completion:^(BOOL success) {
     if (success) {
       NSLog(@"Printer Connection is successful");
-                
+      
       [self.printerJobManager updateJobsForPrinter:printerIp toNewIP:printerIp completion:^(BOOL jobsUpdated) {
         resolve(@(jobsUpdated));
       }];
-                
+      
     } else {
       NSLog(@"Printer Connection failed");
       resolve(@NO);
