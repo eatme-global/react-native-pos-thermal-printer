@@ -1,3 +1,10 @@
+# [0.9.0-beta.10](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.9.0-beta.9...v0.9.0-beta.10) (2025-03-11)
+
+
+### Bug Fixes
+
+* thread handle improvements ([5adf0ab](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/5adf0ab5a256b4a73e29e5d6302d5e43c984da61))
+
 # [0.9.0-beta.9](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.9.0-beta.8...v0.9.0-beta.9) (2025-03-06)
 
 
