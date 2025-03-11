@@ -7,6 +7,17 @@
 * placeholder comment to increase the version ([4aefda7](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/4aefda7038c5a0f80255f3421584f3e51c45f374))
 * revert thread optimization ([48b56b8](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/48b56b885fca248c70a34159efa112816af77ce7))
 * thread handle improvements ([5adf0ab](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/5adf0ab5a256b4a73e29e5d6302d5e43c984da61))
+* version update ([7fc8862](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/7fc88623bb0be5677a11074f84ea3fe6fda0523e))
+
+# [0.9.0-beta.10](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.9.0-beta.9...v0.9.0-beta.10) (2025-03-11)
+
+
+### Bug Fixes
+
+* added missing cicd codes ([94e7606](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/94e7606c9f1ab4be67a08010aa1be3bfa908ab98))
+* placeholder comment to increase the version ([4aefda7](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/4aefda7038c5a0f80255f3421584f3e51c45f374))
+* revert thread optimization ([48b56b8](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/48b56b885fca248c70a34159efa112816af77ce7))
+* thread handle improvements ([5adf0ab](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/5adf0ab5a256b4a73e29e5d6302d5e43c984da61))
 
 # [0.9.0-beta.10](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.9.0-beta.9...v0.9.0-beta.10) (2025-03-11)
 
