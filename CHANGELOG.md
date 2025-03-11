@@ -1,3 +1,10 @@
+# [0.9.0-beta.12](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.9.0-beta.11...v0.9.0-beta.12) (2025-03-11)
+
+
+### Bug Fixes
+
+* duplicate method remove ([8bed9dd](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/8bed9dd88726cf81ed6beef248216bd7b794bdad))
+
 # [0.9.0-beta.11](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.9.0-beta.10...v0.9.0-beta.11) (2025-03-11)
 
 
