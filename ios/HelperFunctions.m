@@ -6,6 +6,7 @@
 
 @implementation HelperFunctions
 
+// Placeholder comment
 
 
 + (NSArray<NSString *> *)splitTextIntoLines:(NSString *)text width:(NSInteger)width {
