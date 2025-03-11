@@ -4,9 +4,6 @@ on:
     branches: ["release/qa"]
 permissions:
   contents: write
-  issues: write
-  pull-requests: write
-  packages: write
 jobs:
   release:
     name: Release
