@@ -131,9 +131,9 @@ RCT_EXPORT_MODULE();
     }
     
     for (NSString *printerIp in printerIpsCopy) {
-        @autoreleasepool {
+       
                    [self checkPrinter:printerIp];
-               }
+      
     }
 }
 

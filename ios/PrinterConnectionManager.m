@@ -96,30 +96,34 @@
 
 - (void)getPrinterPoolStatus:(void (^)(NSArray *printers))completion {
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        
         NSMutableArray *connectedPrinters = [NSMutableArray new];
         
         for (NSString *printerIp in self.printerPool) {
-            NSDictionary *printerConfig = self.printerConfigs[printerIp];
+          NSDictionary *printerConfig = self.printerConfigs[printerIp];
+          
+          if (printerConfig) {
+            NSMutableDictionary *printerInfo = [NSMutableDictionary dictionaryWithDictionary:printerConfig];
+            printerInfo[@"printerName"] = printerConfig[@"ip"];
+            printerInfo[@"printerIp"] = printerIp;
             
-            if (printerConfig) {
-                NSMutableDictionary *printerInfo = [NSMutableDictionary dictionaryWithDictionary:printerConfig];
-                printerInfo[@"printerName"] = printerConfig[@"ip"];
-                printerInfo[@"printerIp"] = printerIp;
+            [self.printerConnectionUtils isPrinterReachable:printerIp completion:^(BOOL isReachable) {
+             
+                printerInfo[@"isReachable"] = @(isReachable);
+                [connectedPrinters addObject:printerInfo];
                 
-                [self.printerConnectionUtils isPrinterReachable:printerIp completion:^(BOOL isReachable) {
-                    printerInfo[@"isReachable"] = @(isReachable);
-                    [connectedPrinters addObject:printerInfo];
-                    
-                    if (connectedPrinters.count == self.printerPool.count) {
-                        completion(connectedPrinters);
-                    }
-                }];
-            }
+                if (connectedPrinters.count == self.printerPool.count) {
+                  completion(connectedPrinters);
+                }
+              
+            }];
+          }
         }
         
         if (self.printerPool.count == 0) {
-            completion(connectedPrinters);
+          completion(connectedPrinters);
         }
+      
     });
   dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
     
