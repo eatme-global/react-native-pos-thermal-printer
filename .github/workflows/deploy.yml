@@ -19,6 +19,9 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.PAT_TOKEN }}
 
+      - name: Install packages
+        run: yarn
+
       - name: Build package
         run: yarn prepare
 
