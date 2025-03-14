@@ -102,11 +102,11 @@ public class PrintQueueProcessor {
 
 
   private void processJobWithRetry(PrinterJob job) {
-    int maxRetries = 3;
+    int maxRetries = 2;
     int retryCount = 0;
 
     while (retryCount < maxRetries) {
-      try {
+      
         CompletableFuture<Boolean> printFuture = printerManager.printToPrinter(job);
         Boolean result = printFuture.get(500, TimeUnit.MILLISECONDS);
 
@@ -117,16 +117,14 @@ public class PrintQueueProcessor {
 
         retryCount++;
         if (retryCount < maxRetries) {
-          Thread.sleep(1000 * retryCount); // Exponential backoff
+          Thread.sleep(800);
         }
 
-      } catch (Exception e) {
-        Log.e(TAG, "Print attempt " + (retryCount + 1) + " failed", e);
-        retryCount++;
         if (retryCount >= maxRetries) {
           eventManager.sendPrinterUnreachableEvent(job.getTargetPrinterIp());
+          return;
         }
-      }
+      
     }
   }
 
