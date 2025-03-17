@@ -1,3 +1,10 @@
+# [0.9.0-beta.14](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.9.0-beta.13...v0.9.0-beta.14) (2025-03-17)
+
+
+### Bug Fixes
+
+* revert the retry mechanism to the previous mechanism ([718be90](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/718be90ed36e0ba2fd694bdef6b0142b0f070e8b))
+
 # [0.9.0-beta.13](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.9.0-beta.12...v0.9.0-beta.13) (2025-03-14)
 
 
