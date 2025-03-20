@@ -1,5 +1,7 @@
 package com.posthermalprinter.helper;
+
 import android.os.Build;
+
 import androidx.annotation.RequiresApi;
 
 import com.posthermalprinter.util.ColumnItem;
@@ -136,11 +138,11 @@ public class TextProcessor {
    * @return The corresponding TextAlignment enum value.
    */
   public static TextAlignment parseAlignment(String alignment) {
-      return switch (alignment) {
-          case "CENTER" -> TextAlignment.CENTER;
-          case "RIGHT" -> TextAlignment.RIGHT;
-          default -> TextAlignment.LEFT;
-      };
+    return switch (alignment) {
+      case "CENTER" -> TextAlignment.CENTER;
+      case "RIGHT" -> TextAlignment.RIGHT;
+      default -> TextAlignment.LEFT;
+    };
   }
 
   /**
@@ -188,25 +190,25 @@ public class TextProcessor {
   public static byte[] selectFontSize(FontSize fontSize) {
     int widthMultiplier;
     int heightMultiplier = switch (fontSize) {
-        case WIDE -> {
-            widthMultiplier = 2;
-            yield 1;
-        }
-        case TALL -> {
-            widthMultiplier = 1;
-            yield 2;
-        }
-        case BIG -> {
-            widthMultiplier = 2;
-            yield 2;
-        }
-        default -> {
-            widthMultiplier = 1;
-            yield 1;
-        }
+      case WIDE -> {
+        widthMultiplier = 2;
+        yield 1;
+      }
+      case TALL -> {
+        widthMultiplier = 1;
+        yield 2;
+      }
+      case BIG -> {
+        widthMultiplier = 2;
+        yield 2;
+      }
+      default -> {
+        widthMultiplier = 1;
+        yield 1;
+      }
     };
 
-      return selectFont(widthMultiplier, heightMultiplier);
+    return selectFont(widthMultiplier, heightMultiplier);
   }
 
   /**
@@ -216,7 +218,7 @@ public class TextProcessor {
    * @param widthMultiplier  The width multiplier (1-8).
    * @return A byte array representing the font selection command.
    */
-  public static byte[] selectFont(int heightMultiplier , int widthMultiplier) {
+  public static byte[] selectFont(int heightMultiplier, int widthMultiplier) {
     if (widthMultiplier < 1) widthMultiplier = 1;
     if (widthMultiplier > 8) widthMultiplier = 8;
     if (heightMultiplier < 1) heightMultiplier = 1;
@@ -224,7 +226,7 @@ public class TextProcessor {
 
     int n = (widthMultiplier - 1) | ((heightMultiplier - 1) << 4);
 
-      return new byte[]{29, 33, (byte)n};
+    return new byte[]{29, 33, (byte) n};
   }
 
   /**
@@ -270,15 +272,15 @@ public class TextProcessor {
       }
     } else {
       // Text overflow handling
-        return switch (alignment) {
-            case LEFT -> truncateToVisualWidth(text, width);
-            case RIGHT -> text.substring(Math.max(0, text.length() - width));
-            case CENTER -> {
-                int startIndex = (text.length() - width) / 2;
-                yield text.substring(startIndex, Math.min(startIndex + width, text.length()));
-            }
-            default -> text;
-        };
+      return switch (alignment) {
+        case LEFT -> truncateToVisualWidth(text, width);
+        case RIGHT -> text.substring(Math.max(0, text.length() - width));
+        case CENTER -> {
+          int startIndex = (text.length() - width) / 2;
+          yield text.substring(startIndex, Math.min(startIndex + width, text.length()));
+        }
+        default -> text;
+      };
     }
   }
 

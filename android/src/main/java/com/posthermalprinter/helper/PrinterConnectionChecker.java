@@ -1,9 +1,9 @@
 package com.posthermalprinter.helper;
+
 import android.annotation.SuppressLint;
-import android.os.IBinder;
 
 import com.posthermalprinter.PosThermalPrinterModule;
-//import com.posthermalprinter.imin.IminPrinterModule;
+import com.posthermalprinter.imin.IminPrinterModule;
 
 // Placeholder comment to give a releases
 
@@ -52,12 +52,12 @@ public class PrinterConnectionChecker {
       return CompletableFuture.completedFuture(results);
     }
 
-//    IminPrinterModule iMinPrinterModule = PosThermalPrinterModule.Companion.getIMinPrinterModule();
+    IminPrinterModule iMinPrinterModule = PosThermalPrinterModule.Companion.getIMinPrinterModule();
 
     String currentPrinterIp = printerIps.get(index);
     CompletableFuture<Boolean> connectionTest = new CompletableFuture<>();
 
-    if(!Objects.equals(currentPrinterIp, "INTERNAL")){
+    if (!Objects.equals(currentPrinterIp, "INTERNAL")) {
       PrinterUtils.addPrinter(binder, currentPrinterIp, new TaskCallback() {
         @Override
         public void OnSucceed() {
@@ -85,12 +85,13 @@ public class PrinterConnectionChecker {
         }
       });
     } else {
-//      if(iMinPrinterModule != null){
-//        Boolean result = iMinPrinterModule.initPrinter();
-//        results.add(new PrinterConnectionResult(currentPrinterIp, result));
-//
-//        connectionTest.complete(result);
-//      }
+      if (iMinPrinterModule != null) {
+        Boolean result = iMinPrinterModule.initPrinter();
+        results.add(new PrinterConnectionResult(currentPrinterIp, result));
+        connectionTest.complete(result);
+      } else {
+        connectionTest.complete(false);
+      }
     }
 
     return connectionTest

@@ -4,7 +4,6 @@ import android.util.Log;
 
 import net.posprinter.posprinterface.IMyBinder;
 import net.posprinter.posprinterface.TaskCallback;
-import net.posprinter.utils.PosPrinterDev;
 
 import java.io.IOException;
 import java.net.InetAddress;
