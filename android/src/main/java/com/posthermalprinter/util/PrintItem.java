@@ -110,11 +110,11 @@ public class PrintItem {
    * @return 0 for LEFT, 1 for CENTER, 2 for RIGHT
    */
   public int getAlignmentAsInt() {
-      return switch (alignment) {
-          case CENTER -> 1;
-          case RIGHT -> 2;
-          default -> 0;
-      };
+    return switch (alignment) {
+      case CENTER -> 1;
+      case RIGHT -> 2;
+      default -> 0;
+    };
   }
 
   /**
@@ -154,13 +154,21 @@ public class PrintItem {
   }
 
 
-  public boolean isFullWidth() { return fullWidth; }
+  public boolean isFullWidth() {
+    return fullWidth;
+  }
 
-  public float getPrinterWidth() { return printerWidth; }
+  public float getPrinterWidth() {
+    return printerWidth;
+  }
 
-  public void setPrinterWidth(float printerWidth) { this.printerWidth = printerWidth; }
+  public void setPrinterWidth(float printerWidth) {
+    this.printerWidth = printerWidth;
+  }
 
-  public void setFullWidth(boolean fullWidth) { this.fullWidth = fullWidth; }
+  public void setFullWidth(boolean fullWidth) {
+    this.fullWidth = fullWidth;
+  }
 
   /**
    * Sets the bitmap image for image type print items.

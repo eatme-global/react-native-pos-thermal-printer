@@ -36,13 +36,13 @@ public class PrinterServiceInitializer {
    *
    * @param reactContext The ReactApplicationContext used to bind the service.
    * @return A CompletableFuture that completes with true if the service is successfully initialized,
-   *         false if binding fails, or exceptionally if an error occurs.
+   * false if binding fails, or exceptionally if an error occurs.
    */
   @RequiresApi(api = Build.VERSION_CODES.N)
   public static CompletableFuture<Boolean> initializeServiceAsync(ReactApplicationContext reactContext) {
     CompletableFuture<Boolean> future = new CompletableFuture<>();
 
-    if(initialized){
+    if (initialized) {
       future.complete(true);
       Log.i("initializeServiceAsync", "already initialized");
     } else {

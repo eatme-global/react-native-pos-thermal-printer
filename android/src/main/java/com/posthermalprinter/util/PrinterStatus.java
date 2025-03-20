@@ -14,9 +14,9 @@ public class PrinterStatus {
   /**
    * Constructs a new PrinterStatus object.
    *
-   * @param printerIp    The IP address of the printer.
-   * @param isReachable  Whether the printer is currently reachable.
-   * @param printerName  The name of the printer.
+   * @param printerIp   The IP address of the printer.
+   * @param isReachable Whether the printer is currently reachable.
+   * @param printerName The name of the printer.
    */
   public PrinterStatus(
     String printerIp,

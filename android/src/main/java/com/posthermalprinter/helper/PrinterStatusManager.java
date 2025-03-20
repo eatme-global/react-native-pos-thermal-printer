@@ -1,18 +1,17 @@
 package com.posthermalprinter.helper;
 
 import android.os.Build;
-import android.util.Log;
 
 import androidx.annotation.RequiresApi;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
+
 import net.posprinter.posprinterface.IMyBinder;
 import net.posprinter.utils.PosPrinterDev;
 
-import com.posthermalprinter.PrinterManager;
 import com.posthermalprinter.util.PrinterStatus;
 
 /**
@@ -27,7 +26,7 @@ public class PrinterStatusManager {
    *
    * @param binder The IMyBinder instance used to interact with the printer service.
    * @return A List of PrinterStatus objects representing the status of each printer in the pool.
-   *         Returns an empty list if the binder is null or if no printers are found.
+   * Returns an empty list if the binder is null or if no printers are found.
    */
   public CompletableFuture<List<PrinterStatus>> getPrinterPoolStatus(IMyBinder binder, List<String> printerPool) throws ExecutionException, InterruptedException {
     if (binder == null) {
