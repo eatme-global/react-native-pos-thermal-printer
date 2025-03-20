@@ -1,3 +1,10 @@
+# [0.9.0-beta.15](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.9.0-beta.14...v0.9.0-beta.15) (2025-03-20)
+
+
+### Bug Fixes
+
+* uncomment imin print related codes and code cleanup ([b9547d8](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/b9547d86d38a018893e46567023f5ee05c9bc2a0))
+
 # [0.9.0-beta.14](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.9.0-beta.13...v0.9.0-beta.14) (2025-03-17)
 
 
