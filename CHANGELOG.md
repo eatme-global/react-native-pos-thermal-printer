@@ -1,3 +1,10 @@
+# [0.9.0-beta.16](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.9.0-beta.15...v0.9.0-beta.16) (2025-04-03)
+
+
+### Bug Fixes
+
+* remove timeout from imin printer connection to avoid crashes in compatible futures ([d90a1a5](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/d90a1a5cfc125f4b162877717807cfed75ed983a))
+
 # [0.9.0-beta.15](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.9.0-beta.14...v0.9.0-beta.15) (2025-03-20)
 
 
