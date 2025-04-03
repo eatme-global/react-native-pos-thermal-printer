@@ -49,14 +49,6 @@ public class IminPrinterModule extends ReactContextBaseJavaModule {
 
     CompletableFuture<Boolean> result = new CompletableFuture<>();
 
-    // Add a timeout mechanism
-    CompletableFuture.delayedExecutor(800, TimeUnit.MILLISECONDS).execute(() -> {
-      if (!result.isDone()) {
-        Log.w(TAG, "Printer initialization timed out after 500ms");
-        result.complete(false);
-      }
-    });
-
     ThreadPoolManager.getInstance().executeTask(new Runnable() {
       @RequiresApi(api = Build.VERSION_CODES.N)
       @Override
