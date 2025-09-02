@@ -1,4 +1,3 @@
-
 package com.posthermalprinter;
 
 import android.os.Build;
@@ -361,24 +360,35 @@ public class PrinterManager {
   private CompletableFuture<Boolean> addNewPrinter(String printerIp) {
     CompletableFuture<Boolean> additionResult = new CompletableFuture<>();
 
+    Log.i("addNewPrinter", "Attempting to add printer: " + printerIp);
+    
+    // First check if printer is reachable
+    if (!PrinterUtils.isPrinterReachable(printerIp)) {
+      Log.w("addNewPrinter", "Printer not reachable: " + printerIp);
+      additionResult.complete(false);
+      return additionResult;
+    }
+
     IMyBinder binder = PosThermalPrinterModule.Companion.getBinder();
     if (binder != null) {
+      Log.i("addNewPrinter", "Binder available, connecting to: " + printerIp);
       PrinterUtils.addPrinter(binder, printerIp, new TaskCallback() {
         @Override
         public void OnSucceed() {
+          Log.i("addNewPrinter", "Successfully connected to printer: " + printerIp);
           safeDisconnect(binder);
           additionResult.complete(true);
-          Log.i("addNewPrinter", "connected");
         }
 
         @Override
         public void OnFailed() {
-          Log.i("addNewPrinter", "not connected");
+          Log.e("addNewPrinter", "Failed to connect to printer: " + printerIp);
           additionResult.complete(false);
           safeDisconnect(binder);
         }
       });
     } else {
+      Log.e("addNewPrinter", "Binder is null, cannot connect to printer: " + printerIp);
       additionResult.complete(false);
     }
 

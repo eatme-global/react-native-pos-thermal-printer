@@ -138,6 +138,13 @@ const PrinterContent: React.FC = () => {
         wrapWords: false,
       },
 
+      {
+        type: PrintJobRowType.QRCODE,
+        text: "https://upload.wikimedia.org/wikipedia/commons/2/24/Adidas_logo.png",
+        alignment: PrintAlignment.CENTER,
+        unit: 6,
+      },
+
       { type: PrintJobRowType.FEED, lines: 2 },
       {
         type: PrintJobRowType.COLUMN,
