@@ -1,3 +1,10 @@
+# [0.9.0-beta.17](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.9.0-beta.16...v0.9.0-beta.17) (2025-09-02)
+
+
+### Features
+
+* add configurable QR code unit size and improve printer connectivity ([8b4fc6f](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/8b4fc6f18417e26f10193e9ff4355f3236202b10))
+
 # [0.9.0-beta.16](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.9.0-beta.15...v0.9.0-beta.16) (2025-04-03)
 
 
