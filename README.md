@@ -211,7 +211,7 @@ const App = () => {
 | WIDE      | 24                 | 2x               | 1x                |
 | BIG       | 24                 | 2x               | 2x                |
 
-> Note: When calculating column widths, ensure the total width matches the character limit for your chosen font size. Incorrect width calculations may result in misaligned text or truncation.
+> Note: When calculating column widths, ensure the total width matches the character limit for your chosen font size. Incorrect width calculations may result in misaligned text or truncation
 
 Example width calculations:
 
