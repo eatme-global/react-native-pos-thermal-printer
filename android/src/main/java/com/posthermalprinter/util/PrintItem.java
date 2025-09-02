@@ -29,6 +29,8 @@ public class PrintItem {
 
   private boolean fullWidth;
 
+  private int units;
+
   /**
    * Constructs a new PrintItem with specified properties.
    *
@@ -39,8 +41,9 @@ public class PrintItem {
    * @param lines     The number of lines to feed or cut.
    * @param columns   The list of column items (for column type).
    * @param fontSize  The font size of the text.
+   * @param units     The unit size 
    */
-  public PrintItem(Type type, String text, boolean bold, TextAlignment alignment, int lines, List<ColumnItem> columns, FontSize fontSize) {
+  public PrintItem(Type type, String text, boolean bold, TextAlignment alignment, int lines, List<ColumnItem> columns, FontSize fontSize, int units) {
     this.type = type;
     this.text = text;
     this.bold = bold;
@@ -48,6 +51,7 @@ public class PrintItem {
     this.lines = lines;
     this.columns = columns;
     this.fontSize = fontSize;
+    this.units = units;
   }
 
   /**
@@ -115,6 +119,10 @@ public class PrintItem {
       case RIGHT -> 2;
       default -> 0;
     };
+  }
+
+  public int getUnits() {
+    return units;
   }
 
   /**

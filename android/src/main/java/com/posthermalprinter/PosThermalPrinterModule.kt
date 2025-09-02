@@ -107,7 +107,7 @@ class PosThermalPrinterModule(private val reactContext: ReactApplicationContext)
         promise.resolve(false)
       }
     } catch (e: Exception) {
-      promise.reject("REMOVE_PRINTER_ERROR", "Failed to remove printer from pool: ${e.message}")
+      promise.reject("ADD_PRINTER_ERROR", "Failed to add printer to pool: ${e.message}")
     }
   }
 

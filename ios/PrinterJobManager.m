@@ -519,7 +519,7 @@
 
 - (void)addQRCodeToPrintData:(NSMutableData *)dataM item:(PrintItem *)item {
   [dataM appendData:[PosCommand selectAlignment:item.getAlignmentAsInt]];
-  [dataM appendData:[PosCommand setQRcodeUnitsize:item.getUnits]];
+  [dataM appendData:[PosCommand setQRcodeUnitsize:item.units]];
   [dataM appendData:[PosCommand setErrorCorrectionLevelForQrcode:48]];
   [dataM appendData:[PosCommand sendDataToStoreAreaWitQrcodeConent:item.text usEnCoding:CFStringConvertEncodingToNSStringEncoding(kCFStringEncodingGB_18030_2000)]];
   [dataM appendData:[PosCommand printTheQRcodeInStore]];
