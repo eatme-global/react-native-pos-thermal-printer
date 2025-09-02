@@ -3,8 +3,6 @@ package com.posthermalprinter
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
-import com.posthermalprinter.helper.PrintJobHandler
-import com.posthermalprinter.helper.PrinterServiceInitializer
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
@@ -12,9 +10,10 @@ import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
-//import com.posthermalprinter.imin.IminPrinterModule
+import com.posthermalprinter.helper.PrintJobHandler
+import com.posthermalprinter.helper.PrinterServiceInitializer
+import com.posthermalprinter.imin.IminPrinterModule
 import net.posprinter.posprinterface.IMyBinder
-import okhttp3.internal.wait
 
 
 class PosThermalPrinterModule(private val reactContext: ReactApplicationContext) :
@@ -55,7 +54,7 @@ class PosThermalPrinterModule(private val reactContext: ReactApplicationContext)
         promise.resolve(false)
         null
       }
-//    iMinPrinterModule = IminPrinterModule(reactContext);
+    iMinPrinterModule = IminPrinterModule(reactContext);
   }
 
   /**
@@ -108,7 +107,7 @@ class PosThermalPrinterModule(private val reactContext: ReactApplicationContext)
         promise.resolve(false)
       }
     } catch (e: Exception) {
-      promise.reject("REMOVE_PRINTER_ERROR", "Failed to remove printer from pool: ${e.message}")
+      promise.reject("ADD_PRINTER_ERROR", "Failed to add printer to pool: ${e.message}")
     }
   }
 
@@ -153,7 +152,7 @@ class PosThermalPrinterModule(private val reactContext: ReactApplicationContext)
 
     if (printerManager != null) {
       val result = printerManager?.addPrinterAsync(ip, type)?.get();
-      if(result == true){
+      if (result == true) {
         printerManager?.changePendingPrintJobsPrinter(printerConfig, printerConfig);
       }
       promise.resolve(result)
@@ -242,7 +241,12 @@ class PosThermalPrinterModule(private val reactContext: ReactApplicationContext)
    */
   @RequiresApi(Build.VERSION_CODES.O)
   @ReactMethod
-  fun setPrintJobs(printerConfig: ReadableMap, content: ReadableArray, metadata:String, promise: Promise) {
+  fun setPrintJobs(
+    printerConfig: ReadableMap,
+    content: ReadableArray,
+    metadata: String,
+    promise: Promise
+  ) {
 
     val ip = printerConfig.getString("ip") ?: ""
     val type = printerConfig.getString("type") ?: "NETWORK"
@@ -265,7 +269,11 @@ class PosThermalPrinterModule(private val reactContext: ReactApplicationContext)
    */
   @RequiresApi(Build.VERSION_CODES.N)
   @ReactMethod
-  fun printFromNewPrinter(oldPrinterConfig: ReadableMap, newPrinterConfig: ReadableMap, promise: Promise) {
+  fun printFromNewPrinter(
+    oldPrinterConfig: ReadableMap,
+    newPrinterConfig: ReadableMap,
+    promise: Promise
+  ) {
     printerManager?.changePendingPrintJobsPrinter(oldPrinterConfig, newPrinterConfig);
     promise.resolve(true);
   }
@@ -306,8 +314,6 @@ class PosThermalPrinterModule(private val reactContext: ReactApplicationContext)
   }
 
 
-
-
   //endregion
 
   /**
@@ -324,7 +330,7 @@ class PosThermalPrinterModule(private val reactContext: ReactApplicationContext)
   companion object {
     const val NAME = "PosThermalPrinter"
     var binder: IMyBinder? = null
-//    var iMinPrinterModule: IminPrinterModule? = null;
+    var iMinPrinterModule: IminPrinterModule? = null;
   }
 
 

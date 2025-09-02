@@ -3,6 +3,7 @@ package com.posthermalprinter.helper;
 
 import android.os.Handler;
 import android.os.Looper;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;

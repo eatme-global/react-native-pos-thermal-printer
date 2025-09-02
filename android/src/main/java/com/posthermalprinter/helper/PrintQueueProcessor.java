@@ -1,20 +1,18 @@
 package com.posthermalprinter.helper;
 
 import android.os.Build;
+
 import androidx.annotation.RequiresApi;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import android.util.Log;
@@ -39,16 +37,12 @@ public class PrintQueueProcessor {
   private final List<String> printerPool;
   private final PrinterManager printerManager;
   private final PrinterEventManager eventManager;
-  private  ExecutorService printExecutor;
+  private ExecutorService printExecutor;
   private volatile boolean isRunning = true;
 
   private String lastPrinterIp = null;
 
   private final Object printLock = new Object();
-
-
-
-
 
 
   public PrintQueueProcessor(BlockingQueue<PrinterJob> printQueue,
@@ -64,104 +58,100 @@ public class PrintQueueProcessor {
   }
 
 
+   private void startQueueProcessor() {
+     CompletableFuture.runAsync(() -> {
+       while (isRunning) {
+         try {
+           synchronized (printLock) {
+             if (printQueue.isEmpty()) {
+               lastPrinterIp = null;
+               printLock.wait(1000); // Wait with timeout
+               continue;
+             }
+           }
 
+           PrinterJob job = printQueue.poll(500, TimeUnit.MILLISECONDS);
+           if (job == null) continue;
 
-  private void startQueueProcessor() {
-    CompletableFuture.runAsync(() -> {
-      while (isRunning) {
-        try {
-          synchronized (printLock) {
-            if (printQueue.isEmpty()) {
-              lastPrinterIp = null;
-              printLock.wait(1000); // Wait with timeout
-              continue;
-            }
-          }
+           String currentPrinterIp = job.getTargetPrinterIp();
+           if (lastPrinterIp != null && lastPrinterIp.equals(currentPrinterIp)) {
+             Thread.sleep(1000);
+           }
 
-          PrinterJob job = printQueue.poll(500, TimeUnit.MILLISECONDS);
-          if (job == null) continue;
+           processJobWithRetry(job);
+           lastPrinterIp = currentPrinterIp;
 
-          String currentPrinterIp = job.getTargetPrinterIp();
-          if (lastPrinterIp != null && lastPrinterIp.equals(currentPrinterIp)) {
-            Thread.sleep(1000);
-          }
+         } catch (InterruptedException e) {
+           Log.e(TAG, "Queue processor interrupted", e);
+           Thread.currentThread().interrupt();
+           break;
+         } catch (Exception e) {
+           Log.e(TAG, "Unexpected error in queue processor", e);
+         }
+       }
+     }, printExecutor);
+   }
 
-          processJobWithRetry(job);
-          lastPrinterIp = currentPrinterIp;
-
-        } catch (InterruptedException e) {
-          Log.e(TAG, "Queue processor interrupted", e);
-          Thread.currentThread().interrupt();
-          break;
-        } catch (Exception e) {
-          Log.e(TAG, "Unexpected error in queue processor", e);
-        }
-      }
-    }, printExecutor);
-  }
-
-
-  private void processJobWithRetry(PrinterJob job) {
-    int maxRetries = 3;
-    int retryCount = 0;
-
-    while (retryCount < maxRetries) {
-      try {
-        CompletableFuture<Boolean> printFuture = printerManager.printToPrinter(job);
-        Boolean result = printFuture.get(500, TimeUnit.MILLISECONDS);
-
-        if (Boolean.TRUE.equals(result)) {
-          applyPostPrintDelay(job);
-          return;
-        }
-
-        retryCount++;
-        if (retryCount < maxRetries) {
-          Thread.sleep(1000 * retryCount); // Exponential backoff
-        }
-
-      } catch (Exception e) {
-        Log.e(TAG, "Print attempt " + (retryCount + 1) + " failed", e);
-        retryCount++;
-        if (retryCount >= maxRetries) {
-          eventManager.sendPrinterUnreachableEvent(job.getTargetPrinterIp());
-        }
-      }
-    }
-  }
+   private void processJobWithRetry(PrinterJob job) {
+     int maxRetries = 3;
+     int retryCount = 0;
 
 
 
-  private void applyPostPrintDelay(PrinterJob job) {
-    try {
-      JSONObject metadata = new JSONObject(job.getMetadata());
-      long timeout = timeoutForType(metadata.optString("type"));
-      Thread.sleep(timeout);
-    } catch (Exception e) {
-      Log.e(TAG, "Error applying post-print delay", e);
-      try {
-        Thread.sleep(500); // Default delay
-      } catch (InterruptedException ie) {
-        Thread.currentThread().interrupt();
-      }
-    }
-  }
+     while (retryCount < maxRetries) {
+       try {
+         CompletableFuture<Boolean> printFuture = printerManager.printToPrinter(job);
+         Boolean result = printFuture.get(500, TimeUnit.MILLISECONDS);
+
+         if (Boolean.TRUE.equals(result)) {
+           applyPostPrintDelay(job);
+           return;
+         }
+
+         retryCount++;
+         if (retryCount < maxRetries) {
+           Thread.sleep(1000 * retryCount); // Exponential backoff
+         }
+
+       } catch (Exception e) {
+         Log.e(TAG, "Print attempt " + (retryCount + 1) + " failed", e);
+         retryCount++;
+         if (retryCount >= maxRetries) {
+           eventManager.sendPrinterUnreachableEvent(job.getTargetPrinterIp());
+         }
+       }
+     }
+   }
+
+
+   private void applyPostPrintDelay(PrinterJob job) {
+     try {
+       JSONObject metadata = new JSONObject(job.getMetadata());
+       long timeout = timeoutForType(metadata.optString("type"));
+       Thread.sleep(timeout);
+     } catch (Exception e) {
+       Log.e(TAG, "Error applying post-print delay", e);
+       try {
+         Thread.sleep(500); // Default delay
+       } catch (InterruptedException ie) {
+         Thread.currentThread().interrupt();
+       }
+     }
+   }
+
 
   /**
    * Processes the print queue by submitting print jobs to the print executor.
    *
    * @param binder An {@link IMyBinder} object used to retrieve printer information.
-   *
-   * @implNote This method:
-   *           1. Checks if the binder is valid.
-   *           2. Retrieves the list of available printers.
-   *           3. Submits a task to the print executor that:
-   *              a. Polls jobs from the print queue.
-   *              b. Processes each job using the processJob method.
-   *              c. Continues until the queue is empty.
-   *
    * @throws NullPointerException if the binder is null.
-   *
+   * @implNote This method:
+   * 1. Checks if the binder is valid.
+   * 2. Retrieves the list of available printers.
+   * 3. Submits a task to the print executor that:
+   * a. Polls jobs from the print queue.
+   * b. Processes each job using the processJob method.
+   * c. Continues until the queue is empty.
    * @see PrinterJob
    * @see PosPrinterDev.PrinterInfo
    */
@@ -183,15 +173,13 @@ public class PrintQueueProcessor {
    * Processes a single print job.
    *
    * @param job The {@link PrinterJob} to be processed.
-   *
    * @implNote This method:
-   *           1. Checks if the target printer is in the printer pool.
-   *           2. Verifies if the printer exists in the info list.
-   *           3. Attempts to print the job.
-   *           4. Handles success and failure scenarios, including retrying failed jobs.
-   *           5. Manages printer unreachable status and events.
-   *           6. Re-queues unprocessed jobs with a delay to avoid tight loops.
-   *
+   * 1. Checks if the target printer is in the printer pool.
+   * 2. Verifies if the printer exists in the info list.
+   * 3. Attempts to print the job.
+   * 4. Handles success and failure scenarios, including retrying failed jobs.
+   * 5. Manages printer unreachable status and events.
+   * 6. Re-queues unprocessed jobs with a delay to avoid tight loops.
    * @see PrinterJob
    * @see PosPrinterDev.PrinterInfo
    */
@@ -229,11 +217,10 @@ public class PrintQueueProcessor {
     }
 
 
-
     // Add a small delay according to the print type
     try {
       JSONObject jsonObject = new JSONObject(job.getMetadata());
-      Log.i("printToPrinter" , String.valueOf(jsonObject.getString("type").equals("Receipt")));
+      Log.i("printToPrinter", String.valueOf(jsonObject.getString("type").equals("Receipt")));
 
       long timeout = timeoutForType(jsonObject.getString("type"));
 
@@ -262,10 +249,9 @@ public class PrintQueueProcessor {
   /**
    * Checks if a printer with the given IP address exists in the provided printer info list.
    *
-   * @param infoList A list of {@link PosPrinterDev.PrinterInfo} objects to search through.
+   * @param infoList        A list of {@link PosPrinterDev.PrinterInfo} objects to search through.
    * @param targetPrinterIp The IP address of the printer to find.
    * @return true if a printer with the given IP is found in the list, false otherwise.
-   *
    * @see PosPrinterDev.PrinterInfo
    */
   private boolean isPrinterInInfoList(ArrayList<PosPrinterDev.PrinterInfo> infoList, String targetPrinterIp) {
@@ -284,20 +270,16 @@ public class PrintQueueProcessor {
    *
    * @param oldPrinterIp The IP address of the old printer to be replaced.
    * @param newPrinterIp The IP address of the new printer to be used.
-   * @param binder An {@link IMyBinder} object used to retrieve printer information.
-   *               If null, the method will log an error and exit.
-   *
-   *
+   * @param binder       An {@link IMyBinder} object used to retrieve printer information.
+   *                     If null, the method will log an error and exit.
    * @apiNote This method requires API level 24 (Android 7.0) or higher.
-   *
    * @implNote The method performs the following steps:
-   *           1. Retrieves the list of available printers.
-   *           2. Finds the new printer information based on the provided IP.
-   *           3. Drains the original print queue to a temporary queue.
-   *           4. Updates the printer information for relevant jobs.
-   *           5. Adds all jobs back to the original queue.
-   *           6. Triggers processing of the updated queue.
-   *
+   * 1. Retrieves the list of available printers.
+   * 2. Finds the new printer information based on the provided IP.
+   * 3. Drains the original print queue to a temporary queue.
+   * 4. Updates the printer information for relevant jobs.
+   * 5. Adds all jobs back to the original queue.
+   * 6. Triggers processing of the updated queue.
    * @see PrinterJob
    * @see PosPrinterDev.PrinterInfo
    */
@@ -347,26 +329,22 @@ public class PrintQueueProcessor {
 
   /**
    * Changes the target printer for a specific pending print job.
-   *
+   * <p>
    * This method modifies the print queue by updating the printer information for a job
    * that matches the provided job ID. It assigns the job to a new printer specified by the IP address.
    *
-   * @param jobId The unique identifier of the job to be modified.
+   * @param jobId     The unique identifier of the job to be modified.
    * @param printerIp The IP address of the new printer to be used.
-   * @param binder An {@link IMyBinder} object used to retrieve printer information.
-   *               If null, the method will log an error and exit.
-   *
-   *
+   * @param binder    An {@link IMyBinder} object used to retrieve printer information.
+   *                  If null, the method will log an error and exit.
    * @apiNote This method requires API level 24 (Android 7.0) or higher.
-   *
    * @implNote The method performs the following steps:
-   *           1. Retrieves the list of available printers.
-   *           2. Finds the new printer information based on the provided IP.
-   *           3. Drains the original print queue to a temporary queue.
-   *           4. Updates the printer information for the matching job.
-   *           5. Adds all jobs back to the original queue.
-   *           6. Triggers processing of the updated queue.
-   *
+   * 1. Retrieves the list of available printers.
+   * 2. Finds the new printer information based on the provided IP.
+   * 3. Drains the original print queue to a temporary queue.
+   * 4. Updates the printer information for the matching job.
+   * 5. Adds all jobs back to the original queue.
+   * 6. Triggers processing of the updated queue.
    * @see PrinterJob
    * @see PosPrinterDev.PrinterInfo
    */
@@ -423,16 +401,13 @@ public class PrintQueueProcessor {
    *
    * @param binder An {@link IMyBinder} object used for processing the print queue.
    * @return A {@link WritableArray} containing information about pending print jobs,
-   *         formatted for use in JavaScript.
-   *
-   *
+   * formatted for use in JavaScript.
    * @implNote The method performs the following steps:
-   *           1. Drains the print queue to a temporary list.
-   *           2. Iterates through the jobs, creating a WritableMap for each pending job.
-   *           3. Adds job information (printer IP, name, metadata, and job ID) to each map.
-   *           4. Adds all jobs back to the original queue.
-   *           5. Triggers processing of the updated queue.
-   *
+   * 1. Drains the print queue to a temporary list.
+   * 2. Iterates through the jobs, creating a WritableMap for each pending job.
+   * 3. Adds job information (printer IP, name, metadata, and job ID) to each map.
+   * 4. Adds all jobs back to the original queue.
+   * 5. Triggers processing of the updated queue.
    * @see PrinterJob
    * @see WritableArray
    * @see WritableMap
@@ -473,7 +448,6 @@ public class PrintQueueProcessor {
     }
 
 
-
     // Trigger processing of the updated queue
     processPrintQueue(binder);
 
@@ -484,18 +458,15 @@ public class PrintQueueProcessor {
   /**
    * Deletes a print job from the queue based on its job ID.
    *
-   * @param jobId The unique identifier of the job to be deleted.
+   * @param jobId  The unique identifier of the job to be deleted.
    * @param binder An {@link IMyBinder} object used for processing the print queue.
    * @return true if the job was found and deleted, false otherwise.
-   *
-   *
    * @implNote The method performs the following steps:
-   *           1. Drains the print queue to a temporary list.
-   *           2. Iterates through the jobs, searching for the specified job ID.
-   *           3. If found, removes the job from the list.
-   *           4. Adds all remaining jobs back to the original queue.
-   *           5. Triggers processing of the updated queue.
-   *
+   * 1. Drains the print queue to a temporary list.
+   * 2. Iterates through the jobs, searching for the specified job ID.
+   * 3. If found, removes the job from the list.
+   * 4. Adds all remaining jobs back to the original queue.
+   * 5. Triggers processing of the updated queue.
    * @see PrinterJob
    */
   public boolean deleteJobById(String jobId, IMyBinder binder) {
@@ -549,9 +520,8 @@ public class PrintQueueProcessor {
    * to ensure proper cleanup of resources.
    *
    * @implNote This method calls shutdown() on the printExecutor,
-   *           which will allow previously submitted tasks to execute
-   *           before terminating, but will not accept new tasks.
-   *
+   * which will allow previously submitted tasks to execute
+   * before terminating, but will not accept new tasks.
    * @see ExecutorService#shutdown()
    */
   public void shutdown() {

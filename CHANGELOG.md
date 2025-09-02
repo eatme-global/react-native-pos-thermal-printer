@@ -1,28 +1,49 @@
-## [0.9.3](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.9.2...v0.9.3) (2025-03-06)
+# [0.10.0-beta.1](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.9.3...v0.10.0-beta.1) (2025-09-02)
 
 
 ### Bug Fixes
 
-* chinese character exclude log fixes ([5e1655d](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/5e1655d18c5c484aae98862eebb7c15754d48bee))
+* added missing cicd codes ([94e7606](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/94e7606c9f1ab4be67a08010aa1be3bfa908ab98))
+* duplicate method remove ([8bed9dd](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/8bed9dd88726cf81ed6beef248216bd7b794bdad))
+* placeholder comment to increase the version ([2b3e6be](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/2b3e6bef5b1c904fcf64d0ac7ffdafd527641789))
+* placeholder comment to increase the version ([b25ffc6](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/b25ffc6e9b5a04bccfa18217a587c5c384d00d62))
+* placeholder comment to increase the version ([4aefda7](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/4aefda7038c5a0f80255f3421584f3e51c45f374))
+* remove timeout from imin printer connection to avoid crashes in compatible futures ([d90a1a5](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/d90a1a5cfc125f4b162877717807cfed75ed983a))
+* retry loop reduced to 2 attempts ([631b6ce](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/631b6ced9f2020d78e0f9c3e565d95faf913074e))
+* revert the retry mechanism to the previous mechanism ([718be90](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/718be90ed36e0ba2fd694bdef6b0142b0f070e8b))
+* revert thread optimization ([48b56b8](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/48b56b885fca248c70a34159efa112816af77ce7))
+* thread handle improvements ([5adf0ab](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/5adf0ab5a256b4a73e29e5d6302d5e43c984da61))
+* uncomment imin print related codes and code cleanup ([b9547d8](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/b9547d86d38a018893e46567023f5ee05c9bc2a0))
+* version update ([9f3540e](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/9f3540e5bed2e4df57e32f7b53295e0ea3de0121))
+* version update ([7fc8862](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/7fc88623bb0be5677a11074f84ea3fe6fda0523e))
+
+
+### Features
+
+* add configurable QR code unit size and improve printer connectivity ([8b4fc6f](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/8b4fc6f18417e26f10193e9ff4355f3236202b10))
+
+## [0.9.3](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.9.2...v0.9.3) (2025-03-06)
+
+### Bug Fixes
+
+- chinese character exclude log fixes ([5e1655d](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/5e1655d18c5c484aae98862eebb7c15754d48bee))
 
 ## [0.9.2](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.9.1...v0.9.2) (2025-03-06)
 
-
 ### Bug Fixes
 
-* added thread safety to print queue processor method ([640bf5c](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/640bf5ccdfc40de74d824747f17cf4c791c381e2))
-* check printer status method argument type changes ([92ffb35](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/92ffb35616ab3147f8c2868597c309eaec47af87))
-* commented imin print codes ([0486f78](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/0486f78535aa48b1fd36a7903ccfd73f836437c6))
-* ip check for printJobs removed on android platform ([ab7f80e](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/ab7f80e06e4a7ee69c2edb923e5efa46196f8fb2))
-* omited chinese characters on ios ([b76925f](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/b76925ff2f09bb2798ffbdab052c1e5e93059528))
-* removePrinterFromPool printer destructuring data type fixes ([502e5d3](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/502e5d369a26c2bf83ef0f6a430f496b252bf550))
+- added thread safety to print queue processor method ([640bf5c](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/640bf5ccdfc40de74d824747f17cf4c791c381e2))
+- check printer status method argument type changes ([92ffb35](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/92ffb35616ab3147f8c2868597c309eaec47af87))
+- commented imin print codes ([0486f78](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/0486f78535aa48b1fd36a7903ccfd73f836437c6))
+- ip check for printJobs removed on android platform ([ab7f80e](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/ab7f80e06e4a7ee69c2edb923e5efa46196f8fb2))
+- omited chinese characters on ios ([b76925f](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/b76925ff2f09bb2798ffbdab052c1e5e93059528))
+- removePrinterFromPool printer destructuring data type fixes ([502e5d3](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/502e5d369a26c2bf83ef0f6a430f496b252bf550))
 
 ## [0.9.1](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.9.0...v0.9.1) (2025-01-09)
 
-
 ### Bug Fixes
 
-* updated docs ([899af3b](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/899af3bb7c95d4ae1f9f08fef80f76b91b50bcf2))
+- updated docs ([899af3b](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/899af3bb7c95d4ae1f9f08fef80f76b91b50bcf2))
 
 # [0.9.0](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.8.4...v0.9.0) (2025-01-08)
 
@@ -47,7 +68,133 @@
 
 ### Features
 
+# [0.9.0-beta.17](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.9.0-beta.16...v0.9.0-beta.17) (2025-09-02)
+
+- add configurable QR code unit size and improve printer connectivity ([8b4fc6f](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/8b4fc6f18417e26f10193e9ff4355f3236202b10))
+
+# [0.9.0-beta.16](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.9.0-beta.15...v0.9.0-beta.16) (2025-04-03)
+
+### Bug Fixes
+
+- remove timeout from imin printer connection to avoid crashes in compatible futures ([d90a1a5](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/d90a1a5cfc125f4b162877717807cfed75ed983a))
+
+# [0.9.0-beta.15](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.9.0-beta.14...v0.9.0-beta.15) (2025-03-20)
+
+### Bug Fixes
+
+- uncomment imin print related codes and code cleanup ([b9547d8](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/b9547d86d38a018893e46567023f5ee05c9bc2a0))
+
+# [0.9.0-beta.14](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.9.0-beta.13...v0.9.0-beta.14) (2025-03-17)
+
+### Bug Fixes
+
+- revert the retry mechanism to the previous mechanism ([718be90](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/718be90ed36e0ba2fd694bdef6b0142b0f070e8b))
+
+# [0.9.0-beta.13](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.9.0-beta.12...v0.9.0-beta.13) (2025-03-14)
+
+### Bug Fixes
+
+- retry loop reduced to 2 attempts ([631b6ce](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/631b6ced9f2020d78e0f9c3e565d95faf913074e))
+
+# [0.9.0-beta.12](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.9.0-beta.11...v0.9.0-beta.12) (2025-03-11)
+
+### Bug Fixes
+
+- duplicate method remove ([8bed9dd](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/8bed9dd88726cf81ed6beef248216bd7b794bdad))
+
+# [0.9.0-beta.11](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.9.0-beta.10...v0.9.0-beta.11) (2025-03-11)
+
+### Bug Fixes
+
+- placeholder comment to increase the version ([b25ffc6](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/b25ffc6e9b5a04bccfa18217a587c5c384d00d62))
+
+# [0.9.0-beta.10](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.9.0-beta.9...v0.9.0-beta.10) (2025-03-11)
+
+### Bug Fixes
+
+- added missing cicd codes ([94e7606](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/94e7606c9f1ab4be67a08010aa1be3bfa908ab98))
+- placeholder comment to increase the version ([4aefda7](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/4aefda7038c5a0f80255f3421584f3e51c45f374))
+- revert thread optimization ([48b56b8](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/48b56b885fca248c70a34159efa112816af77ce7))
+- thread handle improvements ([5adf0ab](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/5adf0ab5a256b4a73e29e5d6302d5e43c984da61))
+- version update ([9f3540e](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/9f3540e5bed2e4df57e32f7b53295e0ea3de0121))
+- version update ([7fc8862](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/7fc88623bb0be5677a11074f84ea3fe6fda0523e))
+
+# [0.9.0-beta.10](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.9.0-beta.9...v0.9.0-beta.10) (2025-03-11)
+
+### Bug Fixes
+
+- added missing cicd codes ([94e7606](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/94e7606c9f1ab4be67a08010aa1be3bfa908ab98))
+- placeholder comment to increase the version ([4aefda7](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/4aefda7038c5a0f80255f3421584f3e51c45f374))
+- revert thread optimization ([48b56b8](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/48b56b885fca248c70a34159efa112816af77ce7))
+- thread handle improvements ([5adf0ab](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/5adf0ab5a256b4a73e29e5d6302d5e43c984da61))
+- version update ([7fc8862](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/7fc88623bb0be5677a11074f84ea3fe6fda0523e))
+
+# [0.9.0-beta.10](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.9.0-beta.9...v0.9.0-beta.10) (2025-03-11)
+
+### Bug Fixes
+
+- added missing cicd codes ([94e7606](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/94e7606c9f1ab4be67a08010aa1be3bfa908ab98))
+- placeholder comment to increase the version ([4aefda7](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/4aefda7038c5a0f80255f3421584f3e51c45f374))
+- revert thread optimization ([48b56b8](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/48b56b885fca248c70a34159efa112816af77ce7))
+- thread handle improvements ([5adf0ab](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/5adf0ab5a256b4a73e29e5d6302d5e43c984da61))
+
+# [0.9.0-beta.10](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.9.0-beta.9...v0.9.0-beta.10) (2025-03-11)
+
+### Bug Fixes
+
+- added missing cicd codes ([94e7606](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/94e7606c9f1ab4be67a08010aa1be3bfa908ab98))
+- revert thread optimization ([48b56b8](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/48b56b885fca248c70a34159efa112816af77ce7))
+- thread handle improvements ([5adf0ab](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/5adf0ab5a256b4a73e29e5d6302d5e43c984da61))
+
+# [0.9.0-beta.10](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.9.0-beta.9...v0.9.0-beta.10) (2025-03-11)
+
+### Bug Fixes
+
+- thread handle improvements ([5adf0ab](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/5adf0ab5a256b4a73e29e5d6302d5e43c984da61))
+
+# [0.9.0-beta.9](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.9.0-beta.8...v0.9.0-beta.9) (2025-03-06)
+
+### Bug Fixes
+
+- chinese character exclude log fixes ([5e1655d](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/5e1655d18c5c484aae98862eebb7c15754d48bee))
+
+# [0.9.0-beta.8](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.9.0-beta.7...v0.9.0-beta.8) (2025-03-06)
+
+### Bug Fixes
+
+- omited chinese characters on ios ([b76925f](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/b76925ff2f09bb2798ffbdab052c1e5e93059528))
+
+# [0.9.0-beta.7](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.9.0-beta.6...v0.9.0-beta.7) (2025-03-05)
+
+### Bug Fixes
+
+- commented imin print codes ([0486f78](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/0486f78535aa48b1fd36a7903ccfd73f836437c6))
+
+# [0.9.0-beta.6](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.9.0-beta.5...v0.9.0-beta.6) (2025-02-20)
+
+### Bug Fixes
+
+- check printer status method argument type changes ([92ffb35](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/92ffb35616ab3147f8c2868597c309eaec47af87))
+
+# [0.9.0-beta.5](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.9.0-beta.4...v0.9.0-beta.5) (2025-02-12)
+
+### Bug Fixes
+
+- ip check for printJobs removed on android platform ([ab7f80e](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/ab7f80e06e4a7ee69c2edb923e5efa46196f8fb2))
+
+# [0.9.0-beta.4](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.9.0-beta.3...v0.9.0-beta.4) (2025-02-11)
+
+### Bug Fixes
+
+- removePrinterFromPool printer destructuring data type fixes ([502e5d3](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/502e5d369a26c2bf83ef0f6a430f496b252bf550))
+
+# [0.9.0-beta.3](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.9.0-beta.2...v0.9.0-beta.3) (2025-01-29)
+
+### Bug Fixes
+
+- # added thread safety to print queue processor method ([640bf5c](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/640bf5ccdfc40de74d824747f17cf4c791c381e2))
 - imin printer print integration ([1f4c464](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/1f4c46401787175defb1415aefdead84f1aae47a))
+  > > > > > > > main
 
 # [0.9.0-beta.2](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.9.0-beta.1...v0.9.0-beta.2) (2025-01-08)
 

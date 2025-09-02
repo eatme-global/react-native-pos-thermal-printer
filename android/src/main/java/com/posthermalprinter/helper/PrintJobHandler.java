@@ -6,6 +6,7 @@ import android.graphics.Color;
 import android.os.Build;
 
 import androidx.annotation.RequiresApi;
+
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.posthermalprinter.util.*;
@@ -32,7 +33,6 @@ public class PrintJobHandler {
   /**
    * Processes a PrinterJob and converts it into a list of byte arrays ready for sending to the printer.
    *
-
    * @return A List of byte arrays representing the processed print job.
    */
   @RequiresApi(api = Build.VERSION_CODES.N)
@@ -80,7 +80,7 @@ public class PrintJobHandler {
         list.add(DataForSendToPrinterPos80.printAndFeedForward(item.getLines() - 1));
         break;
       case CUT:
-        if(!internal){
+        if (!internal) {
           list.add(DataForSendToPrinterPos80.selectCutPagerModerAndCutPager(0x42, 0x66));
         } else {
           list.add(DataForSendToPrinterPos80.selectCutPagerModerAndCutPager(0x42, 0x02));  // 3 lines
@@ -99,9 +99,9 @@ public class PrintJobHandler {
    * @param list The list to add the processed data to.
    * @param item The PrintItem containing QR code data.
    */
-  private static void processQRCodeItem(List<byte[]> list, PrintItem item){
+  private static void processQRCodeItem(List<byte[]> list, PrintItem item) {
     list.add(DataForSendToPrinterPos80.selectAlignment(item.getAlignmentAsInt()));
-    list.add(DataForSendToPrinterPos80.printQRcode(4,48,item.getText()));
+    list.add(DataForSendToPrinterPos80.printQRcode(item.getUnits(), 48, item.getText()));
     list.add(DataForSendToPrinterPos80.printAndFeedLine());
   }
 
@@ -167,7 +167,6 @@ public class PrintJobHandler {
           buffer.write(DataForSendToPrinterPos80.selectAlignment(0));
 
 
-
           // If bold is needed, enable it once at the start
           if (item.isBold()) {
             // Try using a different emphasis command
@@ -183,7 +182,8 @@ public class PrintJobHandler {
           }
 
           // Line feed
-          buffer.write(DataForSendToPrinterPos80.printAndFeed(0));        }
+          buffer.write(DataForSendToPrinterPos80.printAndFeed(0));
+        }
       }
 
       // Send all data at once
@@ -193,6 +193,7 @@ public class PrintJobHandler {
       e.printStackTrace();
     }
   }
+
   /**
    * Processes an image print item.
    *
@@ -320,11 +321,11 @@ public class PrintJobHandler {
     buffer.write(TextProcessor.selectFontSize(item.getFontSize()));
 
     if (TextProcessor.containsChineseCharacter(item.getText())) {
-        encodeCharset = Charset.forName("GBK");
-        buffer.write(DataForSendToPrinterPos80.selectChineseCharModel());
-        buffer.write(DataForSendToPrinterPos80.setChineseCharLeftAndRightSpace(0, 0));
+      encodeCharset = Charset.forName("GBK");
+      buffer.write(DataForSendToPrinterPos80.selectChineseCharModel());
+      buffer.write(DataForSendToPrinterPos80.setChineseCharLeftAndRightSpace(0, 0));
     } else {
-        buffer.write(DataForSendToPrinterPos80.CancelChineseCharModel());
+      buffer.write(DataForSendToPrinterPos80.CancelChineseCharModel());
     }
 
     // Set alignment
@@ -332,25 +333,25 @@ public class PrintJobHandler {
 
     // Set bold using the original command
     if (item.isBold()) {
-        buffer.write(DataForSendToPrinterPos80.selectOrCancelBoldModel(1));
+      buffer.write(DataForSendToPrinterPos80.selectOrCancelBoldModel(1));
     } else {
-        buffer.write(DataForSendToPrinterPos80.selectOrCancelBoldModel(0));
+      buffer.write(DataForSendToPrinterPos80.selectOrCancelBoldModel(0));
     }
 
     int printerLineWidth = calculatePrinterWidth(item.getFontSize());
     List<String> lines = TextProcessor.splitTextIntoLines(item.getText(), printerLineWidth, item.getWordWrap());
 
     for (String line : lines) {
-        buffer.write(line.getBytes(encodeCharset));
-        buffer.write(DataForSendToPrinterPos80.printAndFeedLine());
+      buffer.write(line.getBytes(encodeCharset));
+      buffer.write(DataForSendToPrinterPos80.printAndFeedLine());
     }
 
     if (item.isBold()) {
-        buffer.write(DataForSendToPrinterPos80.selectOrCancelBoldModel(0));
+      buffer.write(DataForSendToPrinterPos80.selectOrCancelBoldModel(0));
     }
 
     list.add(buffer.toByteArray());
-}
+  }
 
   /**
    * Calculates the printer width based on the font size.
@@ -359,17 +360,17 @@ public class PrintJobHandler {
    * @return The calculated printer width.
    */
   private static int calculatePrinterWidth(FontSize fontSize) {
-      return switch (fontSize) {
-          case WIDE, BIG -> 24;
-          default -> 48;
-      };
+    return switch (fontSize) {
+      case WIDE, BIG -> 24;
+      default -> 48;
+    };
   }
 
   /**
    * Creates a PrinterJob from the given parameters.
    *
-   * @param ip The IP address of the printer.
-   * @param content The content to be printed.
+   * @param ip       The IP address of the printer.
+   * @param content  The content to be printed.
    * @param metadata Additional metadata for the print job.
    * @return A new PrinterJob object.
    * @throws IOException If there's an error processing the content.
@@ -379,7 +380,7 @@ public class PrintJobHandler {
     List<PrintItem> printItems = createPrintItems(content);
     String jobId = generateUniqueJobId();
 
-    if(type.equals("INTERNAL")){
+    if (type.equals("INTERNAL")) {
       return new PrinterJob(printItems, "INTERNAL", "PrinterName_" + "INTERNAL", metadata, jobId);
     }
 
@@ -424,25 +425,41 @@ public class PrintJobHandler {
       boolean wrapWords = item.hasKey("wrapWords") ? item.getBoolean("wrapWords") : false;
       boolean fullWidth = item.hasKey("fullWidth") ? item.getBoolean("fullWidth") : false;
       double printerWidth = item.hasKey("printerWidth") ? item.getDouble("printerWidth") : 576;
-
+      int units = item.hasKey("units")?Math.min(item.getInt("units"), 16) : 6;
 
 
       String type = item.getString("type");
       switch (Objects.requireNonNull(type)) {
         case "TEXT":
-          PrintItem textItem = new PrintItem(PrintItem.Type.TEXT, text, fontWeight, alignment, feedLines, new ArrayList<>(), fontSize);
+          PrintItem textItem = new PrintItem.Builder(PrintItem.Type.TEXT)
+              .text(text)
+              .bold(fontWeight)
+              .alignment(alignment)
+              .lines(feedLines)
+              .columns(new ArrayList<>())
+              .fontSize(fontSize)
+              .units(units)
+              .build();
           textItem.setWordWrap(wrapWords);
           printItems.add(textItem);
           break;
         case "IMAGE":
 
-          Bitmap bitmap = !Objects.equals(imageUrl, "") ?  ImagePrinter.downloadImageAsBitmap(imageUrl) : null;
-          PrintItem imageItem = new PrintItem(PrintItem.Type.IMAGE, imageUrl, fontWeight, alignment, feedLines, new ArrayList<>(), fontSize);
+          Bitmap bitmap = !Objects.equals(imageUrl, "") ? ImagePrinter.downloadImageAsBitmap(imageUrl) : null;
+          PrintItem imageItem = new PrintItem.Builder(PrintItem.Type.IMAGE)
+              .text(imageUrl)
+              .bold(fontWeight)
+              .alignment(alignment)
+              .lines(feedLines)
+              .columns(new ArrayList<>())
+              .fontSize(fontSize)
+              .units(units)
+              .build();
           imageItem.setBitmap(bitmap);
           imageItem.setPrinterWidth((float) printerWidth);
 
 
-          if(fullWidth){
+          if (fullWidth) {
             imageItem.setWidthPercentage(100);
             imageItem.setFullWidth(true);
           } else {
@@ -453,10 +470,24 @@ public class PrintJobHandler {
           printItems.add(imageItem);
           break;
         case "QRCODE":
-          printItems.add(new PrintItem(PrintItem.Type.QRCODE, text, fontWeight, alignment, feedLines, new ArrayList<>(), fontSize));
+          printItems.add(new PrintItem.Builder(PrintItem.Type.QRCODE)
+              .text(text)
+              .bold(fontWeight)
+              .alignment(alignment)
+              .lines(feedLines)
+              .columns(new ArrayList<>())
+              .fontSize(fontSize)
+              .build());
           break;
         case "CASHBOX":
-          printItems.add(new PrintItem(PrintItem.Type.CASHBOX, "", false, TextAlignment.LEFT, 0, new ArrayList<>(), fontSize));
+          printItems.add(new PrintItem.Builder(PrintItem.Type.CASHBOX)
+              .text("")
+              .bold(false)
+              .alignment(TextAlignment.LEFT)
+              .lines(0)
+              .columns(new ArrayList<>())
+              .fontSize(fontSize)
+              .build());
           break;
         case "COLUMN":
           ReadableArray columnArray = item.getArray("columns");
@@ -464,7 +495,7 @@ public class PrintJobHandler {
           if (columnArray != null) {
             for (int j = 0; j < columnArray.size(); j++) {
               ReadableMap columnItem = columnArray.getMap(j);
-              String columnText = columnItem.hasKey("text") ?  columnItem.getString("text") : "";
+              String columnText = columnItem.hasKey("text") ? columnItem.getString("text") : "";
               int width = columnItem.hasKey("width") ? columnItem.getInt("width") : 10;
               boolean wrapWordsColumn = columnItem.hasKey("wrapWords") ? columnItem.getBoolean("wrapWords") : false;
 
@@ -473,13 +504,34 @@ public class PrintJobHandler {
               columns.add(new ColumnItem(columnAlignment, width, lines));
             }
           }
-          printItems.add(new PrintItem(PrintItem.Type.COLUMN, "", fontWeight, TextAlignment.LEFT, 0, columns, fontSize));
+          printItems.add(new PrintItem.Builder(PrintItem.Type.COLUMN)
+              .text("")
+              .bold(fontWeight)
+              .alignment(TextAlignment.LEFT)
+              .lines(0)
+              .columns(columns)
+              .fontSize(fontSize)
+              .build());
           break;
         case "FEED":
-          printItems.add(new PrintItem(PrintItem.Type.FEED, "", false, TextAlignment.LEFT, feedLines, new ArrayList<>(), fontSize));
+          printItems.add(new PrintItem.Builder(PrintItem.Type.FEED)
+              .text("")
+              .bold(false)
+              .alignment(TextAlignment.LEFT)
+              .lines(feedLines)
+              .columns(new ArrayList<>())
+              .fontSize(fontSize)
+              .build());
           break;
         case "CUT":
-          printItems.add(new PrintItem(PrintItem.Type.CUT, "", false, TextAlignment.LEFT, 0, new ArrayList<>(), fontSize));
+          printItems.add(new PrintItem.Builder(PrintItem.Type.CUT)
+              .text("")
+              .bold(false)
+              .alignment(TextAlignment.LEFT)
+              .lines(0)
+              .columns(new ArrayList<>())
+              .fontSize(fontSize)
+              .build());
           break;
       }
     }

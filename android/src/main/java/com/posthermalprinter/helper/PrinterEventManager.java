@@ -27,7 +27,7 @@ public class PrinterEventManager {
    * @param reactContext The ReactApplicationContext used for sending events to React Native.
    */
   @RequiresApi(api = Build.VERSION_CODES.N)
-  public PrinterEventManager(ReactApplicationContext reactContext){
+  public PrinterEventManager(ReactApplicationContext reactContext) {
     this.reactContext = reactContext;
     this.reportedUnreachablePrinters = ConcurrentHashMap.newKeySet();
   }

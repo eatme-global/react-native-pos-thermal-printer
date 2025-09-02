@@ -876,13 +876,17 @@
 
 +(NSData *)setQRcodeUnitsize:(int)n{
     
+    // Clamp size to practical range (1-16)
+    // Size 1-3: Small, Size 4-8: Medium, Size 9-16: Large
+    int clampedSize = MAX(1, MIN(n, 16));
+    
     Byte b[6]={0};
     b[0]=0x1D;
     b[1]=0x28;
     b[2]=0x6B;
     b[3]=0x30;
     b[4]=0x67;
-    b[5]=n;
+    b[5]=clampedSize;
     
     NSData *data=[NSData dataWithBytes:&b length: sizeof(b)];
     

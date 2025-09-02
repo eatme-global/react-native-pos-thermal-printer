@@ -1,4 +1,5 @@
 package com.posthermalprinter.util;
+
 import java.util.List;
 
 /**
