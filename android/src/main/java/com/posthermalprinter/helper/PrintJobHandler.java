@@ -425,36 +425,20 @@ public class PrintJobHandler {
       boolean wrapWords = item.hasKey("wrapWords") ? item.getBoolean("wrapWords") : false;
       boolean fullWidth = item.hasKey("fullWidth") ? item.getBoolean("fullWidth") : false;
       double printerWidth = item.hasKey("printerWidth") ? item.getDouble("printerWidth") : 576;
-      int units = item.hasKey("units")?Math.min(item.getInt("units"), 16) : 6;
+      int units = item.hasKey("units")? Math.min(item.getInt("units"), 16) : 6;
 
 
       String type = item.getString("type");
       switch (Objects.requireNonNull(type)) {
         case "TEXT":
-          PrintItem textItem = new PrintItem.Builder(PrintItem.Type.TEXT)
-              .text(text)
-              .bold(fontWeight)
-              .alignment(alignment)
-              .lines(feedLines)
-              .columns(new ArrayList<>())
-              .fontSize(fontSize)
-              .units(units)
-              .build();
+          PrintItem textItem = new PrintItem(PrintItem.Type.TEXT, text, fontWeight, alignment, feedLines, new ArrayList<>(), fontSize, units);
           textItem.setWordWrap(wrapWords);
           printItems.add(textItem);
           break;
         case "IMAGE":
 
           Bitmap bitmap = !Objects.equals(imageUrl, "") ? ImagePrinter.downloadImageAsBitmap(imageUrl) : null;
-          PrintItem imageItem = new PrintItem.Builder(PrintItem.Type.IMAGE)
-              .text(imageUrl)
-              .bold(fontWeight)
-              .alignment(alignment)
-              .lines(feedLines)
-              .columns(new ArrayList<>())
-              .fontSize(fontSize)
-              .units(units)
-              .build();
+          PrintItem imageItem = new PrintItem(PrintItem.Type.IMAGE, imageUrl, fontWeight, alignment, feedLines, new ArrayList<>(), fontSize, units);
           imageItem.setBitmap(bitmap);
           imageItem.setPrinterWidth((float) printerWidth);
 
@@ -470,24 +454,10 @@ public class PrintJobHandler {
           printItems.add(imageItem);
           break;
         case "QRCODE":
-          printItems.add(new PrintItem.Builder(PrintItem.Type.QRCODE)
-              .text(text)
-              .bold(fontWeight)
-              .alignment(alignment)
-              .lines(feedLines)
-              .columns(new ArrayList<>())
-              .fontSize(fontSize)
-              .build());
+          printItems.add(new PrintItem(PrintItem.Type.QRCODE, text, fontWeight, alignment, feedLines, new ArrayList<>(), fontSize, units));
           break;
         case "CASHBOX":
-          printItems.add(new PrintItem.Builder(PrintItem.Type.CASHBOX)
-              .text("")
-              .bold(false)
-              .alignment(TextAlignment.LEFT)
-              .lines(0)
-              .columns(new ArrayList<>())
-              .fontSize(fontSize)
-              .build());
+          printItems.add(new PrintItem(PrintItem.Type.CASHBOX, "", false, TextAlignment.LEFT, 0, new ArrayList<>(), fontSize, units));
           break;
         case "COLUMN":
           ReadableArray columnArray = item.getArray("columns");
@@ -504,34 +474,13 @@ public class PrintJobHandler {
               columns.add(new ColumnItem(columnAlignment, width, lines));
             }
           }
-          printItems.add(new PrintItem.Builder(PrintItem.Type.COLUMN)
-              .text("")
-              .bold(fontWeight)
-              .alignment(TextAlignment.LEFT)
-              .lines(0)
-              .columns(columns)
-              .fontSize(fontSize)
-              .build());
+          printItems.add(new PrintItem(PrintItem.Type.COLUMN, "", fontWeight, TextAlignment.LEFT, 0, columns, fontSize, units));
           break;
         case "FEED":
-          printItems.add(new PrintItem.Builder(PrintItem.Type.FEED)
-              .text("")
-              .bold(false)
-              .alignment(TextAlignment.LEFT)
-              .lines(feedLines)
-              .columns(new ArrayList<>())
-              .fontSize(fontSize)
-              .build());
+          printItems.add(new PrintItem(PrintItem.Type.FEED, "", false, TextAlignment.LEFT, feedLines, new ArrayList<>(), fontSize, units));
           break;
         case "CUT":
-          printItems.add(new PrintItem.Builder(PrintItem.Type.CUT)
-              .text("")
-              .bold(false)
-              .alignment(TextAlignment.LEFT)
-              .lines(0)
-              .columns(new ArrayList<>())
-              .fontSize(fontSize)
-              .build());
+          printItems.add(new PrintItem(PrintItem.Type.CUT, "", false, TextAlignment.LEFT, 0, new ArrayList<>(), fontSize, units));
           break;
       }
     }
