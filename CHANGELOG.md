@@ -1,3 +1,10 @@
+## [0.10.1](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.10.0...v0.10.1) (2025-09-02)
+
+
+### Bug Fixes
+
+* placeholder comment to increase the version ([ef00371](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/ef0037193a0f6722d01c325f879316ef84964342))
+
 # [0.10.0](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.9.3...v0.10.0) (2025-09-02)
 
 
