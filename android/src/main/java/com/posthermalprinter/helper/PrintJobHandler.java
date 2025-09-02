@@ -482,6 +482,7 @@ public class PrintJobHandler {
         case "CUT":
           printItems.add(new PrintItem(PrintItem.Type.CUT, "", false, TextAlignment.LEFT, 0, new ArrayList<>(), fontSize, units));
           break;
+          
       }
     }
 
