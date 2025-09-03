@@ -106,7 +106,7 @@ export interface QrCodePrintJobRow {
   type: PrintJobRowType.QRCODE;
   text: string;
   alignment?: PrintAlignment;
-  unit?: number;
+  size?: number;
 }
 
 export interface CashboxPrintJobRow {

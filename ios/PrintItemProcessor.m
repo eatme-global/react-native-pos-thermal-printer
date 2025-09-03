@@ -88,7 +88,7 @@
   TextAlignment alignment = [HelperFunctions parseAlignment:item[@"alignment"] ?: @"LEFT"];
   NSInteger feedLines = [item[@"lines"] integerValue] ?: 0;
   FontSize fontSize = [HelperFunctions parseFontSize:item[@"fontSize"] ?: @"NORMAL"];
-  NSInteger units = [item[@"unit"] integerValue] ?: 6;
+  NSInteger units = [item[@"size"] integerValue] ?: 6;
   BOOL wrapWords = [item[@"wrapWords"] boolValue];
   
   PrintItemType printItemType;

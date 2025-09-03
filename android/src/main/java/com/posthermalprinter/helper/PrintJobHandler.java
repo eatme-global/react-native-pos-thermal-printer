@@ -425,7 +425,7 @@ public class PrintJobHandler {
       boolean wrapWords = item.hasKey("wrapWords") ? item.getBoolean("wrapWords") : false;
       boolean fullWidth = item.hasKey("fullWidth") ? item.getBoolean("fullWidth") : false;
       double printerWidth = item.hasKey("printerWidth") ? item.getDouble("printerWidth") : 576;
-      int units = item.hasKey("units")? Math.min(item.getInt("units"), 16) : 6;
+      int units = item.hasKey("size")? Math.min(item.getInt("size"), 16) : 6;
 
 
       String type = item.getString("type");
@@ -482,6 +482,7 @@ public class PrintJobHandler {
         case "CUT":
           printItems.add(new PrintItem(PrintItem.Type.CUT, "", false, TextAlignment.LEFT, 0, new ArrayList<>(), fontSize, units));
           break;
+
       }
     }
 
