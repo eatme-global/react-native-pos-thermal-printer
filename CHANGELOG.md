@@ -1,3 +1,10 @@
+## [0.10.2](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.10.1...v0.10.2) (2025-09-03)
+
+
+### Bug Fixes
+
+* stabilize the type of qr code size type ([c697f06](https://github.com/eatme-global/react-native-pos-thermal-printer/commit/c697f06395855e7add058b5471f298f3999079b1))
+
 ## [0.10.1](https://github.com/eatme-global/react-native-pos-thermal-printer/compare/v0.10.0...v0.10.1) (2025-09-02)
 
 
