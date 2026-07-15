@@ -1,0 +1,121 @@
+# .mailmap — canonical contributor identities for all eatme-global repositories
+# Generated 2026-07-15 from the IP-audit contributor register (contributors.csv)
+# Format: Canonical Name <canonical@email> <alias@email>
+# Rule: everyone canonicalized to firstname.l@dinetap.com.
+# NOTE: some @dinetap.com addresses below are newly assigned (marked *) —
+# confirm they match the addresses actually issued before committing.
+
+# ── Sivantha Paranavithana (6 identities) ──────────────────────────────
+Sivantha Paranavithana <sivantha.p@dinetap.com>
+Sivantha Paranavithana <sivantha.p@dinetap.com> <sivantha.p@eatmeglobal.com>
+Sivantha Paranavithana <sivantha.p@dinetap.com> <sivantha.paranavithana@gmail.com>
+Sivantha Paranavithana <sivantha.p@dinetap.com> <sivatha.p@dinetap.com>
+Sivantha Paranavithana <sivantha.p@dinetap.com> <sivantha@sivanthas-macbook-pro.local>
+Sivantha Paranavithana <sivantha.p@dinetap.com> <sivanthaparanavithana@macbookpro.lan>
+
+# ── Mohamed Sihan (4 identities, incl. one broken "=" email) * ──────────
+Mohamed Sihan <mohamed.s@dinetap.com>
+Mohamed Sihan <mohamed.s@dinetap.com> <mohamed.s@eatmeglobal.com>
+Mohamed Sihan <mohamed.s@dinetap.com> <167sihan@gmail.com>
+Mohamed Sihan <mohamed.s@dinetap.com> <39284618+mshihan@users.noreply.github.com>
+Mohamed Sihan <mohamed.s@dinetap.com> <=>
+
+# ── Anupa Perera ────────────────────────────────────────────────────────
+Anupa Perera <anupa.p@dinetap.com>
+Anupa Perera <anupa.p@dinetap.com> <anupaxtream@gmail.com>
+Anupa Perera <anupa.p@dinetap.com> <121441837+anupa-perera@users.noreply.github.com>
+
+# ── Hiruni Yasara Perera ────────────────────────────────────────────────
+Hiruni Yasara Perera <hiruni.p@dinetap.com>
+Hiruni Yasara Perera <hiruni.p@dinetap.com> <h.y.perera2004@gmail.com>
+Hiruni Yasara Perera <hiruni.p@dinetap.com> <hiruni.intern.emg@gmail.com>
+
+# ── Saumya Kumarasinghe (4 identities) ─────────────────────────────────
+Saumya Kumarasinghe <saumya.k@dinetap.com>
+Saumya Kumarasinghe <saumya.k@dinetap.com> <saumya.20191250@iit.ac.lk>
+Saumya Kumarasinghe <saumya.k@dinetap.com> <saumya.intern.emg@gmail.com>
+Saumya Kumarasinghe <saumya.k@dinetap.com> <94886034+saumyaakumarasinghe@users.noreply.github.com>
+
+# ── Oshen Dikkumbura ────────────────────────────────────────────────────
+Oshen Dikkumbura <oshen.d@dinetap.com>
+Oshen Dikkumbura <oshen.d@dinetap.com> <70379069+oshen1998@users.noreply.github.com>
+
+# ── Naveen Selvam ───────────────────────────────────────────────────────
+Naveen Selvam <naveen.s@dinetap.com>
+Naveen Selvam <naveen.s@dinetap.com> <naveen.s@eatmeglobal.com>
+Naveen Selvam <naveen.s@dinetap.com> <40033651+naveenselvam03@users.noreply.github.com>
+
+# ── Naveed Sheriffdeen * ─────────────────────────────────────────────────
+Naveed Sheriffdeen <naveed.s@dinetap.com>
+Naveed Sheriffdeen <naveed.s@dinetap.com> <naveed.s@eatmeglobal.com>
+Naveed Sheriffdeen <naveed.s@dinetap.com> <naveedsheriffdeen@gmail.com>
+
+# ── Nishad Sheriffdeen (distinct person from Naveed) * ───────────────────
+Nishad Sheriffdeen <nishad.s@dinetap.com>
+Nishad Sheriffdeen <nishad.s@dinetap.com> <nishad.s@eatmeglobal.com>
+Nishad Sheriffdeen <nishad.s@dinetap.com> <nishadsheriffdeen@gmail.com>
+
+# ── Nusry Nizam * ────────────────────────────────────────────────────────
+Nusry Nizam <nusry.n@dinetap.com>
+Nusry Nizam <nusry.n@dinetap.com> <nusry.n@eatmeglobal.com>
+Nusry Nizam <nusry.n@dinetap.com> <nusrynizam@gmail.com>
+
+# ── Janani Bodaragama * ──────────────────────────────────────────────────
+Janani Bodaragama <janani.b@dinetap.com>
+Janani Bodaragama <janani.b@dinetap.com> <janani.b@eatmeglobal.com>
+Janani Bodaragama <janani.b@dinetap.com> <jananibodaragama@gmail.com>
+Janani Bodaragama <janani.b@dinetap.com> <32632854+123janani@users.noreply.github.com>
+
+# ── Layan Jayasinghe * ───────────────────────────────────────────────────
+Layan Jayasinghe <layan.j@dinetap.com>
+Layan Jayasinghe <layan.j@dinetap.com> <layan.j@eatmeglobal.com>
+Layan Jayasinghe <layan.j@dinetap.com> <layanjayasinghe2@gmail.com>
+
+# ── Odhith Senevirathne * ────────────────────────────────────────────────
+Odhith Senevirathne <odhith.s@dinetap.com>
+Odhith Senevirathne <odhith.s@dinetap.com> <odhith.s@eatmeglobal.com>
+Odhith Senevirathne <odhith.s@dinetap.com> <odhith.sen@gmail.com>
+
+# ── Adithya Rathnayake * ─────────────────────────────────────────────────
+Adithya Rathnayake <adithya.r@dinetap.com>
+Adithya Rathnayake <adithya.r@dinetap.com> <adithyarathnayake98511@gmail.com>
+Adithya Rathnayake <adithya.r@dinetap.com> <107671477+adithya98511@users.noreply.github.com>
+
+# ── Nalinda Dissanayake (4 identities; x@nalinda.dev assumed his — confirm) * ─
+Nalinda Dissanayake <nalinda.d@dinetap.com>
+Nalinda Dissanayake <nalinda.d@dinetap.com> <nalindard@gmail.com>
+Nalinda Dissanayake <nalinda.d@dinetap.com> <x@nalinda.dev>
+Nalinda Dissanayake <nalinda.d@dinetap.com> <111441499+nalindard@users.noreply.github.com>
+Nalinda Dissanayake <nalinda.d@dinetap.com> <nalinda.intern.emg@gmail.com>
+
+# ── Sanjana Solanga Arachchi * ───────────────────────────────────────────
+Sanjana Solanga Arachchi <sanjana.s@dinetap.com>
+Sanjana Solanga Arachchi <sanjana.s@dinetap.com> <sanjanasolangaarachchi@gmail.com>
+Sanjana Solanga Arachchi <sanjana.s@dinetap.com> <sanjana.intern.emg@gmail.com>
+
+# ── Thisuri Fonseka * ────────────────────────────────────────────────────
+Thisuri Fonseka <thisuri.f@dinetap.com>
+Thisuri Fonseka <thisuri.f@dinetap.com> <thisurifonseka@gmail.com>
+Thisuri Fonseka <thisuri.f@dinetap.com> <145017868+thisuri12@users.noreply.github.com>
+
+# ── Fathima Shabna Ilmi * ────────────────────────────────────────────────
+Fathima Shabna Ilmi <fathima.s@dinetap.com>
+Fathima Shabna Ilmi <fathima.s@dinetap.com> <fathima.20230079@iit.ac.lk>
+Fathima Shabna Ilmi <fathima.s@dinetap.com> <shabna.intern.dinetap@gmail.com>
+
+# ── M Jenoshanan * ───────────────────────────────────────────────────────
+M Jenoshanan <jenoshanan.m@dinetap.com>
+M Jenoshanan <jenoshanan.m@dinetap.com> <jenoshanan30@gmail.com>
+M Jenoshanan <jenoshanan.m@dinetap.com> <78122270+jenoshanan30@users.noreply.github.com>
+
+# ── Single-identity contributors * ───────────────────────────────────────
+Damith Samarasinghe <damith.s@dinetap.com> <dmthsamarasinghe@gmail.com>
+Mohamed Nabeel <nabeel.m@dinetap.com> <mohamednabeel0170@gmail.com>
+Anjana Abeyrathne <anjana.a@dinetap.com> <anjanaeranga123@gmail.com>
+
+# ═══ BOTS / AUTOMATION ════════════════════════════════════════════════════
+git-bot <devops@dinetap.com>
+git-bot <devops@dinetap.com> <devops@eatmeglobal.com>
+expo[bot] <102182381+expo[bot]@users.noreply.github.com> <expo-bot@users.noreply.github.com>
+# Left as-is: semantic-release-bot, dependabot[bot], copilot-swe-agent[bot],
+# snyk-bot, tembo[bot], gitbutler@gitbutler.com (tool identity, not a person)
